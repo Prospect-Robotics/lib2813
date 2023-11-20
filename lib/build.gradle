@@ -48,11 +48,11 @@ def getArtifactVersion = { ->
 			standardOutput = output
 		}
 		def hash = output.toString().trim()
-		// if not on main, return in this format: version.hash-branch
+		// if not on main, return in this format: version-hash-branch
 		// version = latest version number (with dots)
 		// hash = latest commit hash
 		// branch = current branch name
-		return tag + "." + hash + "-" + branch
+		return tag + "-" + hash + "-" + branch
 	}
 }
 version = getArtifactVersion()
