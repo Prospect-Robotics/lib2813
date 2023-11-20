@@ -41,7 +41,7 @@ public class InputValidation {
 	}
 	/**
 	 * Checks if the input is a valid can id, and throws an exception if it isn't
-	 * @param id the can id, inbetween 0 and 62, inclusive
+	 * @param id the can id, between 0 and 62, inclusive
 	 * @return the {@code id}
 	 * @throws InvalidCanIdException if the id is invalid
 	 */

@@ -16,4 +16,15 @@ public class InvalidCanIdException extends RuntimeException {
 	public int getCanId() {
 		return canId;
 	}
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof InvalidCanIdException))
+			return false;
+		InvalidCanIdException other = (InvalidCanIdException) o;
+		return getMessage().equals(other.getMessage());
+	}
+	@Override
+	public int hashCode() {
+		return getMessage().hashCode();
+	}
 }

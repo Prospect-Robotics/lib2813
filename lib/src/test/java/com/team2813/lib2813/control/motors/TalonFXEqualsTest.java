@@ -1,14 +1,11 @@
 package com.team2813.lib2813.control.motors;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
-
-import edu.wpi.first.hal.HAL;
 
 public class TalonFXEqualsTest {
 	@Test
