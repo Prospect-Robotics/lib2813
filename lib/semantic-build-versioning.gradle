@@ -1,10 +1,5 @@
 startingVersion = '0.1.1'
 
-matching {
-    major = 0
-    minor = 0
-}
-
 tagPattern = ~/^\d++\.\d++\.\d++/
 
 preRelease {
