@@ -5,6 +5,8 @@ matching {
     minor = 0
 }
 
+tagPattern = ~/^\d++\.\d++\.\d++/
+
 preRelease {
     startingVersion = 'alpha.0'
     pattern = /alpha/
