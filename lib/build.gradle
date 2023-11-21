@@ -18,44 +18,7 @@ tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
 }
 
-def getArtifactVersion = { ->
-	def output = new ByteArrayOutputStream()
-	// excecute git rev-parse --abbref-ref HEAD
-	// (gets branch name)
-	exec {
-		commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
-		standardOutput = output
-	}
-	def branch = output.toString().trim()
-
-	// excecute git describe --abbrev=0 --tags
-	// (gets latest tag, which would be the latest version number)
-	output = new ByteArrayOutputStream()
-	exec {
-		commandLine 'git', 'describe', '--abbrev=0', '--tags'
-		standardOutput = output
-	}
-	def tag = output.toString().trim()
-	if (branch == "main") {
-		// if on main, return the latest version number
-		return tag;
-	} else {
-		output = new ByteArrayOutputStream()
-		// excecutes git rev-parse --short HEAD
-		// (gets the short version of the latest commit hash)
-		exec {
-			commandLine 'git', 'rev-parse', '--short', 'HEAD'
-			standardOutput = output
-		}
-		def hash = output.toString().trim()
-		// if not on main, return in this format: version-hash-branch
-		// version = latest version number (with dots)
-		// hash = latest commit hash
-		// branch = current branch name
-		return tag + "-" + hash + "-" + branch
-	}
-}
-version = getArtifactVersion()
+version = rootProject.version
 
 repositories {
     // Use Maven Central for resolving dependencies.
