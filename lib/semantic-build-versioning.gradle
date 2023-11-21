@@ -1,7 +1,5 @@
 startingVersion = '0.1.1'
 
-tagPattern = ~/^\d++\.\d++\.\d++/
-
 preRelease {
     startingVersion = 'alpha.0'
     pattern = /alpha/
