@@ -98,6 +98,10 @@ tasks.named('jar') {
     }
 }
 
+javadoc {
+	options.tags = [ "apiNote:a:Api Note:", "implSpec:a:Implementation Requirements:" ]
+}
+
 task sourceJar(type: Jar) {
 	from sourceSets.main.allJava
 	archiveClassifier = "sources"

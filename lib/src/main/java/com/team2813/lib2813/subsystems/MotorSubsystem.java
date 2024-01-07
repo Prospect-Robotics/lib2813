@@ -30,7 +30,6 @@ public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position
 	/**
 	 * A configuration for a MotorSubsystem
 	 * 
-	 * @param <T> The subclassed type of MotorSubsystemConfiguration
 	 */
 	public static class MotorSubsystemConfiguration {
 		/**

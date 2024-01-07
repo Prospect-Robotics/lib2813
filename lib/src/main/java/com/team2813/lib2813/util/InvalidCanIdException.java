@@ -2,7 +2,14 @@ package com.team2813.lib2813.util;
 
 import java.lang.RuntimeException;
 
+/**
+ * Signifies that a {@index CAN} Id was given to a function, and it was invalid
+ */
 public class InvalidCanIdException extends RuntimeException {
+	/**
+	 * The CAN id that is invalid
+	 * @serial an integer that is not between 0 and 62
+	 */
 	private int canId;
 	public InvalidCanIdException(int canId) {
 		super(String.format(
