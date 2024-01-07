@@ -1,4 +1,4 @@
-package com.team2813.lib2813.subsystems;
+package com.team2813.lib2813.subsystems.lightshow;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,6 +18,17 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public abstract class Lightshow extends SubsystemBase {
+	/**
+	 * A static state that signifies that the lights should be off, that is always applied
+	 */
+	protected static final State off = new State() {
+		public Color color() {
+			return new Color(0, 0, 0);
+		};
+		public boolean apply() {
+			return true;
+		};
+	};
 	protected Set<State> states = new HashSet<>();
 	protected Optional<State> defaultState;
 	protected Consumer<Color> colorConsumer;
@@ -26,12 +37,16 @@ public abstract class Lightshow extends SubsystemBase {
 	 * Creates a new Lightshow subsystem. Uses the given {@code enumClass} to get a
 	 * list of {@link State}s to use.
 	 * 
-	 * @param <T>
+	 * @param <T> The type of an enum that implements state
 	 * @param enumClass
 	 * @param colorConsumer
 	 */
 	protected <T extends Enum<T> & State> Lightshow(Class<T> enumClass, Consumer<Color> colorConsumer) {
 		addStates(enumClass);
+	}
+
+	protected Lightshow(Set<State> states, Consumer<Color> colorConsumer) {
+		addStates(states);
 	}
 
 	public final <T extends Enum<T> & State> void addStates(Class<T> enumClass) {
@@ -40,6 +55,10 @@ public abstract class Lightshow extends SubsystemBase {
 		if (defaultState.isEmpty()) {
 			resolveDefault(enumClass);
 		}
+	}
+
+	public final void addStates(Set<State> states) {
+		this.states.addAll(states);
 	}
 
 	/**
@@ -126,6 +145,10 @@ public abstract class Lightshow extends SubsystemBase {
 			colorConsumer.accept(color.get());
 		}
 	}
+	
+	public void setDefaultState(State defaultState) {
+		this.defaultState = Optional.of(defaultState);
+	}
 
 	/**
 	 * Marks an enum constant as being the default state.
@@ -134,21 +157,5 @@ public abstract class Lightshow extends SubsystemBase {
 	@Target(ElementType.FIELD)
 	public static @interface Default {
 
-	}
-
-	public static interface State {
-		/**
-		 * gets the color of this State.
-		 * 
-		 * @return the color of this State
-		 */
-		public Color color();
-
-		/**
-		 * Checks if the current state should be applied
-		 * 
-		 * @return {@code true} if the state should be applied
-		 */
-		public boolean apply();
 	}
 }
