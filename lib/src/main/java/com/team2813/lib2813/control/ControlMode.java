@@ -1,7 +1,7 @@
 package com.team2813.lib2813.control;
 
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
-import com.revrobotics.CANSparkMax.ControlType;
+import com.revrobotics.CANSparkBase.ControlType;
 
 public enum ControlMode {
 	DUTY_CYCLE(TalonFXControlMode.PercentOutput, ControlType.kDutyCycle),
