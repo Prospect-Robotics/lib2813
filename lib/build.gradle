@@ -11,7 +11,6 @@ plugins {
     id 'java-library'
 	id "edu.wpi.first.GradleRIO" version "2024.1.1"
 	id 'maven-publish'
-	id "idea"
 }
 
 java {
@@ -46,8 +45,6 @@ dependencies {
     nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
-
-	implementation 'edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:2023.4.3'
 
     testImplementation 'junit:junit:4.13.2'
 }

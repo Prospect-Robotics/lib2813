@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.PIDSubsystem;
  * 
  * @param <T> the {@link MotorSubsystem.Position} type to use positions from. must be an enum
  */
-public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position> extends PIDSubsystem {
+public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position> extends PIDSubsystem implements Motor {
 
 	protected final Motor motor;
 	protected final Encoder encoder;
@@ -143,6 +143,11 @@ public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position
 		setSetpoint(setpoint.getPos());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>Additionally, this method disables PID control of the subsystem
+	 */
+	@Override
 	public void set(ControlMode mode, double demand, double feedForward) {
 		if (isEnabled()) {
 			disable();
@@ -150,6 +155,11 @@ public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position
 		motor.set(mode, demand, feedForward);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>Additionally, this method disables PID control of the subsystem
+	 */
+	@Override
 	public void set(ControlMode mode, double demand) {
 		if (isEnabled()) {
 			disable();
