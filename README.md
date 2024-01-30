@@ -23,7 +23,7 @@ downloadDepsPreemptively.dependsOn gradle.includedBuild("lib2813").task(":lib:ja
 ```
 
 ## Fixing vscode jank
-As of version 1.85.1, vscode doesn't work properly with gradle composite builds without the old buildServer. To use the old buildServer, add the following line of code
+As of version 1.85.1, vscode doesn't work properly with gradle composite builds without the old buildServer. To use the old buildServer, add the following line
 to your settings.json
 ```
 "java.gradle.buildServer.enabled": "off",
