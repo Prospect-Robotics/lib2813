@@ -1,6 +1,8 @@
 ## adding submodule
 In order to use, go to your WPILib project directory (the inner one, where the build.gradle file is), and run the command
-`git submodule add https://github.com/Prospect-Robotics/lib2813`.
+```
+git submodule add https://github.com/Prospect-Robotics/lib2813
+```
 ## adding submodule to gradle
 The following line needs to be added to your settings.gradle to make the lib usable:
 ```
