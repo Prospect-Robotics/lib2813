@@ -34,7 +34,7 @@ when gradle builds fine.
 ## Cloning a repository with a git submodule
 When cloning a repository with a git submodule, git will not automatically get the files in the submodules. in order to do this, run the command
 ```
-git submodule add --init --recursive
+git submodule update --init --recursive
 ```
 This command will recursivly initialize all submodules.
 
