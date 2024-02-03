@@ -31,7 +31,7 @@ public class InvertTypeTest {
 	public void fromPhoenixInvertTest() {
 		for (InvertType v : InvertType.rotationValues) {
 			InvertedValue val = v.phoenixInvert().get();
-			assertEquals(v, InvertType.fromPhoenixInvert(val));
+			assertEquals(v, InvertType.fromPhoenixInvert(val).orElse(null));
 		}
 	}
 
@@ -39,7 +39,7 @@ public class InvertTypeTest {
 	public void fromSparkMaxInvertTest() {
 		for (InvertType v : InvertType.rotationValues) {
 			boolean val = v.sparkMaxInvert().get();
-			assertEquals(v, InvertType.fromSparkMaxInvert(val));
+			assertEquals(v, InvertType.fromSparkMaxInvert(val).orElse(null));
 		}
 	}
 }

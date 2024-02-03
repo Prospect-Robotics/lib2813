@@ -12,8 +12,8 @@ import java.util.stream.Stream;
 import com.ctre.phoenix6.signals.InvertedValue;
 
 public enum InvertType {
-	CLOCKWISE,
-	COUNTER_CLOCKWISE,
+	CLOCKWISE(InvertedValue.Clockwise_Positive, false),
+	COUNTER_CLOCKWISE(InvertedValue.CounterClockwise_Positive, true),
 	FOLLOW_MASTER,
 	OPPOSE_MASTER;
 
