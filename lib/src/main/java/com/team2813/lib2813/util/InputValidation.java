@@ -18,7 +18,7 @@ public class InputValidation {
 	 * @throws RuntimeException when actual is not between lower and upper, based on natural ordering.
 	 * The exception thrown is provided by {@code throwable}
 	 */
-	static <T extends Comparable<T>> void checkBounds(T lower, T upper, T actual, Function<? super T, RuntimeException> throwable) {
+	static <T extends Comparable<T>> void checkBounds(T lower, T upper, T actual, Function<? super T, ? extends RuntimeException> throwable) {
 		assert lower.compareTo(upper) <= 0;
 		if (!(lower.compareTo(actual) <= 0 && actual.compareTo(upper) <= 0)) {
 			throw throwable.apply(actual);
@@ -33,7 +33,7 @@ public class InputValidation {
 	 * @throws RuntimeException when the actual is not inbetween the bounds.
 	 * exception is provided by {@code throwable}
 	 */
-	static void checkBounds(int lower, int upper, int actual, IntFunction<RuntimeException> throwable) {
+	static void checkBounds(int lower, int upper, int actual, IntFunction<? extends RuntimeException> throwable) {
 		assert lower <= upper;
 		if (!(lower <= actual && actual <= upper)) {
 			throw throwable.apply(actual);
