@@ -20,6 +20,10 @@ public enum InvertType {
 	private final Optional<InvertedValue> phoenixInvert;
 	private final Optional<Boolean> sparkMaxInvert;
 
+	/**
+	 * A set of all {@link InvertType}s that have a phoenix and spark max invert.
+	 * Anything that isn't in this set is for motor following
+	 */
 	public static final Set<InvertType> rotationValues = Collections.unmodifiableSet(
 			EnumSet.of(CLOCKWISE, COUNTER_CLOCKWISE));
 
