@@ -13,9 +13,9 @@ import edu.wpi.first.wpilibj2.command.PIDSubsystem;
 /**
  * Defines PID controll over a motor, with values specified by an encoder
  * 
- * @param <T> the {@link MotorSubsystem.Position} type to use positions from. must be an enum
+ * @param <T> the {@link MotorSubsystem.Position} type to use positions from.
  */
-public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position> extends PIDSubsystem implements Motor {
+public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends PIDSubsystem implements Motor {
 
 	protected final Motor motor;
 	protected final Encoder encoder;
