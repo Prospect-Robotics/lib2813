@@ -95,7 +95,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		 * @param d the derivative
 		 * @return {@code this} for chaining
 		 */
-		public MotorSubsystemConfiguration PID(int p, int i, int d) {
+		public MotorSubsystemConfiguration PID(double p, double i, double d) {
 			controller.setPID(p, i, d);
 			return this;
 		}
@@ -113,6 +113,11 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 
 		public MotorSubsystemConfiguration startingPosition(Position startingPosition) {
 			this.startingPosition = startingPosition.getPos();
+			return this;
+		}
+
+		public MotorSubsystemConfiguration acceptableError(double error) {
+			this.acceptableError = error;
 			return this;
 		}
 	}
