@@ -10,6 +10,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.controls.StrictFollower;
@@ -116,7 +117,9 @@ public class TalonFXWrapper implements PIDMotor {
 				motor.setControl(mm);
 				break;
 			default:
-				motor.set(demand);
+				DutyCycleOut dc = new DutyCycleOut(demand);
+				dc.OverrideBrakeDurNeutral = breakMode;
+				motor.setControl(dc);
 				break;
 		}
 	}
@@ -149,6 +152,15 @@ public class TalonFXWrapper implements PIDMotor {
 	 */
 	private final TalonFX motor;
 	private final DeviceInformation information;
+	private boolean breakMode = false;
+
+	public boolean getBreakMode() {
+		return breakMode;
+	}
+
+	public void setBreakMode(boolean breakMode) {
+		this.breakMode = breakMode;
+	}
 
 	@Override
 	public void configPIDF(int slot, double p, double i, double d, double f) {
