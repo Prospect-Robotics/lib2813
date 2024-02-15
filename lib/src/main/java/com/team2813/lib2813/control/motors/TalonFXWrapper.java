@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -16,6 +17,7 @@ import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.control.InvertType;
@@ -118,7 +120,6 @@ public class TalonFXWrapper implements PIDMotor {
 				break;
 			default:
 				DutyCycleOut dc = new DutyCycleOut(demand);
-				dc.OverrideBrakeDurNeutral = breakMode;
 				motor.setControl(dc);
 				break;
 		}
@@ -152,14 +153,10 @@ public class TalonFXWrapper implements PIDMotor {
 	 */
 	private final TalonFX motor;
 	private final DeviceInformation information;
-	private boolean breakMode = false;
 
-	public boolean getBreakMode() {
-		return breakMode;
-	}
 
-	public void setBreakMode(boolean breakMode) {
-		this.breakMode = breakMode;
+	public void setNeutralMode(NeutralModeValue mode) {
+		motor.setNeutralMode(mode);
 	}
 
 	@Override
