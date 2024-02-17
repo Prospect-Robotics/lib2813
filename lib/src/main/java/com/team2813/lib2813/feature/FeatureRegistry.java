@@ -1,13 +1,5 @@
 package com.team2813.lib2813.feature;
 
-import com.team2813.lib2813.feature.FeatureIdentifier.FeatureBehavior;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,6 +9,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.team2813.lib2813.feature.FeatureIdentifier.FeatureBehavior;
+
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /** Container for features that can be enabled at runtime. */
 final class FeatureRegistry {
@@ -113,6 +117,8 @@ final class FeatureRegistry {
         private final String name;
         private volatile boolean enabled;
         private final boolean alwaysDisabled;
+		private final SimpleWidget widget;
+		private static final ShuffleboardTab tab = Shuffleboard.getTab("Features");
 
         Feature(FeatureIdentifier id) {
             String name = String.format("%s.%s", id.getClass().getName(), id.name());
@@ -125,13 +131,22 @@ final class FeatureRegistry {
             this.enabled = (behavior == FeatureBehavior.INITIALLY_ENABLED);
             this.alwaysDisabled = (
                     behavior == null || behavior == FeatureBehavior.ALWAYS_DISABLED);
+			if (alwaysDisabled) {
+				tab.addBoolean(name, () -> false).withWidget(BuiltInWidgets.kBooleanBox);
+				widget = null;
+			} else {
+				widget = tab.add(name, enabled);
+				widget.withWidget(BuiltInWidgets.kToggleSwitch);
+			}
+			
+            // tab.add(name, this);
 
             System.out.printf("Adding feature %s to Shuffleboard%n", name);
             Shuffleboard.getTab("Features").add(name, this);
         }
 
         boolean enabled() {
-            return enabled;
+            return !alwaysDisabled && widget.getEntry().getBoolean(false);
         }
 
         void enable(boolean enabled) {
