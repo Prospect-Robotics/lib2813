@@ -35,6 +35,8 @@ repositories {
 }
 
 dependencies {
+	implementation project(':limelight')
+
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 

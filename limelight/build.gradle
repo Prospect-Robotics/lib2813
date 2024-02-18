@@ -1,0 +1,22 @@
+plugins {
+	id 'java-library'
+	id "edu.wpi.first.GradleRIO" version "2024.1.1"
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation wpi.java.deps.wpilib()
+	testImplementation 'junit:junit:4.13.2'
+}
+
+tasks.named('test') {
+	useJUnit();
+}
