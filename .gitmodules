@@ -1,0 +1,3 @@
+[submodule "limelightlib-wpijava"]
+	path = limelightlib-wpijava
+	url = https://github.com/LimelightVision/limelightlib-wpijava
