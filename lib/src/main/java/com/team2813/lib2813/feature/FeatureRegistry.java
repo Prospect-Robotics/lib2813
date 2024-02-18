@@ -4,7 +4,9 @@ import com.team2813.lib2813.feature.FeatureIdentifier.FeatureBehavior;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /** Container for features that can be enabled at runtime. */
@@ -50,12 +53,14 @@ final class FeatureRegistry {
         return () -> features.stream().allMatch(Feature::enabled);
     }
 
-    <T extends Enum<T> & FeatureIdentifier> BooleanSupplier asSupplier(Collection<T> features) {
-        if (features == null || features.stream().anyMatch(Objects::isNull)) {
+    <T extends Enum<T> & FeatureIdentifier> BooleanSupplier asSupplier(Collection<T> featureIdentifiers) {
+        if (featureIdentifiers == null || featureIdentifiers.stream().anyMatch(Objects::isNull)) {
             return () -> false;
         }
 
-        return () -> features.stream().allMatch(FeatureIdentifier::enabled);
+        List<Feature> features = featureIdentifiers.stream().map(this::getFeature).collect(Collectors.toList());
+
+        return () -> features.stream().allMatch(Feature::enabled);
     }
 
     @SafeVarargs
@@ -76,7 +81,32 @@ final class FeatureRegistry {
     }
 
     private Feature getFeature(FeatureIdentifier id) {
-        return registeredFeatures.computeIfAbsent(id, Feature::new);
+        int registeredFeatureCount = registeredFeatures.size();
+        Feature feature = registeredFeatures.computeIfAbsent(id, Feature::new);
+        if (registeredFeatures.size() > registeredFeatureCount) {
+            if (RobotBase.isSimulation()) {
+                updateSmartDashboard();
+            }
+        }
+        return feature;
+    }
+
+    private synchronized void updateSmartDashboard() {
+        System.out.println("Updating Features in SmartDashboard");
+        // The below should work, but I do not see it in SmartDashboard.
+        SmartDashboard.putData("Features", new SmartDashboardSendable());
+    }
+
+    private class SmartDashboardSendable implements Sendable {
+        @Override
+        public void initSendable(SendableBuilder builder) {
+            builder.setSmartDashboardType("Feature List");
+            Map<FeatureIdentifier, Feature> features = FeatureRegistry.this.registeredFeatures;
+            System.out.printf("Adding %d features to Shuffleboard%n", features.size());
+            builder.addStringArrayProperty(
+                    "options", () -> features.keySet().stream().map(FeatureIdentifier::name).toArray(String[]::new),
+                    null);
+        }
     }
 
     private static final class Feature implements Sendable {
@@ -96,6 +126,7 @@ final class FeatureRegistry {
             this.alwaysDisabled = (
                     behavior == null || behavior == FeatureBehavior.ALWAYS_DISABLED);
 
+            System.out.printf("Adding feature %s to Shuffleboard%n", name);
             Shuffleboard.getTab("Features").add(name, this);
         }
 
@@ -116,6 +147,7 @@ final class FeatureRegistry {
             this.enabled = enabled;
         }
 
+        @Override
         public void initSendable(SendableBuilder builder) {
             builder.setSmartDashboardType("Feature");
             builder.publishConstString(".name", name);
