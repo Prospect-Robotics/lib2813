@@ -16,6 +16,9 @@ public class Limelight {
 	private static NetworkTableInstance tableInstance = NetworkTableInstance.getDefault();
 	private final NetworkTable limelightTable;
 	private final LimelightConfig limelightConfig;
+	private final String name;
+
+	static final String DEFAULT_TABLE = "limelight";
 
 	// specific types of data;
 	private final LocationalData data;
@@ -24,6 +27,11 @@ public class Limelight {
 		limelightTable = tableInstance.getTable(name);
 		data = new LocationalData(this);
 		limelightConfig = new LimelightConfig(this);
+		this.name = name;
+	}
+
+	String getName() {
+		return name;
 	}
 
 	NetworkTable networkTable() {
@@ -94,8 +102,10 @@ public class Limelight {
 	 * @throws NullPointerException if {@code limelightName} is null
 	 */
 	public static Limelight getLimelight(String limelightName) {
-		String table = Objects.requireNonNull("limelightName shouldn't be null", limelightName)
-		.isBlank() ? limelightName : "limelight" ;
+		String table = Objects.requireNonNull(limelightName,"limelightName shouldn't be null");
+		if (table.isBlank()) {
+			table = DEFAULT_TABLE;
+		}
 		return limelights.computeIfAbsent(table, Limelight::new);
 	}
 
