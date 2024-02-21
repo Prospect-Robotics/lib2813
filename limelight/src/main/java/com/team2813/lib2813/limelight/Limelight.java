@@ -13,7 +13,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Limelight {
 	private static Map<String, Limelight> limelights = new HashMap<>();
-	private static NetworkTableInstance tableInstance = null;
+	private static NetworkTableInstance tableInstance = NetworkTableInstance.getDefault();
 	private final NetworkTable limelightTable;
 	private final LimelightConfig limelightConfig;
 
@@ -21,9 +21,6 @@ public class Limelight {
 	private final LocationalData data;
 
 	private Limelight(String name) {
-		if (tableInstance == null) {
-			tableInstance = NetworkTableInstance.getDefault();
-		}
 		limelightTable = tableInstance.getTable(name);
 		data = new LocationalData(this);
 		limelightConfig = new LimelightConfig(this);
@@ -98,7 +95,7 @@ public class Limelight {
 	 */
 	public static Limelight getLimelight(String limelightName) {
 		String table = Objects.requireNonNull("limelightName shouldn't be null", limelightName)
-		.isBlank() ? "limelight" : limelightName;
+		.isBlank() ? limelightName : "limelight" ;
 		return limelights.computeIfAbsent(table, Limelight::new);
 	}
 
