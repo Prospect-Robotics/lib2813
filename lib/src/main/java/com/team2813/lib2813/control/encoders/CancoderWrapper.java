@@ -27,6 +27,12 @@ public class CancoderWrapper implements Encoder {
 	public CANcoder encoder() {
 		return cancoder;
 	}
+
+	@Override
+	public double getVelocity() {
+		return cancoder.getVelocity().getValueAsDouble();
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof CancoderWrapper))

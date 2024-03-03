@@ -4,7 +4,7 @@ In order to use, go to your WPILib project directory (the inner one, where the b
 git submodule add https://github.com/Prospect-Robotics/lib2813
 ```
 ## adding submodule to gradle
-The following line needs to be added to your settings.gradle to make the lib usable:
+The following lines needs to be added to your settings.gradle to make the lib usable:
 ```
 includeBuild('lib2813') {
     dependencySubstitution {

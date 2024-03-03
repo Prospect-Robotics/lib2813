@@ -3,7 +3,7 @@ package com.team2813.lib2813.control.motors;
 import com.revrobotics.*;
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.PIDMotor;
-import com.team2813.lib2813.control.Encoder;
+import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.util.ConfigUtils;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class SparkMaxWrapper extends CANSparkBase implements PIDMotor {
      *                 connected to the Red and Black terminals only.
      * @param inverted Whether the motor is inverted
      */
-    public SparkMaxWrapper(int deviceId, CANSparkLowLevel.MotorType type, boolean inverted) {
+    public SparkMaxWrapper(int deviceId, CANSparkLowLevel.MotorType type, InvertType inverted) {
         super(deviceId, type);
         encoder = getEncoder();
         pidController = getPIDController();
@@ -32,7 +32,7 @@ public class SparkMaxWrapper extends CANSparkBase implements PIDMotor {
 
         ConfigUtils.revConfig(() -> enableVoltageCompensation(12));
         ConfigUtils.revConfig(() -> setSmartCurrentLimit(40));
-        setInverted(inverted);
+        setInverted(inverted.sparkMaxInvert().get());
     }
 
     @Override

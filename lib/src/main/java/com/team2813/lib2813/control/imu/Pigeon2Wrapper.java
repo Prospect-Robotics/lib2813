@@ -1,15 +1,15 @@
 package com.team2813.lib2813.control.imu;
 
-import com.ctre.phoenix.sensors.Pigeon2;
-import com.ctre.phoenix.sensors.Pigeon2Configuration;
-import com.ctre.phoenix.sensors.PigeonIMU_StatusFrame;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.util.ConfigUtils;
 
-public class Pigeon2Wrapper extends Pigeon2 {
+public class Pigeon2Wrapper {
+
+	private Pigeon2 pigeon;
 
     private double currentHeading = 0;
-
-    private final boolean canivore;
+	private DeviceInformation info;
 
     /**
      * Constructor
@@ -18,34 +18,29 @@ public class Pigeon2Wrapper extends Pigeon2 {
      *               or a CANivore device name or serial number
      */
     public Pigeon2Wrapper(int deviceNumber, String canbus) {
-        super(deviceNumber, canbus);
-        canivore = true;
-
-        ConfigUtils.ctreConfig(() -> configAllSettings(new Pigeon2Configuration()));
+		info = new DeviceInformation(deviceNumber, canbus);
+		pigeon = new Pigeon2(deviceNumber, canbus);
     }
+
+	public Pigeon2 getPigeon() {
+		return pigeon;
+	}
 
     /**
      * Constructor
      * @param deviceNumber [0,62]
      */
     public Pigeon2Wrapper(int deviceNumber) {
-        super(deviceNumber);
-        canivore = false;
-
-        ConfigUtils.ctreConfig(() -> configAllSettings(new Pigeon2Configuration()));
-        ConfigUtils.ctreConfig(
-                () -> setStatusFramePeriod(PigeonIMU_StatusFrame.CondStatus_9_SixDeg_YPR, 20)
-        );
+        info = new DeviceInformation(deviceNumber);
+		pigeon = new Pigeon2(deviceNumber);
     }
 
     public double getHeading() {
-        return getYaw();
+        return pigeon.getYaw().getValue();
     }
 
     public void setHeading(double angle) {
-        setYaw(angle);
-        setAccumZAngle(0);
-
+		ConfigUtils.phoenix6Config(() -> pigeon.setYaw(angle));
         currentHeading = angle;
     }
 
@@ -54,16 +49,23 @@ public class Pigeon2Wrapper extends Pigeon2 {
      * Implement periodically (e.g. in a subsystem's periodic() method)
      */
     public void periodicResetCheck() {
-        if (!hasResetOccurred()) {
+        if (!pigeon.hasResetOccurred()) {
             currentHeading = getHeading();
         }
         else {
-            if (!canivore) {
-                ConfigUtils.ctreConfig(
-                        () -> setStatusFramePeriod(PigeonIMU_StatusFrame.CondStatus_9_SixDeg_YPR, 20)
-                );
-            }
             setHeading(currentHeading);
         }
     }
+
+	public int hashCode() {
+		return info.hashCode();
+	}
+
+	public boolean equals(Object other) {
+		if (!(other instanceof Pigeon2Wrapper)) {
+			return false;
+		}
+		Pigeon2Wrapper o = (Pigeon2Wrapper) other;
+		return o.info.equals(info);
+	}
 }

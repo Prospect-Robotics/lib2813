@@ -13,9 +13,9 @@ import edu.wpi.first.wpilibj2.command.PIDSubsystem;
 /**
  * Defines PID controll over a motor, with values specified by an encoder
  * 
- * @param <T> the {@link MotorSubsystem.Position} type to use positions from. must be an enum
+ * @param <T> the {@link MotorSubsystem.Position} type to use positions from.
  */
-public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position> extends PIDSubsystem implements Motor {
+public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends PIDSubsystem implements Motor {
 
 	protected final Motor motor;
 	protected final Encoder encoder;
@@ -95,7 +95,7 @@ public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position
 		 * @param d the derivative
 		 * @return {@code this} for chaining
 		 */
-		public MotorSubsystemConfiguration PID(int p, int i, int d) {
+		public MotorSubsystemConfiguration PID(double p, double i, double d) {
 			controller.setPID(p, i, d);
 			return this;
 		}
@@ -113,6 +113,11 @@ public abstract class MotorSubsystem<T extends Enum<T> & MotorSubsystem.Position
 
 		public MotorSubsystemConfiguration startingPosition(Position startingPosition) {
 			this.startingPosition = startingPosition.getPos();
+			return this;
+		}
+
+		public MotorSubsystemConfiguration acceptableError(double error) {
+			this.acceptableError = error;
 			return this;
 		}
 	}
