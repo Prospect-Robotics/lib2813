@@ -15,6 +15,7 @@ public class LocationalData {
 	private final NetworkTable table;
 	private final Limelight limelight;
 	private static final double[] defaultArr = new double[0];
+	private OptionalLong msDelay = OptionalLong.empty();
 	
 	LocationalData(Limelight limelight) {
 		this.limelight = limelight;
@@ -22,12 +23,21 @@ public class LocationalData {
 	}
 
 	private Optional<Pose3d> parseArr(double[] arr) {
-		if (arr == defaultArr || arr.length < 6) {
+		if (arr == defaultArr || arr.length < 6 || !limelight.hasTarget()) {
 			return Optional.empty();
 		}
-		Rotation3d rotation = new Rotation3d(arr[3], arr[4], arr[5]);
+		msDelay = OptionalLong.of((long) arr[6]);
+		Rotation3d rotation = new Rotation3d(
+			Math.toRadians(arr[3]),
+			Math.toRadians(arr[4]),
+			Math.toRadians(arr[5])
+		);
 		return Optional.of(new Pose3d(arr[0], arr[1], arr[2], rotation));
 	}
+
+	public OptionalLong lastMSDelay() {
+		return msDelay;
+	} 
 
 	/**
 	 * Gets the position of the robot with the center of the field as the origin
