@@ -78,12 +78,12 @@ final class FeatureRegistry {
         return getFeature(id).enabled();
     }
 
-    private Feature getFeature(FeatureIdentifier id) {
+    Feature getFeature(FeatureIdentifier id) {
         return registeredFeatures.computeIfAbsent(id, Feature::new);
     }
 
-    private static final class Feature {
-        private final SimpleWidget widget;
+    static final class Feature {
+        final SimpleWidget widget;
         private static final ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Features");
 
         Feature(FeatureIdentifier id) {
