@@ -4,69 +4,68 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.OptionalLong;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.util.concurrent.Executors;
 
+import org.json.JSONObject;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-
 public class LimelightTest {
-	NetworkTableInstance instance;
-	@Before
-	public void setup() {
-		instance = NetworkTableInstance.create();
-		instance.startLocal();
-		Limelight.setTableInstance(instance);
-		instance.flushLocal();
+	@Rule
+	public final FakeLimelight fakeLimelight = new FakeLimelight();
+
+	@BeforeClass
+	public static void enableAllLogs() {
+		DataCollection.enableTesting();
 	}
 
 	@After
-	public void cleanup() {
-		instance.close();
+	public void resetLimelights() {
 		Limelight.eraseInstances();
 	}
 
 	@Test
 	public void equality() {
-		Limelight a = Limelight.getDefaultLimelight();
-		Limelight b = Limelight.getDefaultLimelight();
+		Limelight a = Limelight.getLimelight("localhost");
+		Limelight b = Limelight.getLimelight("localhost");
 
-		assertEquals(Limelight.DEFAULT_TABLE, a.getName());
+		assertEquals(Limelight.DEFAULT_ADDRESS, a.getName());
 		assertEquals("Default limelight call returned different values", a, b);
-		Limelight c = Limelight.getLimelight(Limelight.DEFAULT_TABLE);
+		Limelight c = Limelight.getLimelight(Limelight.DEFAULT_ADDRESS);
 		assertEquals(
-			"Default limelights not equal to limelights named \"limelight\" (default)",
-			a, c
-		);
+				"Default limelights not equal to limelights named \"limelight\" (default)",
+				a, c);
 	}
 
 	@Test
 	public void emptyValues() {
-		Limelight limelight = Limelight.getDefaultLimelight();
-		assertFalse("NetworkTables should be empty", limelight.getPipeline().isPresent());
+		Limelight limelight = new Limelight("localhost");
+		assertFalse("NetworkTables should be empty", limelight.getCaptureLatency().isPresent());
 	}
 
 	@Test
-	public void apriltagTest() {
-		Limelight limelight = Limelight.getDefaultLimelight();
-		NetworkTable table = instance.getTable(limelight.getName());
+	public void targetTest() throws Exception {
+		Limelight limelight = new Limelight("localhost");
+		limelight.runThread();
+		assertFalse(limelight.hasTarget());
+		fakeLimelight.setResultsResponse(new JSONObject().put("v", 1));
+		limelight.runThread();
+		assertTrue(limelight.hasTarget());
+	}
 
-		table.getEntry("tv").setInteger(0);
-		instance.flushLocal();
-
-		assertFalse("Value of 0 not false", limelight.hasTarget());
-		assertFalse("Tag ID is Present", limelight.getLocationalData().getTagID().isPresent());
-
-		table.getEntry("tid").setInteger(1);
-		table.getEntry("tv").setInteger(1);
-		instance.flushLocal();
-		
-		assertTrue("Value of 1 not true", limelight.hasTarget());
-		OptionalLong tagId = limelight.getLocationalData().getTagID();
-		assertTrue("Tag ID not present", tagId.isPresent());
-		assertEquals("Tag ID not 1", tagId.getAsLong(), 1);
+	@Test
+	public void fakeWorks() throws Exception {
+		fakeLimelight.setResultsResponse(new JSONObject().put("v", 1));
+		HttpRequest req = HttpRequest.newBuilder(new URI("http://localhost:5807/results")).GET().build();
+		HttpClient client = HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build();
+		HttpResponse<String> response = client.send(req, BodyHandlers.ofString());
+		assertEquals("{\"v\":1}", response.body());
 	}
 }

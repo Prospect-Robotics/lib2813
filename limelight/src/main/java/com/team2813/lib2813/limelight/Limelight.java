@@ -1,65 +1,81 @@
 package com.team2813.lib2813.limelight;
 
+import static com.team2813.lib2813.limelight.JSONHelper.getBooleanFromInt;
+import static com.team2813.lib2813.limelight.JSONHelper.getLong;
+import static com.team2813.lib2813.limelight.JSONHelper.unboxLong;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONObject;
 
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class Limelight {
 	private static Map<String, Limelight> limelights = new HashMap<>();
-	private static NetworkTableInstance tableInstance = NetworkTableInstance.getDefault();
-	private final NetworkTable limelightTable;
-	private final LimelightConfig limelightConfig;
 	private final String name;
+	private final DataCollection collectionThread;
+	private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 
-	static final String DEFAULT_TABLE = "limelight";
+	static final String DEFAULT_ADDRESS = "limelight.local";
+
+	private ScheduledFuture<?> thread;
+
+	boolean started = false;
 
 	// specific types of data;
 	private final LocationalData data;
 
-	private Limelight(String name) {
-		limelightTable = tableInstance.getTable(name);
+	Limelight(String address) {
 		data = new LocationalData(this);
-		limelightConfig = new LimelightConfig(this);
-		this.name = name;
+		this.name = address;
+		collectionThread = new DataCollection(address);
+	}
+
+	void start() {
+		if (!started) {
+			thread = executor.scheduleAtFixedRate(collectionThread, 20, 20, TimeUnit.MILLISECONDS);
+			started = true;
+		}
+	}
+
+	void runThread() {
+		collectionThread.run();
 	}
 
 	String getName() {
 		return name;
 	}
 
-	NetworkTable networkTable() {
-		return limelightTable;
-	}
-
 	public Optional<JSONObject> getJsonDump() {
-		String json = limelightTable.getEntry("json").getString(null);
-		return json == null ? Optional.empty() : Optional.of(
-			new JSONObject(json)
-		);
-	}
-
-	public OptionalLong getPipeline() {
-		long pipeline = limelightTable.getEntry("pipeline").getInteger(-1);
-		return pipeline == -1 ? OptionalLong.empty() : OptionalLong.of(pipeline);
+		return collectionThread.getMostRecent();
 	}
 
 	/**
-	 * Sets the pipeline
-	 * @param val the pipeline number [0, 9]
-	 * @throws IllegalArgumentException if the pipeline is invalid
+	 * Gets the targeting latency from the limelight
+	 * @return
 	 */
-	public void setPipeline(int val) {
-		if (val > 9 || val < 0) {
-			throw new IllegalArgumentException("Invalid pipeline number");
-		}
-		limelightTable.getEntry("pipeline").setInteger(val);
+	public OptionalLong getTargetingLatency() {
+		return unboxLong(getJsonDump().flatMap(getLong("tl")));
+	}
+
+	public OptionalLong getCaptureLatency() {
+		return unboxLong(getJsonDump().flatMap(getLong("cl")));
+	}
+
+	public OptionalLong getTimestamp() {
+		return unboxLong(getJsonDump().flatMap(getLong("ts")));
+	}
+
+	public boolean hasTarget() {
+		return getJsonDump().flatMap(getBooleanFromInt("v")).orElse(false);
 	}
 
 	/**
@@ -70,20 +86,13 @@ public class Limelight {
 		return data;
 	}
 
-	/**
-	 * Gets an object for configuring the limelight
-	 * @return an object for configuring the limelight
-	 */
-	public LimelightConfig getConfig() {
-		return limelightConfig;
-	}
-
-	/**
-	 * Checks if the limelight has a target
-	 * @return {@code true} if there is a target seen by the limelight
-	 */
-	public boolean hasTarget() {
-		return 1 == limelightTable.getEntry("tv").getInteger(0);
+	private void clean() {
+		try {
+			thread.cancel(true);
+			executor.awaitTermination(2, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			DriverStation.reportError(e.getMessage(), false);
+		}
 	}
 
 	/**
@@ -97,28 +106,24 @@ public class Limelight {
 	/**
 	 * Gets the limelight with the specified name. Calling with a blank {@code limelightName}
 	 * is equivilent to calling {@link #getDefaultLimelight()}
-	 * @param limelightName The name of the limelight to interface with
+	 * @param limelightName The hostname or ip address of the limelight
 	 * @return the {@link Limelight} object for interfacing with the limelight
 	 * @throws NullPointerException if {@code limelightName} is null
 	 */
 	public static Limelight getLimelight(String limelightName) {
 		String table = Objects.requireNonNull(limelightName,"limelightName shouldn't be null");
 		if (table.isBlank()) {
-			table = DEFAULT_TABLE;
+			table = DEFAULT_ADDRESS;
 		}
-		return limelights.computeIfAbsent(table, Limelight::new);
+		Limelight result = limelights.computeIfAbsent(table, Limelight::new);
+		result.start();
+		return result;
 	}
 
 	static void eraseInstances() {
+		for (Limelight limelight : limelights.values()) {
+			limelight.clean();
+		}
 		limelights.clear();
-	}
-
-	/**
-	 * Sets the {@link NetworkTableInstance} to use for creating new {@link Limelight} objects.
-	 * For testing purposes; call <strong>before</strong> getting a limelight instance
-	 * @param tableInstance
-	 */
-	static void setTableInstance(NetworkTableInstance tableInstance) {
-		Limelight.tableInstance = tableInstance;
 	}
 }
