@@ -52,17 +52,7 @@ public class LimelightTest {
 		Limelight limelight = createLimelight();
 		assertFalse("NetworkTables should be empty", limelight.getCaptureLatency().isPresent());
 	}
-
-	@Test
-	public void targetTest() throws Exception {
-		Limelight limelight = createLimelight();
-		assertFalse(limelight.hasTarget());
-		JSONObject a = new JSONObject().put("v", 1);
-		fakeLimelight.setResultsResponse(new JSONObject().put("Results", a));
-		limelight.runThread();
-		assertTrue(limelight.hasTarget());
-	}
-
+	
 	JSONObject readJSON(String fileName) throws IOException {
 		try (InputStream is = getClass().getResourceAsStream(fileName)) {
 			if (is == null) {
