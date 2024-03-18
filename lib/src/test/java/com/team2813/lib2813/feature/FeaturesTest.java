@@ -11,7 +11,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class FeaturesTest {
+import java.util.Arrays;
+
+import com.team2813.lib2813.feature.FakeFeatures.FakeFeature;
+
+public final class FeaturesTest {
     static boolean wasEnabled;
     static final FeatureRegistry registry = FeatureRegistry.getInstance();
     static final CommandScheduler scheduler = CommandScheduler.getInstance();
@@ -35,22 +39,13 @@ public class FeaturesTest {
 
     @After
     public void resetFeatures() {
-        for (FakeFeature feature : FakeFeature.values()) {
-            switch (feature.featureBehavior) {
-                case INITIALLY_DISABLED:
-                    registry.getFeature(feature).widget.getEntry().setBoolean(false);
-                    break;
-                case INITIALLY_ENABLED:
-                    registry.getFeature(feature).widget.getEntry().setBoolean(true);
-                    break;
-            }
-        }
+        FakeFeatures.reset(registry);
     }
 
     @Test
     public void whenAllEnabled_someFeaturesDisabled() {
         SimpleCommand command = new SimpleCommand();
-        Command whenAllEnabled = Features.whenAllEnabled(command, FakeFeature.INITIALLY_ENABLED, FakeFeature.INITIALLY_DISABLED);
+        Command whenAllEnabled = Features.ifAllEnabled(() -> command, FakeFeature.INITIALLY_ENABLED, FakeFeature.INITIALLY_DISABLED);
         scheduler.schedule(whenAllEnabled);
         scheduler.run();
         assertFalse(command.ran);
@@ -60,7 +55,7 @@ public class FeaturesTest {
     public void whenAllEnabled_allFeaturesEnabled() {
         SimpleCommand command = new SimpleCommand();
         registry.getFeature(FakeFeature.INITIALLY_DISABLED).widget.getEntry().setBoolean(true);
-        Command whenAllEnabled = Features.whenAllEnabled(command, FakeFeature.INITIALLY_ENABLED, FakeFeature.INITIALLY_DISABLED);
+        Command whenAllEnabled = Features.ifAllEnabled(() -> command, FakeFeature.INITIALLY_ENABLED, FakeFeature.INITIALLY_DISABLED);
         scheduler.schedule(whenAllEnabled);
         scheduler.run();
         assertTrue(whenAllEnabled.isScheduled());
@@ -76,20 +71,45 @@ public class FeaturesTest {
         }
     }
 
-    enum FakeFeature implements FeatureIdentifier {
-        ALWAYS_DISABLED(FeatureBehavior.ALWAYS_DISABLED),
-        INITIALLY_DISABLED(FeatureBehavior.INITIALLY_DISABLED),
-        INITIALLY_ENABLED(FeatureBehavior.INITIALLY_ENABLED);
 
-        private final FeatureBehavior featureBehavior;
+    @Test
+    public void allEnabled() {
+        FakeFeature feature1 = FakeFeature.INITIALLY_DISABLED;
+        FakeFeature feature2 = FakeFeature.INITIALLY_ENABLED;
+        assertFalse(Features.allEnabled(feature1, feature2));
+        registry.getFeature(feature1).widget.getEntry().setBoolean(true);
+        assertTrue(Features.allEnabled(feature1, feature2));
+    }
 
-        FakeFeature(FeatureBehavior featureBehavior) {
-            this.featureBehavior = featureBehavior;
-        }
+    @Test
+    public void asSupplier() {
+        FakeFeature feature1 = FakeFeature.INITIALLY_DISABLED;
+        FakeFeature feature2 = FakeFeature.INITIALLY_ENABLED;
+        assertFalse(Features.asSupplier(feature1, feature2).getAsBoolean());
+        registry.getFeature(feature1).widget.getEntry().setBoolean(true);
+        assertTrue(Features.asSupplier(feature1, feature2).getAsBoolean());
+        assertFalse(Features.asSupplier(feature1, feature2, FakeFeature.ALWAYS_DISABLED).getAsBoolean());
+    }
 
-        @Override
-        public FeatureBehavior behavior() {
-            return featureBehavior;
-        }
+    @Test
+    public void asSupplier_nullFeature() {
+        FakeFeature feature = FakeFeature.INITIALLY_ENABLED;
+        assertFalse(Features.asSupplier(feature, (FakeFeature) null).getAsBoolean());
+        assertFalse(Features.asSupplier(null, feature).getAsBoolean());
+    }
+
+    @Test
+    public void collectionAsSupplier() {
+        FakeFeature feature1 = FakeFeature.INITIALLY_DISABLED;
+        FakeFeature feature2 = FakeFeature.INITIALLY_ENABLED;
+        assertFalse(Features.asSupplier(Arrays.asList(feature1, feature2)).getAsBoolean());
+        registry.getFeature(feature1).widget.getEntry().setBoolean(true);
+        assertTrue(Features.asSupplier(Arrays.asList(feature1, feature2)).getAsBoolean());
+    }
+
+    @Test
+    public void collectionAsSupplier_nullFeature() {
+        FakeFeature feature = FakeFeature.INITIALLY_ENABLED;
+        assertFalse(Features.asSupplier(Arrays.asList(feature, null)).getAsBoolean());
     }
 }
