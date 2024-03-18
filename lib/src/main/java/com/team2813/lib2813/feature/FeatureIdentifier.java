@@ -27,6 +27,10 @@ public interface FeatureIdentifier {
         return FeatureRegistry.getInstance().enabled(this);
     }
 
+    default <T> FeatureGated.Builder<T> gated(Supplier<T> supplier) {
+        return new FeatureGated.Builder<T>().or(this, supplier);
+    }
+
     default FeatureGatedCommand.Builder gatedCommand(Supplier<Command> commandSupplier) {
         return new FeatureGatedCommand.Builder().or(this, commandSupplier);
     }

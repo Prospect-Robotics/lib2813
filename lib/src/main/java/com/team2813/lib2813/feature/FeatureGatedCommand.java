@@ -5,24 +5,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
-public class FeatureGatedCommand {
-    private final ArrayList<Entry> entries;
-    private final Supplier<Command> fallback;
-
-    private FeatureGatedCommand(ArrayList<Entry> entries, Supplier<Command> defaultCommand) {
-        this.entries = entries;
-        this.fallback = defaultCommand;
-    }
-
-    public Command get() {
-        for (var entry : entries) {
-            if (entry.feature.enabled()) {
-                return entry.commandSupplier.get();
-            }
-        }
-        return fallback.get();
+public class FeatureGatedCommand extends FeatureGated<Command> {
+    private FeatureGatedCommand(List<Entry<Command>> entries, Supplier<Command> defaultCommand) {
+        super(entries, defaultCommand);
     }
 
     public Command getDeferred() {
@@ -37,23 +25,14 @@ public class FeatureGatedCommand {
         return new FastDeferredCommandBodge(this::get);
     }
 
-    private record Entry(FeatureIdentifier feature, Supplier<Command> commandSupplier) {
-    }
-
-    public static class Builder {
-        private final ArrayList<Entry> entries = new ArrayList<>();
-
-        public Builder or(FeatureIdentifier feature, Supplier<Command> commandSupplier) {
-            this.entries.add(new Entry(feature, commandSupplier));
-            return this;
-        }
-
-        public FeatureGatedCommand or(Supplier<Command> fallback) {
-            return new FeatureGatedCommand(this.entries, fallback);
-        }
-
+    public static class Builder extends FeatureGated.BaseBuilder<Command, FeatureGatedCommand, Builder> {
         public FeatureGatedCommand orNone() {
             return or(Commands::none);
+        }
+
+        @Override
+        protected FeatureGatedCommand build(List<Entry<Command>> entries, Supplier<Command> fallback) {
+            return new FeatureGatedCommand(entries, fallback);
         }
     }
 
