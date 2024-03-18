@@ -1,20 +1,17 @@
 package com.team2813.lib2813.limelight;
 
+import static com.team2813.lib2813.limelight.JSONHelper.getArr;
 import static com.team2813.lib2813.limelight.JSONHelper.getLong;
 import static com.team2813.lib2813.limelight.JSONHelper.getRoot;
 import static com.team2813.lib2813.limelight.JSONHelper.unboxLong;
 
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.function.Function;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * Get positional data from limelight
@@ -28,13 +25,14 @@ public class LocationalData {
 	}
 
 	private boolean invalidArray(JSONArray arr) {
-		boolean simple = arr.length() != 6;
+		boolean simple = arr.length() != 6 || !limelight.hasTarget();
 		if (simple) {
-			return simple;
+			return true;
 		}
-		Integer zero = Integer.valueOf(0);
+		Integer intZero = Integer.valueOf(0);
+		Double doubleZero = Double.valueOf(0);
 		for (Object o : arr) {
-			if (!zero.equals(o)) {
+			if (!intZero.equals(o) && !doubleZero.equals(o)) {
 				return false;
 			}
 		}
@@ -43,29 +41,14 @@ public class LocationalData {
 
 	private Optional<Pose3d> parseArr(JSONArray arr) {
 		if (invalidArray(arr)) {
-			SmartDashboard.putBoolean("invalid array", true);
 			return Optional.empty();
 		}
-		SmartDashboard.putBoolean("invalid array", false);
 		Rotation3d rotation = new Rotation3d(
 			Math.toRadians(arr.getDouble(3)),
 			Math.toRadians(arr.getDouble(4)),
 			Math.toRadians(arr.getDouble(5))
 		);
 		return Optional.of(new Pose3d(arr.getDouble(0), arr.getDouble(1), arr.getDouble(2), rotation));
-	}
-
-	private static Function<JSONObject, Optional<JSONArray>> getArr(String key) {
-		return (obj) -> {
-			if (!obj.has(key)) {
-				return Optional.empty();
-			}
-			try {
-				return Optional.of(obj.getJSONArray(key));
-			} catch (JSONException e) {
-				return Optional.empty();
-			}
-		};
 	}
 
 	public OptionalLong lastMSDelay() {
@@ -105,6 +88,6 @@ public class LocationalData {
 	 * Gets the id of the targeted tag.
 	 */
 	public OptionalLong getTagID() {
-		return unboxLong(limelight.getJsonDump().flatMap(getRoot()).flatMap(getLong("")));
+		return unboxLong(limelight.getJsonDump().flatMap(getRoot()).flatMap(getLong("pID")));
 	}
 }

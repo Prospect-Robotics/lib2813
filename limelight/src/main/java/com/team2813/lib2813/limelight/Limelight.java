@@ -1,6 +1,6 @@
 package com.team2813.lib2813.limelight;
 
-import static com.team2813.lib2813.limelight.JSONHelper.getBooleanFromInt;
+import static com.team2813.lib2813.limelight.JSONHelper.getArr;
 import static com.team2813.lib2813.limelight.JSONHelper.getLong;
 import static com.team2813.lib2813.limelight.JSONHelper.getRoot;
 import static com.team2813.lib2813.limelight.JSONHelper.unboxLong;
@@ -14,7 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -42,7 +44,7 @@ public class Limelight {
 
 	void start() {
 		if (!started) {
-			thread = executor.scheduleAtFixedRate(collectionThread, 20, 20, TimeUnit.MILLISECONDS);
+			thread = executor.scheduleAtFixedRate(collectionThread, 20, 40, TimeUnit.MILLISECONDS);
 			started = true;
 		}
 	}
@@ -75,10 +77,13 @@ public class Limelight {
 		return unboxLong(getJsonDump().flatMap(getRoot()).flatMap(getLong("ts")));
 	}
 
-	public boolean hasTarget() {
-		return getJsonDump().flatMap(getRoot()).flatMap(getBooleanFromInt("v")).orElse(false);
-	}
+	private static <T> Function<T, Boolean> not(Function<? super T, Boolean> fnc) {
+		return (t) -> !fnc.apply(t);
+	} 
 
+	public boolean hasTarget() {
+		return getJsonDump().flatMap(getRoot()).flatMap(getArr("Fiducial")).map(not(JSONArray::isEmpty)).orElse(false);
+	}
 	/**
 	 * Gets an object for getting locational data
 	 * @return an object for getting locational data

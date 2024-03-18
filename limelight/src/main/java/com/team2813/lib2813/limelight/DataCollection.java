@@ -14,26 +14,14 @@ import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.json.JSONObject;
-
-import edu.wpi.first.wpilibj.DriverStation;
 
 class DataCollection implements Runnable {
 	private static final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(20))
 			.executor(Executors.newFixedThreadPool(2)).build();
 	private final HttpRequest dumpRequest;
 	private final URI baseURI;
-	private static final Logger logger = Logger.getLogger("DataCollection");
-	static {
-		logger.setLevel(Level.WARNING);
-	}
-
-	static void enableTesting() {
-		logger.setLevel(Level.ALL);
-	}
 
 	public DataCollection(String hostname) {
 		lastResult = Optional.empty();
@@ -41,7 +29,6 @@ class DataCollection implements Runnable {
 			baseURI = new URI("http", null, hostname, 5807, null, null, null);
 			URI dumpRequestUri = baseURI.resolve("results");
 			dumpRequest = HttpRequest.newBuilder(dumpRequestUri).GET().build();
-			logger.log(Level.INFO, dumpRequestUri.toString());
 		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException("invalid hostname", e);
 		}
@@ -52,7 +39,6 @@ class DataCollection implements Runnable {
 	private static class JSONHandler implements BodyHandler<JSONObject> {
 		@Override
 		public BodySubscriber<JSONObject> apply(ResponseInfo responseInfo) {
-			logger.info(String.format("In JSONHandler.apply(%s)", responseInfo));
 			return BodySubscribers.mapping(BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo),
 					JSONObject::new);
 		}
@@ -75,7 +61,6 @@ class DataCollection implements Runnable {
 			Thread.currentThread().interrupt();
 		} catch (Exception e) {
 			lastResult = Optional.empty();
-			DriverStation.reportError(e.getMessage(), false);
 		}
 	}
 

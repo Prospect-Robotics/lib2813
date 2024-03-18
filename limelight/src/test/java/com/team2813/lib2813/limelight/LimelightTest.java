@@ -31,11 +31,6 @@ public class LimelightTest {
 	@Rule
 	public final FakeLimelight fakeLimelight = new FakeLimelight();
 
-	@BeforeClass
-	public static void enableAllLogs() {
-		DataCollection.enableTesting();
-	}
-
 	@After
 	public void resetLimelights() {
 		Limelight.eraseInstances();
