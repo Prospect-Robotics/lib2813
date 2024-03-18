@@ -29,6 +29,10 @@ public class FeatureGatedCommand {
         return new InstantCommand(() -> this.get().schedule());
     }
 
+    /**
+     * returns a command that will avoid the added 20ms latency you'd normally get from deferring,
+     * but which MUST only be scheduled via the .schedule() method
+     */
     public Command getDeferredFast() {
         return new FastDeferredCommandBodge(this::get);
     }
