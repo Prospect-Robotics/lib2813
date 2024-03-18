@@ -2,6 +2,7 @@ package com.team2813.lib2813.limelight;
 
 import static com.team2813.lib2813.limelight.JSONHelper.getBooleanFromInt;
 import static com.team2813.lib2813.limelight.JSONHelper.getLong;
+import static com.team2813.lib2813.limelight.JSONHelper.getRoot;
 import static com.team2813.lib2813.limelight.JSONHelper.unboxLong;
 
 import java.util.HashMap;
@@ -63,19 +64,19 @@ public class Limelight {
 	 * @return
 	 */
 	public OptionalLong getTargetingLatency() {
-		return unboxLong(getJsonDump().flatMap(getLong("tl")));
+		return unboxLong(getJsonDump().flatMap(getRoot()).flatMap(getLong("tl")));
 	}
 
 	public OptionalLong getCaptureLatency() {
-		return unboxLong(getJsonDump().flatMap(getLong("cl")));
+		return unboxLong(getJsonDump().flatMap(getRoot()).flatMap(getLong("cl")));
 	}
 
 	public OptionalLong getTimestamp() {
-		return unboxLong(getJsonDump().flatMap(getLong("ts")));
+		return unboxLong(getJsonDump().flatMap(getRoot()).flatMap(getLong("ts")));
 	}
 
 	public boolean hasTarget() {
-		return getJsonDump().flatMap(getBooleanFromInt("v")).orElse(false);
+		return getJsonDump().flatMap(getRoot()).flatMap(getBooleanFromInt("v")).orElse(false);
 	}
 
 	/**

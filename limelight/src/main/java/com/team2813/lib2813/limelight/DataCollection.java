@@ -61,7 +61,8 @@ class DataCollection implements Runnable {
 	private static final JSONHandler handler = new JSONHandler();
 
 	private void updateJSON(HttpResponse<JSONObject> obj) {
-		lastResult = Optional.of(obj.body());
+		JSONObject json = obj.body();
+		lastResult = Optional.of(json);
 	}
 
 	@Override

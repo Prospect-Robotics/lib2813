@@ -21,6 +21,23 @@ class JSONHelper {
 		};
 	}
 
+	static Function<JSONObject, Optional<JSONObject>> getJSONObject(String key) {
+		return (j) -> {
+			if (!j.has(key)) {
+				return Optional.empty();
+			}
+			try {
+				return Optional.of(j.getJSONObject(key));
+			} catch (JSONException e) {
+				return Optional.empty();
+			}
+		};
+	}
+
+	static Function<JSONObject, Optional<JSONObject>> getRoot() {
+		return getJSONObject("Results");
+	}
+
 	static OptionalLong unboxLong(Optional<Long> val) {
 		if (val.isPresent()) {
 			return OptionalLong.of(val.get());

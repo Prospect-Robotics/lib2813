@@ -1,6 +1,7 @@
 package com.team2813.lib2813.limelight;
 
 import static com.team2813.lib2813.limelight.JSONHelper.getLong;
+import static com.team2813.lib2813.limelight.JSONHelper.getRoot;
 import static com.team2813.lib2813.limelight.JSONHelper.unboxLong;
 
 import java.util.Optional;
@@ -13,6 +14,7 @@ import org.json.JSONObject;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * Get positional data from limelight
@@ -20,18 +22,31 @@ import edu.wpi.first.math.geometry.Rotation3d;
  */
 public class LocationalData {
 	private final Limelight limelight;
-	private OptionalLong msDelay = OptionalLong.empty();
 	
 	LocationalData(Limelight limelight) {
 		this.limelight = limelight;
 	}
 
+	private boolean invalidArray(JSONArray arr) {
+		boolean simple = arr.length() != 6;
+		if (simple) {
+			return simple;
+		}
+		Integer zero = Integer.valueOf(0);
+		for (Object o : arr) {
+			if (!zero.equals(o)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private Optional<Pose3d> parseArr(JSONArray arr) {
-		if (arr.length() < 6 || !limelight.hasTarget()) {
-			msDelay = OptionalLong.empty();
+		if (invalidArray(arr)) {
+			SmartDashboard.putBoolean("invalid array", true);
 			return Optional.empty();
 		}
-		msDelay = OptionalLong.of(arr.getLong(6));
+		SmartDashboard.putBoolean("invalid array", false);
 		Rotation3d rotation = new Rotation3d(
 			Math.toRadians(arr.getDouble(3)),
 			Math.toRadians(arr.getDouble(4)),
@@ -54,7 +69,12 @@ public class LocationalData {
 	}
 
 	public OptionalLong lastMSDelay() {
-		return msDelay;
+		OptionalLong a = limelight.getCaptureLatency();
+		OptionalLong b = limelight.getTargetingLatency();
+		if (a.isPresent() && b.isPresent()) {
+			return OptionalLong.of(a.getAsLong() + b.getAsLong());
+		}
+		return OptionalLong.empty();
 	} 
 
 	/**
@@ -62,7 +82,7 @@ public class LocationalData {
 	 * @return The position of the robot
 	 */
 	public Optional<Pose3d> getBotpose() {
-		return limelight.getJsonDump().flatMap(getArr("botpose")).flatMap(this::parseArr);
+		return limelight.getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose")).flatMap(this::parseArr);
 	}
 
 	/**
@@ -70,7 +90,7 @@ public class LocationalData {
 	 * @return The position of the robot
 	 */
 	public Optional<Pose3d> getBotposeBlue() {
-		return limelight.getJsonDump().flatMap(getArr("botpose_wpiblue")).flatMap(this::parseArr);
+		return limelight.getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose_wpiblue")).flatMap(this::parseArr);
 	}
 
 	/**
@@ -78,13 +98,13 @@ public class LocationalData {
 	 * @return The position of the robot
 	 */
 	public Optional<Pose3d> getBotposeRed() {
-		return limelight.getJsonDump().flatMap(getArr("botpose_wpired")).flatMap(this::parseArr);
+		return limelight.getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose_wpired")).flatMap(this::parseArr);
 	}
 
 	/**
 	 * Gets the id of the targeted tag.
 	 */
 	public OptionalLong getTagID() {
-		return unboxLong(limelight.getJsonDump().flatMap(getLong("")));
+		return unboxLong(limelight.getJsonDump().flatMap(getRoot()).flatMap(getLong("")));
 	}
 }
