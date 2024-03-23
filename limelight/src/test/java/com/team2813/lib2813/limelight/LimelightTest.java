@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 import org.junit.After;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
