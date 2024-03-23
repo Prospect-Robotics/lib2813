@@ -19,10 +19,12 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 
 	protected final Motor motor;
 	protected final Encoder encoder;
+	protected final double acceptableError;
 
 	protected MotorSubsystem(MotorSubsystemConfiguration builder) {
 		super(builder.controller, builder.startingPosition);
 		getController().setTolerance(builder.acceptableError);
+		acceptableError = builder.acceptableError;
 		motor = builder.motor;
 		encoder = builder.encoder;
 	}
@@ -146,6 +148,10 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 			enable();
 		}
 		setSetpoint(setpoint.getPos());
+	}
+
+	public boolean atPosition() {
+		return Math.abs(getMeasurement() - getSetpoint()) <= acceptableError;
 	}
 
 	/**

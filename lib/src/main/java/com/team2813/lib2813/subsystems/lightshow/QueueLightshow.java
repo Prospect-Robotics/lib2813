@@ -4,7 +4,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import edu.wpi.first.wpilibj.util.Color;
 
@@ -16,15 +15,15 @@ import edu.wpi.first.wpilibj.util.Color;
  * returns {@code true} upon a call to {@link State#apply()}, in which the color will be used, or there are no states where
  * {@link State#apply()} return {@code true}, then the default color is used.
  */
-public class QueueLightshow extends Lightshow {
+public abstract class QueueLightshow extends Lightshow {
 	private final Deque<State> activatedStates = new ArrayDeque<>();
-	public <T extends Enum<T> & State> QueueLightshow(Class<T> enumClass, Consumer<Color> colorConsumer) {
-		super(enumClass, colorConsumer);
+	public <T extends Enum<T> & State> QueueLightshow(Class<T> enumClass) {
+		super(enumClass);
 		defaultState = Optional.of(Lightshow.off);
 	}
 
-	public QueueLightshow(Set<State> states, Consumer<Color> colorConsumer) {
-		super(states, colorConsumer);
+	public QueueLightshow(Set<State> states) {
+		super(states);
 		defaultState = Optional.of(Lightshow.off);
 	}
 

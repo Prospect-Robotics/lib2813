@@ -9,3 +9,4 @@
 
 rootProject.name = 'lib2813'
 include('lib')
+include('limelight')

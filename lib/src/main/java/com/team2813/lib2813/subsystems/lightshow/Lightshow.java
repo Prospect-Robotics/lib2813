@@ -24,7 +24,8 @@ public abstract class Lightshow extends SubsystemBase {
 	};
 	protected Set<State> states = new HashSet<>();
 	protected Optional<? extends State> defaultState;
-	protected Consumer<? super Color> colorConsumer;
+
+	abstract protected void useColor(Color c);
 
 	/**
 	 * Creates a new Lightshow subsystem using an enum. Uses the given {@code enumClass} to get a
@@ -34,9 +35,8 @@ public abstract class Lightshow extends SubsystemBase {
 	 * @param enumClass
 	 * @param colorConsumer
 	 */
-	protected <T extends Enum<T> & State> Lightshow(Class<T> enumClass, Consumer<? super Color> colorConsumer) {
+	protected <T extends Enum<T> & State> Lightshow(Class<T> enumClass) {
 		addStates(enumClass);
-		this.colorConsumer = colorConsumer;
 	}
 
 	/**
@@ -44,9 +44,8 @@ public abstract class Lightshow extends SubsystemBase {
 	 * @param states
 	 * @param colorConsumer
 	 */
-	protected Lightshow(Set<? extends State> states, Consumer<? super Color> colorConsumer) {
+	protected Lightshow(Set<? extends State> states) {
 		addStates(states);
-		this.colorConsumer = colorConsumer;
 	}
 
 	public final <T extends Enum<T> & State> void addStates(Class<? extends T> enumClass) {
@@ -90,7 +89,7 @@ public abstract class Lightshow extends SubsystemBase {
 	public void periodic() {
 		Optional<Color> color = update().or(() -> defaultState.map(State::color));
 		if (color.isPresent()) {
-			colorConsumer.accept(color.get());
+			useColor((color.get()));
 		}
 	}
 	
