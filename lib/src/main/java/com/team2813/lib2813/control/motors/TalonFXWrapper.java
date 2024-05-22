@@ -23,6 +23,11 @@ import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.util.InvalidCanIdException;
 
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Velocity;
+
 public class TalonFXWrapper implements PIDMotor {
 	/**
 	 * Create a TalonFXWrapper on the specified canbus
@@ -126,7 +131,12 @@ public class TalonFXWrapper implements PIDMotor {
 
 	@Override
 	public double position() {
-		return motor.getPosition().getValue();
+		return getPositionMeasure().in(Units.Rotations);
+	}
+
+	@Override
+	public Measure<Angle> getPositionMeasure() {
+		return Units.Rotations.of(motor.getPosition().getValueAsDouble());
 	}
 
 	@Override
@@ -135,8 +145,18 @@ public class TalonFXWrapper implements PIDMotor {
 	}
 
 	@Override
+	public void setPosition(Measure<Angle> position) {
+		motor.setPosition(position.in(Units.Rotations));
+	}
+
+	@Override
 	public double getVelocity() {
 		return motor.getVelocity().getValue();
+	}
+
+	@Override
+	public Measure<Velocity<Angle>> getVelocityMeasure() {
+		return Units.RotationsPerSecond.of(motor.getVelocity().getValueAsDouble());
 	}
 
 	public TalonFX motor() {

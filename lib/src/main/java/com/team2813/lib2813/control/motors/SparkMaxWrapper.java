@@ -6,6 +6,11 @@ import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.util.ConfigUtils;
 
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Velocity;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,15 +55,30 @@ public class SparkMaxWrapper extends CANSparkBase implements PIDMotor {
         return encoder.getPosition();
     }
 
+	@Override
+	public Measure<Angle> getPositionMeasure() {
+		return Units.Rotations.of(encoder.getPosition());
+	}
+
     @Override
     public void setPosition(double position) {
         encoder.setPosition(position);
     }
 
+	@Override
+	public void setPosition(Measure<Angle> position) {
+		encoder.setPosition(position.in(Units.Rotations));
+	}
+
     @Override
     public double getVelocity() {
         return encoder.getVelocity();
     }
+
+	@Override
+	public Measure<Velocity<Angle>> getVelocityMeasure() {
+		return Units.Rotations.per(Units.Minute).of(encoder.getVelocity());
+	}
 
     @Override
     public void configPIDF(int slot, double p, double i, double d, double f) {

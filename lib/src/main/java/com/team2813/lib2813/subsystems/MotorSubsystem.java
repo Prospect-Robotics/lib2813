@@ -1,6 +1,7 @@
 package com.team2813.lib2813.subsystems;
 
 import java.util.Objects;
+import java.util.function.DoubleSupplier;
 
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.Encoder;
@@ -8,6 +9,8 @@ import com.team2813.lib2813.control.Motor;
 import com.team2813.lib2813.control.PIDMotor;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.PIDSubsystem;
 
 /**
@@ -20,6 +23,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 	protected final Motor motor;
 	protected final Encoder encoder;
 	protected final ControlMode controlMode;
+	protected final Angle rotationUnit;
 
 	protected MotorSubsystem(MotorSubsystemConfiguration builder) {
 		super(builder.controller, builder.startingPosition);
@@ -27,6 +31,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		motor = builder.motor;
 		encoder = builder.encoder;
 		controlMode = builder.controlMode;
+		rotationUnit = builder.rotationUnit;
 	}
 
 	/**
@@ -43,6 +48,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		 */
 		public static final double DEFAULT_STARTING_POSITION = 0.0;
 		private ControlMode controlMode;
+		private Angle rotationUnit;
 		private Motor motor;
 		private Encoder encoder;
 		private PIDController controller;
@@ -65,6 +71,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 			acceptableError = DEFAULT_ERROR;
 			startingPosition = DEFAULT_STARTING_POSITION;
 			controlMode = ControlMode.DUTY_CYCLE;
+			rotationUnit = Units.Rotations;
 		}
 
 		/**
@@ -126,13 +133,22 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 			return this;
 		}
 
-		public MotorSubsystemConfiguration startingPosition(Position startingPosition) {
-			this.startingPosition = startingPosition.getPos();
+		public MotorSubsystemConfiguration startingPosition(DoubleSupplier startingPosition) {
+			this.startingPosition = startingPosition.getAsDouble();
 			return this;
 		}
 
 		public MotorSubsystemConfiguration acceptableError(double error) {
 			this.acceptableError = error;
+			return this;
+		}
+
+		/**
+		 * Sets the unit to use for PID calculations
+		 * @param rotationUnit
+		 */
+		public MotorSubsystemConfiguration rotationUnit(Angle rotationUnit) {
+			this.rotationUnit = rotationUnit;
 			return this;
 		}
 	}
@@ -187,11 +203,13 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		motor.set(mode, demand);
 	}
 
+	@Override
 	protected void useOutput(double output, double setpoint) {
 		motor.set(controlMode, output);
 	}
 
+	@Override
 	protected double getMeasurement() {
-		return encoder.position();
+		return encoder.getPositionMeasure().in(rotationUnit);
 	}
 }
