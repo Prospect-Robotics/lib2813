@@ -19,12 +19,14 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 
 	protected final Motor motor;
 	protected final Encoder encoder;
+	protected final ControlMode controlMode;
 
 	protected MotorSubsystem(MotorSubsystemConfiguration builder) {
 		super(builder.controller, builder.startingPosition);
 		getController().setTolerance(builder.acceptableError);
 		motor = builder.motor;
 		encoder = builder.encoder;
+		controlMode = builder.controlMode;
 	}
 
 	/**
@@ -40,6 +42,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		 * The default starting position if one is not defined
 		 */
 		public static final double DEFAULT_STARTING_POSITION = 0.0;
+		private ControlMode controlMode;
 		private Motor motor;
 		private Encoder encoder;
 		private PIDController controller;
@@ -61,6 +64,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 			controller = new PIDController(0, 0, 0);
 			acceptableError = DEFAULT_ERROR;
 			startingPosition = DEFAULT_STARTING_POSITION;
+			controlMode = ControlMode.DUTY_CYCLE;
 		}
 
 		/**
@@ -84,6 +88,17 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		 */
 		public MotorSubsystemConfiguration controller(PIDController controller) {
 			this.controller = controller;
+			return this;
+		}
+
+		/**
+		 * Sets the control mode to use when giving output to the motor.
+		 * Defaults to {@link ControlMode#DUTY_CYCLE}.
+		 * @param controlMode The mode to use when controlling the motor
+		 * @return {@code this} for chaining
+		 */
+		public MotorSubsystemConfiguration controlMode(ControlMode controlMode) {
+			this.controlMode = controlMode;
 			return this;
 		}
 
@@ -173,7 +188,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 	}
 
 	protected void useOutput(double output, double setpoint) {
-		motor.set(ControlMode.DUTY_CYCLE, output);
+		motor.set(controlMode, output);
 	}
 
 	protected double getMeasurement() {
