@@ -1,7 +1,7 @@
 package com.team2813.lib2813.subsystems;
 
 import java.util.Objects;
-import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.Encoder;
@@ -10,7 +10,9 @@ import com.team2813.lib2813.control.PIDMotor;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Velocity;
 import edu.wpi.first.wpilibj2.command.PIDSubsystem;
 
 /**
@@ -18,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.PIDSubsystem;
  * 
  * @param <T> the {@link MotorSubsystem.Position} type to use positions from.
  */
-public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends PIDSubsystem implements Motor {
+public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends PIDSubsystem implements Motor, Encoder {
 
 	protected final Motor motor;
 	protected final Encoder encoder;
@@ -123,18 +125,18 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		}
 
 		/**
-		 * sets the starting position
+		 * sets the starting position.
 		 * 
 		 * @param startingPosition the position to start at
 		 * @return {@code this} for chaining
 		 */
-		public MotorSubsystemConfiguration startingPosition(double startingPosition) {
-			this.startingPosition = startingPosition;
+		public MotorSubsystemConfiguration startingPosition(Measure<Angle> startingPosition) {
+			this.startingPosition = startingPosition.in(this.rotationUnit);
 			return this;
 		}
 
-		public MotorSubsystemConfiguration startingPosition(DoubleSupplier startingPosition) {
-			this.startingPosition = startingPosition.getAsDouble();
+		public MotorSubsystemConfiguration startingPosition(Supplier<Measure<Angle>> startingPosition) {
+			this.startingPosition = startingPosition.get().in(this.rotationUnit);
 			return this;
 		}
 
@@ -148,20 +150,10 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		 * @param rotationUnit
 		 */
 		public MotorSubsystemConfiguration rotationUnit(Angle rotationUnit) {
+			startingPosition = rotationUnit.convertFrom(startingPosition, this.rotationUnit);
 			this.rotationUnit = rotationUnit;
 			return this;
 		}
-	}
-
-	/**
-	 * A position that the MotorSubsystem can go to
-	 */
-	public interface Position {
-		/**
-		 * gets the position of this enum value
-		 * @return the position as a double
-		 */
-		double getPos();
 	}
 
 	/**
@@ -176,7 +168,7 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 		if (!isEnabled()) {
 			enable();
 		}
-		setSetpoint(setpoint.getPos());
+		setSetpoint(setpoint.get().in(rotationUnit));
 	}
 
 	/**
@@ -211,5 +203,17 @@ public abstract class MotorSubsystem<T extends MotorSubsystem.Position> extends 
 	@Override
 	protected double getMeasurement() {
 		return encoder.getPositionMeasure().in(rotationUnit);
+	}
+
+	public Measure<Angle> getPositionMeasure() {
+		return encoder.getPositionMeasure();
+	}
+
+	public void setPosition(Measure<Angle> position) {
+		encoder.setPosition(position);
+	}
+
+	public Measure<Velocity<Angle>> getVelocityMeasure() {
+		return encoder.getVelocityMeasure();
 	}
 }
