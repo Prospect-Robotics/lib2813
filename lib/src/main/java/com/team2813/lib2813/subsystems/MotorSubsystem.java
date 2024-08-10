@@ -26,10 +26,12 @@ public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends
 	protected final Encoder encoder;
 	protected final ControlMode controlMode;
 	protected final Angle rotationUnit;
+	protected final double acceptableError;
 
 	protected MotorSubsystem(MotorSubsystemConfiguration builder) {
 		super(builder.controller, builder.startingPosition);
 		getController().setTolerance(builder.acceptableError);
+		acceptableError = builder.acceptableError;
 		motor = builder.motor;
 		encoder = builder.encoder;
 		controlMode = builder.controlMode;
@@ -169,6 +171,10 @@ public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends
 			enable();
 		}
 		setSetpoint(setpoint.get().in(rotationUnit));
+	}
+
+	public boolean atPosition() {
+		return Math.abs(getMeasurement() - getSetpoint()) <= acceptableError;
 	}
 
 	/**
