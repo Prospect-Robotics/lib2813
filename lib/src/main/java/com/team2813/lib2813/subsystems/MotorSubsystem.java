@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.PIDSubsystem;
  * 
  * @param <T> the {@link MotorSubsystem.Position} type to use positions from.
  */
-public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends PIDSubsystem implements Motor, Encoder {
+public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends PIDSubsystem implements Motor {
 
 	protected final Motor motor;
 	protected final Encoder encoder;
