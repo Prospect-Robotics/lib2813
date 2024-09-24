@@ -10,11 +10,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
-import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
-import com.ctre.phoenix6.controls.StrictFollower;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.team2813.lib2813.control.ControlMode;
@@ -122,6 +118,9 @@ public class TalonFXWrapper implements PIDMotor {
 				mm.FeedForward = feedForward;
 				motor.setControl(mm);
 				break;
+			case VOLTAGE:
+				VoltageOut vo = new VoltageOut(demand);
+				motor.setControl(vo);
 			default:
 				DutyCycleOut dc = new DutyCycleOut(demand);
 				motor.setControl(dc);
