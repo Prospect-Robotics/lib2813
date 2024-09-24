@@ -204,7 +204,7 @@ public class TalonFXWrapper implements PIDMotor {
 		TalonFX follower = new TalonFX(checkCanId(deviceNumber), canbus);
 		if (InvertType.rotationValues.contains(invertType)) {
 			TalonFXConfiguration conf = new TalonFXConfiguration();
-			// guaranteed to succseed
+			// guaranteed to succeed
 			conf.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
 			follower.setControl(new StrictFollower(information.id()));
 		} else {
@@ -217,7 +217,7 @@ public class TalonFXWrapper implements PIDMotor {
 		TalonFX follower = new TalonFX(checkCanId(deviceNumber));
 		if (InvertType.rotationValues.contains(invertType)) {
 			TalonFXConfiguration conf = new TalonFXConfiguration();
-			// guaranteed to succseed
+			// guaranteed to succeed
 			conf.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
 			follower.setControl(new StrictFollower(information.id()));
 		} else {
