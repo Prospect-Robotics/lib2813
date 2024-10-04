@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.PIDSubsystem;
  * 
  * @param <T> the {@link MotorSubsystem.Position} type to use positions from.
  */
-public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends PIDSubsystem implements Motor {
+public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends PIDSubsystem implements Motor, Encoder {
 
 	protected final Motor motor;
 	protected final Encoder encoder;
@@ -210,15 +210,33 @@ public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends
 	protected double getMeasurement() {
 		return encoder.getPositionMeasure().in(rotationUnit);
 	}
-
+	
+	@Override
+	@Deprecated
+	public double position() {
+		return encoder.position();
+	}
+	
 	public Measure<Angle> getPositionMeasure() {
 		return encoder.getPositionMeasure();
 	}
-
+	
+	@Override
+	@Deprecated
+	public void setPosition(double position) {
+		encoder.setPosition(position);
+	}
+	
 	public void setPosition(Measure<Angle> position) {
 		encoder.setPosition(position);
 	}
-
+	
+	@Override
+	@Deprecated
+	public double getVelocity() {
+		return encoder.getVelocity();
+	}
+	
 	public Measure<Velocity<Angle>> getVelocityMeasure() {
 		return encoder.getVelocityMeasure();
 	}
