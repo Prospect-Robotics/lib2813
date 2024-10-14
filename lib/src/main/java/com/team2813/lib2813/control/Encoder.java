@@ -6,7 +6,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Velocity;
 
 /**
- * Specifies a device that can percieve rotational positions.
+ * Specifies a device that can perceive rotational positions.
  */
 public interface Encoder {
 	/**
@@ -22,9 +22,7 @@ public interface Encoder {
 	 * Gets the position of the encoder
 	 * @return the position of the encoder as a measure
 	 */
-	default Measure<Angle> getPositionMeasure() {
-		return Units.Radians.of(position());
-	}
+	Measure<Angle> getPositionMeasure();
 
 	/**
 	 * Sets the position of the encoder
