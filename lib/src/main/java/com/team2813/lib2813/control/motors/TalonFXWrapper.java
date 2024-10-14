@@ -121,6 +121,7 @@ public class TalonFXWrapper implements PIDMotor {
 			case VOLTAGE:
 				VoltageOut vo = new VoltageOut(demand);
 				motor.setControl(vo);
+				break;
 			default:
 				DutyCycleOut dc = new DutyCycleOut(demand);
 				motor.setControl(dc);
