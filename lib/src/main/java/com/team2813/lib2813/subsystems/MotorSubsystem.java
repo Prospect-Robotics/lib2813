@@ -188,7 +188,17 @@ public abstract class MotorSubsystem<T extends Supplier<Measure<Angle>>> extends
 		}
 		motor.set(mode, demand, feedForward);
 	}
-
+	
+	/**
+	 * {@inheritDoc}
+	 * If this is enabled, then PID control will be used.
+	 * @return
+	 */
+	@Override
+	public boolean isEnabled() {
+		return super.isEnabled();
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 * <p>Additionally, this method disables PID control of the subsystem
