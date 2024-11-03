@@ -5,7 +5,8 @@ import com.revrobotics.CANSparkBase.ControlType;
 public enum ControlMode {
 	DUTY_CYCLE(ControlType.kDutyCycle),
 	VELOCITY(ControlType.kVelocity),
-	MOTION_MAGIC(ControlType.kPosition);
+	MOTION_MAGIC(ControlType.kPosition),
+	VOLTAGE(ControlType.kVoltage);
 
 	private final ControlType sparkMode;
 
