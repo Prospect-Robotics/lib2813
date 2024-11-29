@@ -21,13 +21,11 @@ class DataCollection implements Runnable {
 	private static final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(20))
 			.executor(Executors.newFixedThreadPool(2)).build();
 	private final HttpRequest dumpRequest;
-	private final URI baseURI;
 
 	public DataCollection(String hostname) {
 		lastResult = Optional.empty();
 		try {
-			baseURI = new URI("http", null, hostname, 5807, null, null, null);
-			URI dumpRequestUri = baseURI.resolve("results");
+			URI dumpRequestUri = new URI("http", null, hostname, 5807, "/results", null, null);
 			dumpRequest = HttpRequest.newBuilder(dumpRequestUri).GET().build();
 		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException("invalid hostname", e);
