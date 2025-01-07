@@ -7,20 +7,19 @@ import com.team2813.lib2813.control.PIDMotor;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Velocity;
-import edu.wpi.first.wpilibj2.command.PIDSubsystem;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Defines PID controll over a motor, with values specified by an encoder
+ * Defines PID control over a motor, with values specified by an encoder
  *
- * @param <T> the {@link MotorSubsystem.Position} type to use positions from.
+ * @param <T> the {@link Supplier<Angle>} type to use positions from.
  */
-public abstract class MotorSubsystem<T extends Supplier<Angle>> extends PIDSubsystem
+public abstract class MotorSubsystem<T extends Supplier<Angle>> extends SubsystemBase
     implements Motor, Encoder {
 
   protected final Motor motor;
@@ -28,10 +27,15 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends PIDSubsy
   protected final ControlMode controlMode;
   protected final AngleUnit rotationUnit;
   protected final double acceptableError;
+  protected final PIDController controller;
+  
+  private double setpoint;
+  private boolean isEnabled;
 
   protected MotorSubsystem(MotorSubsystemConfiguration builder) {
-    super(builder.controller, builder.startingPosition);
-    getController().setTolerance(builder.acceptableError);
+    this.setpoint = builder.startingPosition;
+    this.controller = builder.controller;
+    this.controller.setTolerance(builder.acceptableError);
     acceptableError = builder.acceptableError;
     motor = builder.motor;
     encoder = builder.encoder;
@@ -50,11 +54,15 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends PIDSubsy
     if (!isEnabled()) {
       enable();
     }
-    setSetpoint(setpoint.get().in(rotationUnit));
+    this.setpoint = setpoint.get().in(rotationUnit);
+  }
+  
+  public Angle getSetpoint() {
+    return rotationUnit.of(setpoint);
   }
 
   public boolean atPosition() {
-    return Math.abs(getMeasurement() - getSetpoint()) <= acceptableError;
+    return Math.abs(getMeasurement() - setpoint) <= acceptableError;
   }
 
   /**
@@ -69,15 +77,24 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends PIDSubsy
     }
     motor.set(mode, demand, feedForward);
   }
+  
+  public void enable() {
+    isEnabled = true;
+  }
+  
+  public void disable() {
+    isEnabled = false;
+    useOutput(0, 0);
+  }
 
   /**
-   * {@inheritDoc} If this is enabled, then PID control will be used.
+   * Returns whether the controller is enabled.
+   * If this is enabled, then PID control will be used.
    *
-   * @return
+   * @return Whether the controller is enabled.
    */
-  @Override
   public boolean isEnabled() {
-    return super.isEnabled();
+    return isEnabled;
   }
 
   /**
@@ -92,13 +109,11 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends PIDSubsy
     }
     motor.set(mode, demand);
   }
-
-  @Override
+  
   protected void useOutput(double output, double setpoint) {
     motor.set(controlMode, output);
   }
-
-  @Override
+  
   protected double getMeasurement() {
     return encoder.getPositionMeasure().in(rotationUnit);
   }
@@ -132,6 +147,13 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends PIDSubsy
   public AngularVelocity getVelocityMeasure() {
     return encoder.getVelocityMeasure();
   }
+  
+  @Override
+  public void periodic() {
+    if (isEnabled) {
+      useOutput(controller.calculate(getMeasurement()), setpoint);
+    }
+  }
 
   /** A configuration for a MotorSubsystem */
   public static class MotorSubsystemConfiguration {
@@ -143,8 +165,8 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends PIDSubsy
 
     private ControlMode controlMode;
     private AngleUnit rotationUnit;
-    private Motor motor;
-    private Encoder encoder;
+    private final Motor motor;
+    private final Encoder encoder;
     private PIDController controller;
     private double acceptableError;
     private double startingPosition;
@@ -238,7 +260,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends PIDSubsy
     /**
      * Sets the unit to use for PID calculations
      *
-     * @param rotationUnit
+     * @param rotationUnit The angle unit to use for calculations
      */
     public MotorSubsystemConfiguration rotationUnit(AngleUnit rotationUnit) {
       startingPosition = rotationUnit.convertFrom(startingPosition, this.rotationUnit);

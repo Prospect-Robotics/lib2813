@@ -5,15 +5,15 @@ import java.util.function.IntFunction;
 
 public class InputValidation {
   private InputValidation() {
-    throw new AssertionError("non instiantiable");
+    throw new AssertionError("non instantiable");
   }
 
   /**
    * Check if a given value is between the bounds
    *
    * @param <T> the type to compare
-   * @param lower an object that {@code actual} should be comparativly less than or equal to
-   * @param upper an object that {@code actual} should be comparativly greater than or equal to
+   * @param lower an object that {@code actual} should be comparatively less than or equal to
+   * @param upper an object that {@code actual} should be comparatively greater than or equal to
    * @param actual the actual value
    * @param throwable a function that takes the actual value and returns an unchecked exception
    * @throws RuntimeException when actual is not between lower and upper, based on natural ordering.
@@ -34,7 +34,7 @@ public class InputValidation {
    * @param upper the upper bound
    * @param actual the actual value
    * @param throwable a function that takes the actual value and returns an unchecked exception
-   * @throws RuntimeException when the actual is not inbetween the bounds. exception is provided by
+   * @throws RuntimeException when the actual is not in between the bounds. exception is provided by
    *     {@code throwable}
    */
   static void checkBounds(

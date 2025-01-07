@@ -4,7 +4,6 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.control.Encoder;
 import com.team2813.lib2813.util.ConfigUtils;
-import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -23,6 +22,7 @@ public class CancoderWrapper implements Encoder {
     info = new DeviceInformation(id);
   }
 
+  @Deprecated
   @Override
   public double position() {
     return cancoder.getPosition().getValueAsDouble();
@@ -33,6 +33,7 @@ public class CancoderWrapper implements Encoder {
     return Units.Rotations.of(cancoder.getPosition().getValueAsDouble());
   }
 
+  @Deprecated
   @Override
   public void setPosition(double position) {
     ConfigUtils.phoenix6Config(() -> cancoder.setPosition(position));
@@ -47,6 +48,7 @@ public class CancoderWrapper implements Encoder {
     return cancoder;
   }
 
+  @Deprecated
   @Override
   public double getVelocity() {
     return cancoder.getVelocity().getValueAsDouble();

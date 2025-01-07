@@ -11,7 +11,7 @@ public class InvertTypeTest {
   public void phoenixInvertsExist() {
     for (InvertType v : InvertType.rotationValues) {
       assertTrue(
-          String.format("No phoenix invert eixsts for InvertType %s.", v),
+          String.format("No phoenix invert exists for InvertType %s.", v),
           v.phoenixInvert().isPresent());
     }
   }
@@ -28,7 +28,7 @@ public class InvertTypeTest {
   @Test
   public void fromPhoenixInvertTest() {
     for (InvertType v : InvertType.rotationValues) {
-      InvertedValue val = v.phoenixInvert().get();
+      InvertedValue val = v.phoenixInvert().orElseThrow();
       assertEquals(v, InvertType.fromPhoenixInvert(val).orElse(null));
     }
   }
@@ -36,7 +36,7 @@ public class InvertTypeTest {
   @Test
   public void fromSparkMaxInvertTest() {
     for (InvertType v : InvertType.rotationValues) {
-      boolean val = v.sparkMaxInvert().get();
+      boolean val = v.sparkMaxInvert().orElseThrow();
       assertEquals(v, InvertType.fromSparkMaxInvert(val).orElse(null));
     }
   }

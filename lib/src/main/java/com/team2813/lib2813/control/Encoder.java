@@ -1,10 +1,8 @@
 package com.team2813.lib2813.control;
 
-import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Velocity;
 
 /** Specifies a device that can perceive rotational positions. */
 public interface Encoder {
@@ -30,7 +28,7 @@ public interface Encoder {
    *
    * @param position the position of the encoder
    * @deprecated This method does not specify a unit, so it is not safe to use. Use {@link
-   *     #setPosition(Measure)} instead.
+   *     #setPosition(Angle)} instead.
    */
   @Deprecated(forRemoval = true)
   void setPosition(double position);
@@ -42,7 +40,7 @@ public interface Encoder {
   /**
    * Gets the velocity of the encoder
    *
-   * @return the velocity that the encoder percieves
+   * @return the velocity that the encoder perceives
    * @deprecated This method does not specify velocity in a specific measurement, so it is not safe
    *     to use. Use {@link #getVelocityMeasure()} instead
    */

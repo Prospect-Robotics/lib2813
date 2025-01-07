@@ -10,5 +10,5 @@ import org.junit.experimental.theories.ParametersSuppliedBy;
 @ParametersSuppliedBy(BetweenSupplier.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BetweenRepeated {
-  public Between[] value();
+  Between[] value();
 }

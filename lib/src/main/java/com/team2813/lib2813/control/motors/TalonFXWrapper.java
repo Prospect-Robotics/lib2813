@@ -15,10 +15,9 @@ import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.util.InvalidCanIdException;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Velocity;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -88,7 +87,7 @@ public class TalonFXWrapper implements PIDMotor {
     TalonFXConfiguration config = new TalonFXConfiguration();
     // should never throw anything, as the tests guarantee that everything in
     // rotationValues
-    // returns a non-empy value with phoenixInvert
+    // returns a non-empty value with phoenixInvert
     config.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
     config.CurrentLimits =
         new CurrentLimitsConfigs()

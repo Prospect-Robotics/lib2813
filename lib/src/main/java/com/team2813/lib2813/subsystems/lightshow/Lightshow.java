@@ -16,12 +16,10 @@ public abstract class Lightshow extends SubsystemBase {
         public Color color() {
           return new Color(0, 0, 0);
         }
-        ;
 
         public boolean apply() {
           return true;
         }
-        ;
       };
 
   protected Set<State> states = new HashSet<>();
@@ -31,9 +29,8 @@ public abstract class Lightshow extends SubsystemBase {
    * Creates a new Lightshow subsystem using an enum. Uses the given {@code enumClass} to get a list
    * of {@link State}s to use.
    *
-   * @param <T> The type of an enum that implements state
-   * @param enumClass
-   * @param colorConsumer
+   * @param <T> The type of enum that implements state
+   * @param enumClass The enum class that contains the states
    */
   protected <T extends Enum<T> & State> Lightshow(Class<T> enumClass) {
     addStates(enumClass);
@@ -42,8 +39,7 @@ public abstract class Lightshow extends SubsystemBase {
   /**
    * Creates a new Lightshow subsystem with a set of states.
    *
-   * @param states
-   * @param colorConsumer
+   * @param states The states
    */
   protected Lightshow(Set<? extends State> states) {
     addStates(states);
@@ -77,17 +73,15 @@ public abstract class Lightshow extends SubsystemBase {
    * of {@link #update()} to the given {@link Consumer}. If the call to {@link #update()} returns an
    * empty optional, than the color of the default state is used, or the color is not changed.
    *
-   * @implSpec The {@link #colorConsumer} is passed the result of {@link #update()}, or the {@link
+   * @implSpec {@link #useColor(Color)} is passed the result of {@link #update()}, or the {@link
    *     #defaultState}'s color. If there is no color from {@link #update()} and no default state,
-   *     there is no requirement for what to pass to the {@link #colorConsumer}, or if the {@link
-   *     #colorConsumer} is called at all
+   *     there is no requirement for what to pass to {@link #useColor(Color)}, or if {@link
+   *     #useColor(Color)} is called at all
    */
   @Override
   public void periodic() {
     Optional<Color> color = update().or(() -> defaultState.map(State::color));
-    if (color.isPresent()) {
-      useColor((color.get()));
-    }
+    color.ifPresent(this::useColor);
   }
 
   /**

@@ -41,7 +41,7 @@ public class FakeLimelight extends ExternalResource {
 
 		@Override
 		public void handle(HttpExchange exchange) throws IOException {
-			logger.info("Request Recieved:");
+			logger.info("Request Received:");
 			logger.info(exchange.getRequestHeaders().toString());
 			exchange.sendResponseHeaders(200, body.length());
 			try (OutputStream os = exchange.getResponseBody()) {

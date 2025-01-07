@@ -6,7 +6,7 @@ import org.junit.experimental.theories.ParametersSuppliedBy;
 /**
  * Have an int parameter for a theory run with inputs between {@code first} and {@code last}
  * inclusive. If this annotation is repeated, all unique int values between all first and last
- * inputs will be used, with no gaurantee of order.
+ * inputs will be used, with no guarantee of order.
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
@@ -21,7 +21,7 @@ public @interface Between {
   int first();
 
   /**
-   * The last nubmer to test
+   * The last number to test
    *
    * @return the last number to test
    */

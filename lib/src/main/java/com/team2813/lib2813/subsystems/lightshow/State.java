@@ -8,12 +8,12 @@ public interface State {
    *
    * @return the color of this State
    */
-  public Color color();
+  Color color();
 
   /**
    * Checks if the current state should be applied
    *
    * @return {@code true} if the state should be applied
    */
-  public boolean apply();
+  boolean apply();
 }
