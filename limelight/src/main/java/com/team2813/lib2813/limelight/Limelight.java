@@ -63,7 +63,7 @@ public class Limelight {
 
 	/**
 	 * Gets the targeting latency from the limelight
-	 * @return
+	 * @return The targeting latency
 	 */
 	public OptionalLong getTargetingLatency() {
 		return unboxLong(getJsonDump().flatMap(getRoot()).flatMap(getLong("tl")));
@@ -111,7 +111,7 @@ public class Limelight {
 
 	/**
 	 * Gets the limelight with the specified name. Calling with a blank {@code limelightName}
-	 * is equivilent to calling {@link #getDefaultLimelight()}
+	 * is equivalent to calling {@link #getDefaultLimelight()}
 	 * @param limelightName The hostname or ip address of the limelight
 	 * @return the {@link Limelight} object for interfacing with the limelight
 	 * @throws NullPointerException if {@code limelightName} is null

@@ -17,7 +17,7 @@ So, after adding the lines to the settings.gradle, this line in the dependencies
 ```
 implementation "com.team2813:lib2813"
 ```
-Finally, in order to guarantee that the library jars are created before GradleRIO referes to them, add the following line to your build.gradle
+Finally, in order to guarantee that the library jars are created before GradleRIO referees to them, add the following line to your build.gradle
 ```
 downloadDepsPreemptively.dependsOn gradle.includedBuild("lib2813").task(":lib:jar")
 ```
@@ -28,7 +28,7 @@ to your settings.json
 ```
 "java.gradle.buildServer.enabled": "off",
 ```
-This isn't strictly neccesary, but without it vscode will not be able to do code completion from things in the library, and tell the user that there are errors,
+This isn't strictly necessary, but without it vscode will not be able to do code completion from things in the library, and tell the user that there are errors,
 when gradle builds fine.
 
 ## Cloning a repository with a git submodule
@@ -36,6 +36,6 @@ When cloning a repository with a git submodule, git will not automatically get t
 ```
 git submodule update --init --recursive
 ```
-This command will recursivly initialize all submodules.
+This command will recursively initialize all submodules.
 
 This code is still in development, and apis are still subject to change. The most likely thing to get removed is the swerve api, as ctre recently released their own.

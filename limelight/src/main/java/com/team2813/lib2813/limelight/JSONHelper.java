@@ -40,11 +40,7 @@ class JSONHelper {
 	}
 
 	static OptionalLong unboxLong(Optional<Long> val) {
-		if (val.isPresent()) {
-			return OptionalLong.of(val.get());
-		} else {
-			return OptionalLong.empty();
-		}
+    return val.map(OptionalLong::of).orElseGet(OptionalLong::empty);
 	}
 
 	static Function<JSONObject, Optional<Long>> getLong(String key) {
