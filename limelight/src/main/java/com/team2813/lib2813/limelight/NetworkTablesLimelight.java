@@ -2,6 +2,7 @@ package com.team2813.lib2813.limelight;
 
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
@@ -11,6 +12,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import org.json.JSONObject;
 
 class NetworkTablesLimelight implements Limelight {
+  private static final double[] ZEROS = new double[6];
   private final String limelightName;
 
   NetworkTablesLimelight(String limelightName) {
@@ -48,7 +50,7 @@ class NetworkTablesLimelight implements Limelight {
 
   private Optional<LimelightResults> getResults() {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
-    if (results.error.isEmpty()) {
+    if (results.error == null) {
       return Optional.of(results);
     }
     return Optional.empty();
@@ -101,7 +103,7 @@ class NetworkTablesLimelight implements Limelight {
     }
 
     private static Optional<Pose3d> toPose3D(double[] inData) {
-      if (inData.length < 6) {
+      if (inData.length != 6 || Arrays.equals(ZEROS, inData)) {
         return Optional.empty();
       }
       return Optional.of(LimelightHelpers.toPose3D(inData));

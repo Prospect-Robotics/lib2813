@@ -51,7 +51,7 @@ public class RestLimelightTest {
 	@Test
 	public void emptyValues() {
 		RestLimelight limelight = createLimelight();
-		assertFalse("NetworkTables should be empty", limelight.getCaptureLatency().isPresent());
+		assertFalse("JSON should be empty", limelight.getCaptureLatency().isPresent());
 	}
 	
 	JSONObject readJSON(String fileName) throws IOException {
