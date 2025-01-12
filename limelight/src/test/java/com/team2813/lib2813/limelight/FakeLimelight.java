@@ -51,9 +51,15 @@ public class FakeLimelight extends ExternalResource {
 	}
 
 	private FakeGet resultsResponse = new FakeGet();
+
+	public void reset() {
+		resultsResponse.setBody("");
+	}
+
 	public void setResultsResponse(JSONObject response) {
 		resultsResponse.setBody(response.toString());
 	}
+
 	public JSONObject getResultsResponse() {
 		return new JSONObject(resultsResponse.getBody());
 	}

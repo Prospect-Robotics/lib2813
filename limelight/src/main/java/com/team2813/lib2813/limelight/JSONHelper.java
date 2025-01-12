@@ -1,6 +1,7 @@
 package com.team2813.lib2813.limelight;
 
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
@@ -39,10 +40,6 @@ class JSONHelper {
 		return getJSONObject("Results");
 	}
 
-	static OptionalLong unboxLong(Optional<Long> val) {
-    return val.map(OptionalLong::of).orElseGet(OptionalLong::empty);
-	}
-
 	static Function<JSONObject, Optional<Long>> getLong(String key) {
 		return (j) -> {
 			if (!j.has(key)) {
@@ -55,6 +52,20 @@ class JSONHelper {
 			}
 		};
 	}
+
+	static Function<JSONObject, Optional<Double>> getDouble(String key) {
+		return (j) -> {
+			if (!j.has(key)) {
+				return Optional.empty();
+			}
+			try {
+				return Optional.of(j.getDouble(key));
+			} catch (JSONException e) {
+				return Optional.empty();
+			}
+		};
+	}
+	
 	static Function<JSONObject, Optional<JSONArray>> getArr(String key) {
 		return (obj) -> {
 			if (!obj.has(key)) {
