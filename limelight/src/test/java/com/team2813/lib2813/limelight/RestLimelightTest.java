@@ -22,19 +22,24 @@ import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 import org.junit.After;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 
 public class RestLimelightTest extends LimelightTestCase {
-	@Rule
-	public final FakeLimelight fakeLimelight = new FakeLimelight();
+	@ClassRule
+	public static final FakeLimelight fakeLimelight = new FakeLimelight();
 
 	@After
 	public void resetLimelights() {
 		RestLimelight.eraseInstances();
+	}
+
+	@After
+	public void resetFakeLimelight() {
+		fakeLimelight.reset();
 	}
 
 	@Test
