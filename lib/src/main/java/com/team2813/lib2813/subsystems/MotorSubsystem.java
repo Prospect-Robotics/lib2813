@@ -55,6 +55,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       enable();
     }
     this.setpoint = setpoint.get().in(rotationUnit);
+    controller.setSetpoint(this.setpoint);
   }
   
   public Angle getSetpoint() {
