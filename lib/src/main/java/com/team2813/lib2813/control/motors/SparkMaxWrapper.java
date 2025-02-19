@@ -102,7 +102,7 @@ public class SparkMaxWrapper implements PIDMotor {
       throw new RuntimeException("Invalid slot!");
     }
     ClosedLoopSlot cSlot = slots[slot];
-    config.apply(new ClosedLoopConfig().pidf(p,i,d,f,cSlot));
+    config.apply(new ClosedLoopConfig().pidf(p, i, d, f, cSlot));
     ConfigUtils.revConfig(() -> motor.configure(config, resetMode, persistMode));
   }
 
@@ -123,15 +123,16 @@ public class SparkMaxWrapper implements PIDMotor {
 
   public void addFollower(int deviceId, SparkLowLevel.MotorType type, InvertType inverted) {
     SparkMax follower = new SparkMax(deviceId, type);
-    boolean isInverted = switch (inverted) {
-      case CLOCKWISE, COUNTER_CLOCKWISE -> inverted.sparkMaxInvert().orElseThrow();
-      case FOLLOW_MASTER -> this.inverted;
-      case OPPOSE_MASTER -> !this.inverted;
-    };
-    ConfigUtils.revConfig(() -> follower.configure(
-            new SparkMaxConfig().follow(motor).inverted(isInverted),
-            resetMode, persistMode
-    ));
+    boolean isInverted =
+        switch (inverted) {
+          case CLOCKWISE, COUNTER_CLOCKWISE -> inverted.sparkMaxInvert().orElseThrow();
+          case FOLLOW_MASTER -> this.inverted;
+          case OPPOSE_MASTER -> !this.inverted;
+        };
+    ConfigUtils.revConfig(
+        () ->
+            follower.configure(
+                new SparkMaxConfig().follow(motor).inverted(isInverted), resetMode, persistMode));
     followers.add(follower); // add to follower list so CANSparkMax follower object is preserved
   }
 }
