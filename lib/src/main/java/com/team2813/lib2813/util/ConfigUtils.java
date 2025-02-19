@@ -55,8 +55,7 @@ public class ConfigUtils {
               false);
         }
       }
-      DriverStation.reportError(
-          String.format("%s: %s", "Config Failed", errorCode), false);
+      DriverStation.reportError(String.format("%s: %s", "Config Failed", errorCode), false);
     }
   }
 }

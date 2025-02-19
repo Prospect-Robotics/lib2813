@@ -6,11 +6,10 @@ import com.team2813.lib2813.control.Motor;
 import com.team2813.lib2813.control.PIDMotor;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.units.AngleUnit;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -28,7 +27,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   protected final AngleUnit rotationUnit;
   protected final double acceptableError;
   protected final PIDController controller;
-  
+
   private double setpoint;
   private boolean isEnabled;
 
@@ -55,7 +54,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     this.setpoint = setpoint.get().in(rotationUnit);
     controller.setSetpoint(this.setpoint);
   }
-  
+
   public Angle getSetpoint() {
     return rotationUnit.of(setpoint);
   }
@@ -76,19 +75,18 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     }
     motor.set(mode, demand, feedForward);
   }
-  
+
   public void enable() {
     isEnabled = true;
   }
-  
+
   public void disable() {
     isEnabled = false;
     useOutput(0, 0);
   }
 
   /**
-   * Returns whether the controller is enabled.
-   * If this is enabled, then PID control will be used.
+   * Returns whether the controller is enabled. If this is enabled, then PID control will be used.
    *
    * @return Whether the controller is enabled.
    */
@@ -108,11 +106,11 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     }
     motor.set(mode, demand);
   }
-  
+
   protected void useOutput(double output, double setpoint) {
     motor.set(controlMode, output);
   }
-  
+
   protected double getMeasurement() {
     return encoder.getPositionMeasure().in(rotationUnit);
   }
@@ -146,7 +144,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   public AngularVelocity getVelocityMeasure() {
     return encoder.getVelocityMeasure();
   }
-  
+
   @Override
   public void periodic() {
     if (isEnabled) {
