@@ -1,13 +1,10 @@
 package com.team2813.lib2813.util;
 
-import java.lang.reflect.Executable;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class ControlUtilsTest {
     @Test
