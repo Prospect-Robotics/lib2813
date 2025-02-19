@@ -26,10 +26,10 @@ public class ControlUtils {
      */
     public static double deadband(double value, double deadband) {
         if (deadband < 0.0 || deadband >= 1.0) {
-            throw new IllegalArgumentException("Deadband must be in [0.0, 1.0)");
+            throw new IllegalArgumentException("Deadband must be in [0.0, 1.0). Instead, it was " + deadband);
         }
         if (value < -1.0 || value > 1.0) {
-            throw new IllegalArgumentException("Value must be in [-1.0, 1.0]");
+            throw new IllegalArgumentException("Value must be in [-1.0, 1.0]. Instead, it was " + value);
         }
         if (Math.abs(value) <= deadband) {
             return 0.0;

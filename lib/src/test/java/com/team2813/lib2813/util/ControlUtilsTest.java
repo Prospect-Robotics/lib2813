@@ -1,9 +1,13 @@
 package com.team2813.lib2813.util;
 
+import java.lang.reflect.Executable;
+import org.hamcrest.CoreMatchers;
+import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
-
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ControlUtilsTest {
     @Test
@@ -36,21 +40,48 @@ public class ControlUtilsTest {
         assertEquals(1.0, ControlUtils.deadband(1.0, 0.0), 1e-9);
     }
 
+    @FunctionalInterface
+    private interface TestExpression {
+        void evaluate() throws Exception;
+    }
+
+    /**
+     * Asserts that {@code testExpression} is a expression that throws an exception
+     * of type IllegalArgumentException with a message containing
+     * {@code expectedMessage}.
+     * 
+     * @param testExpression  A test expression implementing {@code TestExpression}
+     *                        (e.g., a lambda) to evaluate.
+     * @param expectedMessage (Part of an) error message expected in the exception.
+     */
+    private void assertIllegalArgumentExceptionIsThrownContainingMessage(TestExpression testExpression,
+            String expectedMessage) {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> testExpression.evaluate());
+        assertThat(exception.getMessage(), CoreMatchers.containsString(expectedMessage));
+    }
+
     @Test
     public void deadbandThrowsErrorOnInvalidDeadband() {
         // Deadband values outside [0.0, 1.0) result in IllegalArgumentException.
-        assertThrows(IllegalArgumentException.class, () -> ControlUtils.deadband(0.25, -1.5));
-        assertThrows(IllegalArgumentException.class, () -> ControlUtils.deadband(0.25, -1.0));
-        assertThrows(IllegalArgumentException.class, () -> ControlUtils.deadband(0.25, 1.0));
-        assertThrows(IllegalArgumentException.class, () -> ControlUtils.deadband(0.25, 1.9));
+        assertIllegalArgumentExceptionIsThrownContainingMessage(() -> ControlUtils.deadband(0.25, -1.5),
+                "Instead, it was -1.5");
+        assertIllegalArgumentExceptionIsThrownContainingMessage(() -> ControlUtils.deadband(0.25, -1.0),
+                "Instead, it was -1.0");
+        assertIllegalArgumentExceptionIsThrownContainingMessage(() -> ControlUtils.deadband(0.25, 1.0),
+                "Instead, it was 1.0");
+        assertIllegalArgumentExceptionIsThrownContainingMessage(() -> ControlUtils.deadband(0.25, 1.9),
+                "Instead, it was 1.9");
     }
 
     @Test
     public void deadbandThrowsErrorOnValueOutOfRange() {
-        // Values outside [-1.0, 1.0] result in IllegalArgumentException.
-        assertThrows(IllegalArgumentException.class, () -> ControlUtils.deadband(-1.5, 0.5));
-        assertThrows(IllegalArgumentException.class, () -> ControlUtils.deadband(-1.0001, 0.5));
-        assertThrows(IllegalArgumentException.class, () -> ControlUtils.deadband(1.0001, 0.5));
-        assertThrows(IllegalArgumentException.class, () -> ControlUtils.deadband(30.0, 0.5));
+        assertIllegalArgumentExceptionIsThrownContainingMessage(() -> ControlUtils.deadband(-1.5, 0.5),
+                "Instead, it was -1.5");
+        assertIllegalArgumentExceptionIsThrownContainingMessage(() -> ControlUtils.deadband(-1.0001, 0.5),
+                "Instead, it was -1.0001");
+        assertIllegalArgumentExceptionIsThrownContainingMessage(() -> ControlUtils.deadband(1.0001, 0.5),
+                "Instead, it was 1.0001");
+        assertIllegalArgumentExceptionIsThrownContainingMessage(() -> ControlUtils.deadband(30.0, 0.5),
+                "Instead, it was 30.0");
     }
 }
