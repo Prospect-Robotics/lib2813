@@ -14,10 +14,11 @@ public class ControlUtils {
      * "A deadband or dead-band (also known as a dead zone or a neutral zone) is a
      * band of input values in the domain of a transfer function in a control system
      * or signal processing system where the output is zero (the output is 'dead' -
-     * no action occurs)." https://en.wikipedia.org/wiki/Deadband
+     * no action occurs).". See <a href=
+     * "https://en.wikipedia.org/wiki/Deadband">https://en.wikipedia.org/wiki/Deadband</a>.
      * 
-     * See https://www.desmos.com/calculator/td9m7bff26 for interactive demo of the
-     * deadband operation.
+     * @see <a href="https://www.desmos.com/calculator/td9m7bff26">an interactive
+     *      demo</a> of the deadband operation.
      * 
      * @param value    The value to deadband, must be in [-1.0, 1.0].
      * @param deadband The deadband range value, must be in [0.0, 1.0).
