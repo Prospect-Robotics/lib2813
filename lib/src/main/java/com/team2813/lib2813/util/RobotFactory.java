@@ -3,7 +3,6 @@ package com.team2813.lib2813.util;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-
 import java.util.function.Function;
 
 public final class RobotFactory {
@@ -29,5 +28,5 @@ public final class RobotFactory {
     public void selectTab(String title) {
       Shuffleboard.selectTab(title);
     }
-  };
+  }
 }

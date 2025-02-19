@@ -1,11 +1,10 @@
 package com.team2813.lib2813.util;
 
+import static edu.wpi.first.util.ErrorMessages.requireNonNullParam;
+
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static edu.wpi.first.util.ErrorMessages.requireNonNullParam;
 
 public final class FakeShuffleboardTabs implements ShuffleboardTabs {
   private static final AtomicInteger nextValue = new AtomicInteger(1);
