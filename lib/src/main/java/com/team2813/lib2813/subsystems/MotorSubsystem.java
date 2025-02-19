@@ -46,7 +46,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /**
    * Sets the desired setpoint to the current setpoint, and enables the PID. control.
    *
-   * <p>Prefer calling this over calling {@link #setSetpoint(double)}.
+   * <p>Prefer calling this over calling setSetpoint(double).
    *
    * @param setpoint the position to go to
    */
