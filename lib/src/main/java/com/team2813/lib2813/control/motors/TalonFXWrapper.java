@@ -14,10 +14,9 @@ import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.util.InvalidCanIdException;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -57,9 +56,7 @@ public class TalonFXWrapper implements PIDMotor {
     // returns a non-empty value with phoenixInvert
     config.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
     config.CurrentLimits =
-        new CurrentLimitsConfigs()
-            .withStatorCurrentLimit(40)
-            .withSupplyCurrentLimitEnable(true);
+        new CurrentLimitsConfigs().withStatorCurrentLimit(40).withSupplyCurrentLimitEnable(true);
     TalonFXConfigurator configurator = motor.getConfigurator();
     configurator.apply(config);
 
@@ -90,9 +87,7 @@ public class TalonFXWrapper implements PIDMotor {
     // returns a non-empty value with phoenixInvert
     config.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
     config.CurrentLimits =
-        new CurrentLimitsConfigs()
-            .withStatorCurrentLimit(40)
-            .withSupplyCurrentLimitEnable(true);
+        new CurrentLimitsConfigs().withStatorCurrentLimit(40).withSupplyCurrentLimitEnable(true);
     TalonFXConfigurator configurator = motor.getConfigurator();
     configurator.apply(config);
 
