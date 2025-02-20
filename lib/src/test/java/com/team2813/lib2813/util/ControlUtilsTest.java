@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThrows;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 
 public class ControlUtilsTest {
   @Test
@@ -38,23 +39,16 @@ public class ControlUtilsTest {
     assertEquals(1.0, ControlUtils.deadband(1.0, 0.0), 1e-9);
   }
 
-  @FunctionalInterface
-  private interface TestExpression {
-    void evaluate() throws Exception;
-  }
-
   /**
-   * Asserts that {@code testExpression} is a expression that throws an exception of type
-   * IllegalArgumentException with a message containing {@code expectedMessage}.
+   * Asserts that {@code testExpression} is an expression that throws an exception of type {@code
+   * IllegalArgumentException} with a message containing {@code expectedMessage}.
    *
-   * @param testExpression A test expression implementing {@code TestExpression} (e.g., a lambda) to
-   *     evaluate.
+   * @param testExpression An expression that is expected to throw an exception when executed.
    * @param expectedMessage (Part of an) error message expected in the exception.
    */
   private void assertIllegalArgumentExceptionIsThrownContainingMessage(
-      TestExpression testExpression, String expectedMessage) {
-    Exception exception =
-        assertThrows(IllegalArgumentException.class, () -> testExpression.evaluate());
+      ThrowingRunnable testExpression, String expectedMessage) {
+    Exception exception = assertThrows(IllegalArgumentException.class, testExpression);
     assertThat(exception.getMessage(), CoreMatchers.containsString(expectedMessage));
   }
 
