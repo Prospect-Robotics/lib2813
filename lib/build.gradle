@@ -62,12 +62,15 @@ tasks.named('test') {
 tasks.named('jar') {
     manifest {
         attributes('Implementation-Title': project.name,
-                'Implementation-Version': project.version)
+        'Implementation-Version': project.version)
     }
 }
 
 javadoc {
-    options.tags = ["apiNote:a:Api Note:", "implSpec:a:Implementation Requirements:"]
+    options.tags = [
+        "apiNote:a:Api Note:",
+        "implSpec:a:Implementation Requirements:"
+    ]
 }
 
 task sourceJar(type: Jar) {
@@ -75,7 +78,8 @@ task sourceJar(type: Jar) {
     archiveClassifier = "sources"
 }
 
-spotless {  // See https://github.com/diffplug/spotless/tree/main/plugin-gradle
+spotless {
+    // See https://github.com/diffplug/spotless/tree/main/plugin-gradle
     format 'misc', {
         // define the files to apply `misc` to
         target '.gitattributes', '.gitignore'
