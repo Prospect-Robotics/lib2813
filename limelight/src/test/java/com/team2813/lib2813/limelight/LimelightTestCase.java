@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import edu.wpi.first.units.Units;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Rule;
@@ -99,6 +100,27 @@ abstract class LimelightTestCase {
 		assertEquals(expectedPose, actualPose.orElse(null));
 		assertTrue(limelight.getTimestamp().isPresent());
 		assertEquals(941200.41, limelight.getTimestamp().getAsDouble(), 0.005);
+	}
+	
+	@Test
+	public final void botposeBlueTest() throws Exception {
+		JSONObject obj = readJSON("BotposeBlueRedTest.json");
+		setJson(obj);
+		Limelight limelight = createLimelight();
+    assertTrue(limelight.hasTarget());
+		
+		LocationalData locationalData = limelight.getLocationalData();
+		Optional<Pose3d> botposeBlue = locationalData.getBotpose(); //TODO: make getBotposeBlue
+		assertTrue(botposeBlue.isPresent());
+		Pose3d actualPose = botposeBlue.get();
+		
+		Rotation3d expectedRotation = new Rotation3d(0, 0, Math.toRadians(-123.48705171149771));
+		Pose3d expectedPose = new Pose3d(4.715193569870748, 5.203922172240444, 0, expectedRotation);
+		double poseDiff = actualPose.getTranslation().getDistance(expectedPose.getTranslation());
+		assertAlmostEqual(0, OptionalDouble.of(poseDiff), 0.05);
+		Rotation3d rotationDiff = expectedRotation.minus(actualPose.getRotation());
+		double angleDiff = rotationDiff.getAngle();
+		assertAlmostEqual(0, OptionalDouble.of(angleDiff), Math.PI / 12.0);
 	}
 
 	protected abstract Limelight createLimelight();
