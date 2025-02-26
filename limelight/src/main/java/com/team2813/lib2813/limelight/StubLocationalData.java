@@ -8,7 +8,19 @@ import java.util.Set;
 
 /** Implementation of LocationalData where all optional values return empty values. */
 final class StubLocationalData implements LocationalData {
-  static final StubLocationalData INSTANCE = new StubLocationalData();
+  static final StubLocationalData VALID = new StubLocationalData(true);
+  static final StubLocationalData INVALID = new StubLocationalData(false);
+
+  private final boolean valid;
+
+  private StubLocationalData(boolean valid) {
+    this.valid = valid;
+  }
+
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
 
   @Override
   public boolean hasTarget() {
