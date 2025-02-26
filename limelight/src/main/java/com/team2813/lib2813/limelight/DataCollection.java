@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 
+import edu.wpi.first.wpilibj.Timer;
 import org.json.JSONObject;
 
 class DataCollection implements Runnable {
@@ -29,21 +30,27 @@ class DataCollection implements Runnable {
 		}
 	}
 
-	private volatile Optional<JSONObject> lastResult;
+	record Result(JSONObject json, double responseFpgaTimestamp) {}
 
-	private static class JSONHandler implements BodyHandler<JSONObject> {
+	private volatile Optional<Result> lastResult;
+
+	private static class JSONHandler implements BodyHandler<Result> {
 		@Override
-		public BodySubscriber<JSONObject> apply(ResponseInfo responseInfo) {
-			return BodySubscribers.mapping(BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo),
-					JSONObject::new);
+		public BodySubscriber<Result> apply(ResponseInfo responseInfo) {
+			// Get the timestamp before we parse the JSON.
+			double responseFpgaTimestamp = Timer.getFPGATimestamp();
+
+			return BodySubscribers.mapping(BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo), body -> {
+				return new Result(new JSONObject(body), responseFpgaTimestamp);
+			});
 		}
 	}
 
 	private static final JSONHandler handler = new JSONHandler();
 
-	private void updateJSON(HttpResponse<JSONObject> obj) {
-		JSONObject json = obj.body();
-		lastResult = Optional.of(json);
+	private void updateJSON(HttpResponse<Result> obj) {
+		Result result = obj.body();
+		lastResult = Optional.of(result);
 	}
 
 	@Override
@@ -59,7 +66,7 @@ class DataCollection implements Runnable {
 		}
 	}
 
-	public Optional<JSONObject> getMostRecent() {
+	public Optional<Result> getMostRecent() {
 		return lastResult;
 	}
 }

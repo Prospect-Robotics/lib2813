@@ -10,6 +10,7 @@ import java.util.OptionalDouble;
 
 import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.wpilibj.Timer;
 import org.json.JSONObject;
 
 class NetworkTablesLimelight implements Limelight {
@@ -20,11 +21,6 @@ class NetworkTablesLimelight implements Limelight {
   NetworkTablesLimelight(String limelightName) {
     this.limelightName = limelightName;
     aprilTagMapPoseHelper = new AprilTagMapPoseHelper(new LimelightClient(limelightName));
-  }
-  
-  @Override
-  public OptionalDouble getTimestamp() {
-    return getLocationalData().getTimestamp();
   }
 
   @Override
@@ -71,6 +67,7 @@ class NetworkTablesLimelight implements Limelight {
   }
 
   private static class NTLocationalData implements LocationalData {
+    private final double fpgaTimestamp = Timer.getFPGATimestamp();
     private final LimelightResults results;
 
     NTLocationalData(LimelightHelpers.LimelightResults results) {
@@ -108,8 +105,9 @@ class NetworkTablesLimelight implements Limelight {
     }
 
     @Override
-    public OptionalDouble getTimestamp() {
-      return OptionalDouble.of(results.timestamp_LIMELIGHT_publish);
+    public double getFpgaTimestamp() {
+      double latencyMillis = results.latency_capture + results.latency_pipeline + results.latency_jsonParse;
+      return fpgaTimestamp - (latencyMillis / 1000);
     }
 
     @Override

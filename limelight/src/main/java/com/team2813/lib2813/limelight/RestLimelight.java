@@ -51,7 +51,7 @@ class RestLimelight implements Limelight {
 
 	@Override
 	public Optional<JSONObject> getJsonDump() {
-		return collectionThread.getMostRecent();
+		return collectionThread.getMostRecent().map(DataCollection.Result::json);
 	}
 
 	/**
@@ -64,11 +64,6 @@ class RestLimelight implements Limelight {
 
 	public OptionalDouble getCaptureLatency() {
 		return getLocationalData().getCaptureLatency();
-	}
-
-	@Override
-	public OptionalDouble getTimestamp() {
-		return getLocationalData().getTimestamp();
 	}
 
 	/**
@@ -96,7 +91,7 @@ class RestLimelight implements Limelight {
 	}
 
 	public LocationalData getLocationalData() {
-		return getJsonDump().flatMap(getRoot()).map(RestLocationalData::fromJsonDump).orElse(StubLocationalData.INSTANCE);
+		return collectionThread.getMostRecent().map(RestLocationalData::fromResult).orElse(StubLocationalData.INSTANCE);
 	}
 
 	private void clean() {
@@ -142,13 +137,16 @@ class RestLimelight implements Limelight {
 
 	private static class RestLocationalData implements LocationalData {
 		private final JSONObject root;
+		private final double responseFpgaTimestamp;
 
-		static LocationalData fromJsonDump(JSONObject root) {
-			return new RestLocationalData(root);
+		static LocationalData fromResult(DataCollection.Result result) {
+			JSONObject root = getRoot(result.json());
+			return new RestLocationalData(root, result.responseFpgaTimestamp());
 		}
 
-		RestLocationalData(JSONObject root) {
+		private RestLocationalData(JSONObject root, double responseFpgaTimestamp) {
 			this.root = root;
+			this.responseFpgaTimestamp = responseFpgaTimestamp;
 		}
 
 		@Override
@@ -184,11 +182,6 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
-		public OptionalDouble getTimestamp() {
-			return unboxDouble(getDouble(root, "ts"));
-		}
-
-		@Override
 		public OptionalDouble getCaptureLatency() {
 			return unboxDouble(getDouble(root, "cl"));
 		}
@@ -199,6 +192,16 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
+		public double getFpgaTimestamp() {
+			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
+			double latencyMillis = getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
+			return responseFpgaTimestamp - (latencyMillis / 1000);
+		}
+
+		/**
+		 * Gets the position of the robot with the center of the field as the origin
+		 * @return The position of the robot
+		 */
 		public Optional<Pose3d> getBotpose() {
 			return getArr(root, "botpose").flatMap(this::parseArr);
 		}

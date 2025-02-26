@@ -33,12 +33,28 @@ public interface LocationalData {
 	 */
 	Optional<Pose3d> getBotposeRed();
 
+	/**
+	 * Capture latency in milliseconds.
+	 *
+	 * <p>Per the Limelight docs, this is the time between the end of the exposure of the middle row
+	 * to the beginning of the tracking loop.
+	 *
+	 * @deprecated Use {@link #getFpgaTimestamp()}
+	 */
+	@Deprecated
 	OptionalDouble getCaptureLatency();
 
+	/**
+	 * Targeting latency in milliseconds.
+	 *
+	 * <p>Per the Limelight docs, this is the time consumed by the tracking loop this frame.
+	 *
+	 * @deprecated Use {@link #getFpgaTimestamp()}
+	 */
+	@Deprecated
 	OptionalDouble getTargetingLatency();
 
-	OptionalDouble getTimestamp();
-
+	@Deprecated
 	default OptionalDouble lastMSDelay(){
 		OptionalDouble a = getCaptureLatency();
 		OptionalDouble b = getTargetingLatency();
@@ -47,6 +63,17 @@ public interface LocationalData {
 		}
 		return OptionalDouble.empty();
 	}
+
+	/**
+	 * Gets the estimated time of the vision measurement.
+	 *
+	 * <p>This value needs to be passed to {@code com.ctre.phoenix6.Utils.fpgaToCurrentTime()},
+	 * and then the resulting value can then be passed to
+	 * {@code com.ctre.phoenix6.swerve.SwerveDrivetrain.addVisionMeasurement()}.
+	 *
+	 * @return Number of seconds, since the FPGA started, for the measurement.
+	 */
+	double getFpgaTimestamp();
 
 	/**
 	 * Gets the set of all visible tags
