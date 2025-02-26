@@ -30,9 +30,13 @@ abstract class LimelightTestCase {
 		LocationalData locationalData = limelight.getLocationalData();
 		assertFalse(locationalData.getBotpose().isPresent());
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-		assertAlmostEqual(37.40, actualCaptureLatency, 0.005);
+		double expectedCaptureLatencyMs = 37.40;
+		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-		assertAlmostEqual(38.95, actualTargetingLatency, 0.005);
+		double expectedTargetingLatencyMs = 38.95;
+		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+		double measurementTime = locationalData.getFpgaTimestamp(); // Depends on parsing time; actual time varies
+		assertTrue(measurementTime > expectedCaptureLatencyMs + expectedTargetingLatencyMs);
 	}
 
 	@Test
@@ -43,9 +47,13 @@ abstract class LimelightTestCase {
 		LocationalData locationalData = limelight.getLocationalData();
 		assertFalse(locationalData.getBotpose().isPresent());
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-		assertAlmostEqual(37.40, actualCaptureLatency, 0.005);
+		double expectedCaptureLatencyMs = 37.40;
+		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-		assertAlmostEqual(54.64, actualTargetingLatency, 0.005);
+		double expectedTargetingLatencyMs = 54.64;
+		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+		double measurementTime = locationalData.getFpgaTimestamp(); // Depends on parsing time; actual time varies
+		assertTrue(measurementTime > expectedCaptureLatencyMs + expectedTargetingLatencyMs);
 	}
 
 	@Test
@@ -58,13 +66,16 @@ abstract class LimelightTestCase {
 		Optional<Pose3d> actualPose = locationalData.getBotpose();
 		assertTrue(actualPose.isPresent());
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-		assertAlmostEqual(37.40, actualCaptureLatency, 0.005);
+		double expectedCaptureLatencyMs = 37.40;
+		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-		assertAlmostEqual(66.61, actualTargetingLatency, 0.005);
+		double expectedTargetingLatencyMs = 66.61;
+		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+		double measurementTime = locationalData.getFpgaTimestamp(); // Depends on parsing time; actual time varies
+		assertTrue(measurementTime > expectedCaptureLatencyMs + expectedTargetingLatencyMs);
 		Rotation3d rotation = new Rotation3d(Math.toRadians(6.817779398227925), Math.toRadians(-25.663211825857257), Math.toRadians(-173.13543891950323));
 		Pose3d expectedPose = new Pose3d(7.3505718968031255, 0.7083545864687876, 0.9059300968047116, rotation);
 		assertEquals(expectedPose, actualPose.orElse(null));
-		assertAlmostEqual(3664865.25, limelight.getTimestamp(), 0.005);
 	}
 
 	@Test
@@ -77,14 +88,16 @@ abstract class LimelightTestCase {
 		Optional<Pose3d> actualPose = locationalData.getBotpose();
 		assertTrue(actualPose.isPresent());
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-		assertAlmostEqual(37.40, actualCaptureLatency, 0.005);
+		double expectedCaptureLatencyMs = 37.40;
+		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-		assertAlmostEqual(59.20, actualTargetingLatency, 0.005);
+		double expectedTargetingLatencyMs = 59.20;
+		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+		double measurementTime = locationalData.getFpgaTimestamp(); // Depends on parsing time; actual time varies
+		assertTrue(measurementTime > expectedCaptureLatencyMs + expectedTargetingLatencyMs);
 		Rotation3d rotation = new Rotation3d(Math.toRadians(-5.176760596073282), Math.toRadians(-24.321885146945643), Math.toRadians(-164.63614172918574));
 		Pose3d expectedPose = new Pose3d(7.46915459715645, 0.8066093109325925, 1.0062389106931178, rotation);
 		assertEquals(expectedPose, actualPose.orElse(null));
-		assertTrue(limelight.getTimestamp().isPresent());
-		assertEquals(941200.41, limelight.getTimestamp().getAsDouble(), 0.005);
 	}
 	
 	@Test
@@ -128,24 +141,24 @@ abstract class LimelightTestCase {
 		double angleDiff = rotationDiff.getAngle();
 		assertAlmostEqual(0, OptionalDouble.of(angleDiff), Math.PI / 12.0);
 	}
-	
+
 	@Test
 	public final void visibleTagTest() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
 		assertTrue(limelight.hasTarget());
-		
+
 		Set<Integer> tags = limelight.getLocationalData().getVisibleTags();
 		assertEquals(Set.of(20), tags);
 	}
-	
+
 	@Test
 	public final void visibleTagLocationTest() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
-		
+
 		boolean updateLimelight = false;
 		try (var stream = getClass().getResourceAsStream("frc2025r2.fmap")) {
 			limelight.setFieldMap(stream, updateLimelight);

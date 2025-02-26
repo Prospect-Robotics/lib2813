@@ -21,12 +21,6 @@ public interface Limelight {
 	}
 
 	/**
-	 * @deprecated use {@link LocationalData#getTimestamp()}
-	 */
-	@Deprecated
-	OptionalDouble getTimestamp();
-
-	/**
 	 * Returns {@code true} if the limelight has identified a target.
 	 *
 	 * @deprecated use {@link LocationalData#hasTarget()}
