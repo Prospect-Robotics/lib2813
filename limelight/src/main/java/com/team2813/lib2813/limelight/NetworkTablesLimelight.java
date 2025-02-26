@@ -46,11 +46,6 @@ class NetworkTablesLimelight implements Limelight {
   }
 
   @Override
-  public LocationalData getLocationalData() {
-    return getResults().orElse(StubLocationalData.INSTANCE);
-  }
-
-  @Override
   public Optional<JSONObject> getJsonDump() {
     return Optional.empty();
   }
@@ -60,15 +55,16 @@ class NetworkTablesLimelight implements Limelight {
     return getLocationalData().getCaptureLatency();
   }
 
-  private Optional<LocationalData> getResults() {
+  @Override
+  public LocationalData getLocationalData() {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
-    if (results.error == null) {
+    if (results.error == null && results.valid) {
       var poseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate(limelightName));
       var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName));
       var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName));
-      return Optional.of(new NTLocationalData(results, poseEstimate, redPoseEstimate, bluePoseEstimate));
+      return new NTLocationalData(results, poseEstimate, redPoseEstimate, bluePoseEstimate);
     }
-    return Optional.empty();
+    return StubLocationalData.INVALID;
   }
 
   private static Optional<BotPoseEstimate> toBotPoseEstimate(PoseEstimate estimate) {
@@ -92,6 +88,11 @@ class NetworkTablesLimelight implements Limelight {
     }
 
     @Override
+    public boolean isValid() {
+      return results.valid;
+    }
+
+    @Override
     public boolean hasTarget() {
       return results.targets_Fiducials.length > 0;
     }
@@ -105,7 +106,7 @@ class NetworkTablesLimelight implements Limelight {
     public Optional<BotPoseEstimate> getBotPoseEstimate() {
       return poseEstimate;
     }
-    
+
     @Override
     public Optional<Pose3d> getBotposeBlue() {
       return toPose3D(results.botpose_wpiblue);

@@ -30,12 +30,31 @@ abstract class LimelightTestCase {
 	}
 
 	@Test
+	public final void invalidDataTest() throws Exception {
+		JSONObject obj = readJSON("InvalidDataTest.json");
+		setJson(obj);
+
+		Limelight limelight = createLimelight();
+
+		LocationalData locationalData = limelight.getLocationalData();
+		assertThat(locationalData.isValid()).isFalse();
+		assertThat(locationalData.getBotpose()).isEmpty();
+		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
+		assertThat(actualCaptureLatency).isEmpty();
+		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
+		assertThat(actualTargetingLatency).isEmpty();
+	}
+
+	@Test
 	public final void absentTest1() throws Exception {
 		JSONObject obj = readJSON("AbsentTest1.json");
 		setJson(obj);
+
 		Limelight limelight = createLimelight();
+
 		LocationalData locationalData = limelight.getLocationalData();
-		assertThat(locationalData.getBotpose()).isEmpty();
+        assertThat(locationalData.isValid()).isTrue();
+        assertThat(locationalData.getBotpose()).isEmpty();
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
 		double expectedCaptureLatencyMs = 37.40;
 		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
@@ -50,9 +69,12 @@ abstract class LimelightTestCase {
 	public final void absentTest2() throws Exception {
 		JSONObject obj = readJSON("AbsentTest2.json");
 		setJson(obj);
+
 		Limelight limelight = createLimelight();
+
 		LocationalData locationalData = limelight.getLocationalData();
-		assertThat(locationalData.getBotpose()).isEmpty();
+        assertThat(locationalData.isValid()).isTrue();
+        assertThat(locationalData.getBotpose()).isEmpty();
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
 		double expectedCaptureLatencyMs = 37.40;
 		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
@@ -67,10 +89,13 @@ abstract class LimelightTestCase {
 	public final void presentTest1() throws Exception {
 		JSONObject obj = readJSON("PresentTest1.json");
 		setJson(obj);
+
 		Limelight limelight = createLimelight();
+
 		assertHasTarget(limelight);
 		LocationalData locationalData = limelight.getLocationalData();
-		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
+        assertThat(locationalData.isValid()).isTrue();
+        OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
 		double expectedCaptureLatencyMs = 37.40;
 		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
@@ -106,10 +131,13 @@ abstract class LimelightTestCase {
 	public final void presentTest2() throws Exception {
 		JSONObject obj = readJSON("PresentTest2.json");
 		setJson(obj);
+
 		Limelight limelight = createLimelight();
+
 		assertHasTarget(limelight);
 		LocationalData locationalData = limelight.getLocationalData();
-		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
+        assertThat(locationalData.isValid()).isTrue();
+        OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
 		double expectedCaptureLatencyMs = 37.40;
 		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();

@@ -96,7 +96,7 @@ class RestLimelight implements Limelight {
 	}
 
 	public LocationalData getLocationalData() {
-		return collectionThread.getMostRecent().map(RestLocationalData::fromResult).orElse(StubLocationalData.INSTANCE);
+		return collectionThread.getMostRecent().map(RestLocationalData::fromResult).orElse(StubLocationalData.VALID);
 	}
 
 	private void clean() {
@@ -152,6 +152,11 @@ class RestLimelight implements Limelight {
 		private RestLocationalData(JSONObject root, double responseTimestamp) {
 			this.root = root;
 			this.responseTimestamp = responseTimestamp;
+		}
+
+		@Override
+		public boolean isValid() {
+			return getBooleanFromInt(root, "v").orElse(false);
 		}
 
 		@Override
