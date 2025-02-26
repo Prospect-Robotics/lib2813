@@ -37,7 +37,13 @@ class JSONHelper {
 	}
 
 	static Function<JSONObject, Optional<JSONObject>> getRoot() {
-		return getJSONObject("Results");
+		return (json) -> {
+			if (json.has("Results")) {
+				return Optional.of(json.getJSONObject("Results"));
+			} else {
+				return Optional.of(json);
+			}
+ 		};
 	}
 
 	static Function<JSONObject, Optional<Long>> getLong(String key) {

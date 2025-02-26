@@ -20,6 +20,7 @@ import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 public class NetworkTablesLimelightTest extends LimelightTestCase {
   private static final String TABLE_NAME = "limelight";

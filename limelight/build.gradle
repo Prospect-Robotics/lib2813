@@ -1,6 +1,14 @@
 plugins {
 	id 'java-library'
 	id "edu.wpi.first.GradleRIO" version "2025.1.1"
+	id 'idea'
+}
+
+idea {
+	module {
+		downloadJavadoc = true
+		downloadSources = true
+	}
 }
 
 java {
