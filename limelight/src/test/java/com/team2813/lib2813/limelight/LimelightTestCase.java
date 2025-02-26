@@ -122,6 +122,27 @@ abstract class LimelightTestCase {
 		double angleDiff = rotationDiff.getAngle();
 		assertAlmostEqual(0, OptionalDouble.of(angleDiff), Math.PI / 12.0);
 	}
+	
+	@Test
+	public final void botposeRedTest() throws Exception {
+		JSONObject obj = readJSON("BotposeBlueRedTest.json");
+		setJson(obj);
+		Limelight limelight = createLimelight();
+		assertTrue(limelight.hasTarget());
+		
+		LocationalData locationalData = limelight.getLocationalData();
+		Optional<Pose3d> botposeBlue = locationalData.getBotposeRed();
+		assertTrue(botposeBlue.isPresent());
+		Pose3d actualPose = botposeBlue.get();
+		
+		Rotation3d expectedRotation = new Rotation3d(0, 0, Math.toRadians(56.51279624901089));
+		Pose3d expectedPose = new Pose3d(11.825855015367468, 3.0070683933666404, 0, expectedRotation);
+		double poseDiff = actualPose.getTranslation().getDistance(expectedPose.getTranslation());
+		assertAlmostEqual(0, OptionalDouble.of(poseDiff), 0.05);
+		Rotation3d rotationDiff = expectedRotation.minus(actualPose.getRotation());
+		double angleDiff = rotationDiff.getAngle();
+		assertAlmostEqual(0, OptionalDouble.of(angleDiff), Math.PI / 12.0);
+	}
 
 	protected abstract Limelight createLimelight();
 
