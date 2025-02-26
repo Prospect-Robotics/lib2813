@@ -25,11 +25,11 @@ class NetworkTablesLimelight implements Limelight {
 
   @Override
   public LocationalData getLocationalData() {
-    Optional<LimelightHelpers.LimelightResults> results = getResults();
-    if (results.isEmpty()) {
-      return StubLocationalData.INSTANCE;
+    LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
+    if (results.error == null && results.valid) {
+      return new NTLocationalData(results);
     }
-    return new NTLocationalData(results.get());
+    return StubLocationalData.INVALID;
   }
 
   @Override
@@ -42,14 +42,6 @@ class NetworkTablesLimelight implements Limelight {
     return getLocationalData().getCaptureLatency();
   }
 
-  private Optional<LimelightResults> getResults() {
-    LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
-    if (results.error == null) {
-      return Optional.of(results);
-    }
-    return Optional.empty();
-  }
-
   private static class NTLocationalData implements LocationalData {
     private final LimelightResults results;
 
@@ -57,6 +49,11 @@ class NetworkTablesLimelight implements Limelight {
       this.results = results;
     }
 
+    @Override
+    public boolean isValid() {
+      return results.valid;
+    }
+  
     @Override
     public boolean hasTarget() {
       return results.targets_Fiducials.length > 0;

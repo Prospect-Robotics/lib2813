@@ -1,9 +1,6 @@
 package com.team2813.lib2813.limelight;
 
-import static com.team2813.lib2813.limelight.JSONHelper.getArr;
-import static com.team2813.lib2813.limelight.JSONHelper.getDouble;
-import static com.team2813.lib2813.limelight.JSONHelper.getLong;
-import static com.team2813.lib2813.limelight.JSONHelper.getRoot;
+import static com.team2813.lib2813.limelight.JSONHelper.*;
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
 import static com.team2813.lib2813.limelight.Optionals.unboxLong;
 
@@ -81,7 +78,7 @@ class RestLimelight implements Limelight {
 	}
    
 	public LocationalData getLocationalData() {
-		return collectionThread.getMostRecent().map(RestLocationalData::fromResult).orElse(StubLocationalData.INSTANCE);
+		return collectionThread.getMostRecent().map(RestLocationalData::fromResult).orElse(StubLocationalData.VALID);
 	}
 
 	private void clean() {
@@ -137,6 +134,11 @@ class RestLimelight implements Limelight {
 		RestLocationalData(JSONObject root, double jsonParseTimeMillis) {
 			this.root = root;
 			this.jsonParseTimeMillis = jsonParseTimeMillis;
+		}
+
+		@Override
+		public boolean isValid() {
+			return getBooleanFromInt(root, "v").orElse(false);
 		}
 
 		@Override
