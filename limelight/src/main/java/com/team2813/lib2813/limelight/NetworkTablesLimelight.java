@@ -63,6 +63,16 @@ class NetworkTablesLimelight implements Limelight {
     public Optional<Pose3d> getBotpose() {
       return Optional.empty();
     }
+    
+    @Override
+    public Optional<Pose3d> getBotposeBlue() {
+      return Optional.empty();
+    }
+    
+    @Override
+    public Optional<Pose3d> getBotposeRed() {
+      return Optional.empty();
+    }
 
     @Override
     public OptionalDouble getCaptureLatency() {
@@ -90,6 +100,16 @@ class NetworkTablesLimelight implements Limelight {
     @Override
     public Optional<Pose3d> getBotpose() {
       return toPose3D(results.botpose);
+    }
+    
+    @Override
+    public Optional<Pose3d> getBotposeBlue() {
+      return toPose3D(results.botpose_wpiblue);
+    }
+    
+    @Override
+    public Optional<Pose3d> getBotposeRed() {
+      return toPose3D(results.botpose_wpired);
     }
 
     @Override

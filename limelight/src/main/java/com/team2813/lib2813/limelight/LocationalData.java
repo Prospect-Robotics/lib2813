@@ -13,6 +13,10 @@ import edu.wpi.first.math.geometry.Pose3d;
 public interface LocationalData {
 
 	Optional<Pose3d> getBotpose();
+	
+	Optional<Pose3d> getBotposeBlue();
+	
+	Optional<Pose3d> getBotposeRed();
 
 	OptionalDouble getCaptureLatency();
 

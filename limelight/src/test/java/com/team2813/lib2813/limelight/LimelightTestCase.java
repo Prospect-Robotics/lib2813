@@ -110,7 +110,7 @@ abstract class LimelightTestCase {
     assertTrue(limelight.hasTarget());
 		
 		LocationalData locationalData = limelight.getLocationalData();
-		Optional<Pose3d> botposeBlue = locationalData.getBotpose(); //TODO: make getBotposeBlue
+		Optional<Pose3d> botposeBlue = locationalData.getBotposeBlue();
 		assertTrue(botposeBlue.isPresent());
 		Pose3d actualPose = botposeBlue.get();
 		
