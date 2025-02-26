@@ -1,5 +1,6 @@
 package com.team2813.lib2813.limelight;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
@@ -36,14 +37,6 @@ public interface LocationalData {
 
 	OptionalDouble getTargetingLatency();
 
-	OptionalDouble getTimestamp();
-
-	default OptionalDouble lastMSDelay(){
-		OptionalDouble a = getCaptureLatency();
-		OptionalDouble b = getTargetingLatency();
-		if (a.isPresent() && b.isPresent()) {
-			return OptionalDouble.of(a.getAsDouble() + b.getAsDouble());
-		}
-		return OptionalDouble.empty();
-	}
+	/** Gets the total latency of this data. */
+	Optional<Duration> getTotalLatency();
 }

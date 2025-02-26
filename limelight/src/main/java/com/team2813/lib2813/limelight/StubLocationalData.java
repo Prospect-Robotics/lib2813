@@ -2,6 +2,7 @@ package com.team2813.lib2813.limelight;
 
 import edu.wpi.first.math.geometry.Pose3d;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
@@ -40,12 +41,7 @@ final class StubLocationalData implements LocationalData {
   }
 
   @Override
-  public OptionalDouble getTimestamp() {
-    return OptionalDouble.empty();
-  }
-
-  @Override
-  public OptionalDouble lastMSDelay() {
-    return OptionalDouble.empty();
+  public Optional<Duration> getTotalLatency() {
+    return Optional.empty();
   }
 }

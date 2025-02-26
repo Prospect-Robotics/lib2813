@@ -32,21 +32,27 @@ class DataCollection implements Runnable {
 		}
 	}
 
-	private volatile Optional<JSONObject> lastResult;
+	record Result(JSONObject json, double jsonParseTimeMillis) {}
 
-	private static class JSONHandler implements BodyHandler<JSONObject> {
+	private volatile Optional<Result> lastResult;
+
+	private static class JSONHandler implements BodyHandler<Result> {
 		@Override
-		public BodySubscriber<JSONObject> apply(ResponseInfo responseInfo) {
-			return BodySubscribers.mapping(BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo),
-					JSONObject::new);
+		public BodySubscriber<Result> apply(ResponseInfo responseInfo) {
+			long startTimeNanos = System.nanoTime();
+			return BodySubscribers.mapping(BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo), body -> {
+				var json = new JSONObject(body);
+				double parseTimeMillis = (System.nanoTime() - startTimeNanos) / 1_000_000d;
+				return new Result(json, parseTimeMillis);
+			});
 		}
 	}
 
 	private static final JSONHandler handler = new JSONHandler();
 
-	private void updateJSON(HttpResponse<JSONObject> obj) {
-		JSONObject json = obj.body();
-		lastResult = Optional.of(json);
+	private void updateJSON(HttpResponse<Result> obj) {
+		Result result = obj.body();
+		lastResult = Optional.of(result);
 	}
 
 	@Override
@@ -62,7 +68,7 @@ class DataCollection implements Runnable {
 		}
 	}
 
-	public Optional<JSONObject> getMostRecent() {
+	public Optional<Result> getMostRecent() {
 		return lastResult;
 	}
 }
