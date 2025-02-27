@@ -71,6 +71,9 @@ public class RestLimelightTest extends LimelightTestCase {
 
 	@Override
 	protected void setJson(JSONObject json) {
-		fakeLimelight.setResultsResponse(json);
+		// limelight json schema has been updated to not json object "Results" in the root, and we want to test the new version, which does not.
+		// The new version just has all json that was in "Results" in the root, so the json object in "Results" will essentially be the new schema.
+		// Since we know that all the json objects in the resources folder have the "Results" json object, this should never fail.
+		fakeLimelight.setResultsResponse(json.getJSONObject("Results"));
 	}
 }

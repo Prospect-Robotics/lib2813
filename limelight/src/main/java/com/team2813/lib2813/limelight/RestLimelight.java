@@ -183,6 +183,7 @@ class RestLimelight implements Limelight {
 		 * Gets the position of the robot with the blue driverstation as the origin
 		 * @return The position of the robot
 		 */
+		@Override
 		public Optional<Pose3d> getBotposeBlue() {
 			return getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose_wpiblue")).flatMap(this::parseArr);
 		}
@@ -191,6 +192,7 @@ class RestLimelight implements Limelight {
 		 * Gets the position of the robot with the red driverstation as the origin
 		 * @return The position of the robot
 		 */
+		@Override
 		public Optional<Pose3d> getBotposeRed() {
 			return getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose_wpired")).flatMap(this::parseArr);
 		}
