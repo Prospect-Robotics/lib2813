@@ -6,33 +6,38 @@ import java.util.function.LongSupplier;
 /**
  * Accessor for long values stored in {@link Preferences}.
  *
- * <p>Instances of this class should be stored in static final values. You cannot create more than
- * one instance per enum value.
- *
- * @param <T> An enum used to identify keys.
+ * <p>Robots usually have on enum that implements this interface, using it to access all long *
+ * values stored in {@link Preferences}.
  */
-public final class LongPreference<T extends Enum<T> & PreferenceKey> extends Preference<T>
-    implements LongSupplier {
-  private final long defaultValue;
+public interface LongPreference extends LongSupplier, Preference {
 
-  public LongPreference(T key, long defaultValue) {
-    super(key);
-    this.defaultValue = defaultValue;
-    if (!Preferences.containsKey(this.key)) {
-      Preferences.initLong(this.key, defaultValue);
-    }
-  }
+  /** Returns the value that should be provided if no value is stored in NetworkTables. */
+  long defaultValue();
 
+  /**
+   * Returns the long from the preferences table. If the table does not have a value for the key for
+   * this preference, then the value provided by {@link #defaultValue()} will be returned.
+   */
   @Override
-  public long getAsLong() {
+  default long getAsLong() {
     return get();
   }
 
-  public long get() {
-    return Preferences.getLong(this.key, defaultValue);
+  /**
+   * Returns the long from the preferences table. If the table does not have a value for the key for
+   * this preference, then the value provided by {@link #defaultValue()} will be returned.
+   */
+  default long get() {
+    var key = key();
+    var defaultValue = defaultValue();
+    if (!Preferences.containsKey(key)) {
+      Preferences.initLong(key, defaultValue);
+    }
+    return Preferences.getLong(key(), defaultValue);
   }
 
-  public void set(long value) {
-    Preferences.setLong(this.key, value);
+  /** Puts the given long into the preferences table. */
+  default void set(long value) {
+    Preferences.setLong(this.key(), value);
   }
 }

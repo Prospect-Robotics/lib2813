@@ -6,23 +6,25 @@ import java.util.function.Supplier;
 /**
  * Accessor for string values stored in {@link Preferences}.
  *
- * <p>Instances of this class should be stored in static final values. You cannot create more than
- * one instance per enum value.
- *
- * @param <T> An enum used to identify keys.
+ * <p>Robots usually have on enum that implements this interface, using it to access all String
+ * values stored in {@link Preferences}.
  */
-public final class StringPreference<T extends Enum<T> & PreferenceKey> extends Preference<T>
-    implements Supplier<String> {
-  private final String defaultValue;
+public interface StringPreference extends Supplier<String>, Preference {
 
-  public StringPreference(T key, String defaultValue) {
-    super(key);
-    this.defaultValue = defaultValue;
-    Preferences.initString(this.key, defaultValue);
-  }
+  /** Returns the value that should be provided if no value is stored in NetworkTables. */
+  String defaultValue();
 
+  /**
+   * Returns the String from the preferences table. If the table does not have a value for the key
+   * for this preference, then the value returned by {@link #defaultValue()} will be returned.
+   */
   @Override
-  public String get() {
+  default String get() {
+    var key = key();
+    var defaultValue = defaultValue();
+    if (!Preferences.containsKey(key)) {
+      Preferences.initString(key, defaultValue);
+    }
     return Preferences.getString(key, defaultValue);
   }
 }

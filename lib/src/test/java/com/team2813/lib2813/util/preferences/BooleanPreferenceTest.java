@@ -96,4 +96,21 @@ public final class BooleanPreferenceTest {
     // Assert
     assertThat(BooleanPref.HAS_DEFAULT_TRUE.getAsBoolean()).isTrue();
   }
+
+  @Test
+  public void setValue_defaulFalse() {
+    // Act
+    BooleanPref.HAS_DEFAULT_FALSE.set(true);
+
+    // Assert
+    assertThat(BooleanPref.HAS_DEFAULT_FALSE.getAsBoolean()).isTrue();
+    var value = Preferences.getBoolean(BooleanPref.HAS_DEFAULT_FALSE.key(), false);
+    assertThat(value).isTrue();
+
+    // Act
+    BooleanPref.HAS_DEFAULT_FALSE.set(false);
+
+    // Assert
+    assertThat(BooleanPref.HAS_DEFAULT_FALSE.getAsBoolean()).isFalse();
+  }
 }

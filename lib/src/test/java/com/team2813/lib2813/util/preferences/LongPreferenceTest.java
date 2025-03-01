@@ -8,50 +8,60 @@ import org.junit.Test;
 
 public final class LongPreferenceTest {
 
-  private enum Key implements PreferenceKey {
-    KEY;
-  }
+  private enum LongPref implements LongPreference {
+    HAS_DEFAULT_42(42);
 
-  private static final long DEFAULT_VALUE = 123;
-  private static final LongPreference<Key> PREFERENCE =
-      new LongPreference<>(Key.KEY, DEFAULT_VALUE);
+    LongPref(long defaultValue) {
+      this.defaultValue = defaultValue;
+    }
+
+    private final long defaultValue;
+
+    @Override
+    public long defaultValue() {
+      return defaultValue;
+    }
+  }
 
   @After
   public void removePreferences() {
-    Preferences.remove(PREFERENCE.key);
+    for (var preference : LongPreferenceTest.LongPref.values()) {
+      Preferences.remove(preference.key());
+    }
   }
 
   @Test
   public void getValue() {
     // Act
-    long value = PREFERENCE.getAsLong();
+    long value = LongPref.HAS_DEFAULT_42.getAsLong();
 
     // Assert
-    assertThat(value).isEqualTo(DEFAULT_VALUE);
+    assertThat(value).isEqualTo(42);
 
     // Act
-    value = PREFERENCE.get();
+    value = LongPref.HAS_DEFAULT_42.get();
 
     // Assert
-    assertThat(value).isEqualTo(DEFAULT_VALUE);
+    assertThat(value).isEqualTo(42);
 
     // Act
-    value = Preferences.getLong(PREFERENCE.key, DEFAULT_VALUE + 10);
+    value = Preferences.getLong(LongPref.HAS_DEFAULT_42.key(), 123);
 
     // Assert
-    assertThat(value).isEqualTo(DEFAULT_VALUE + 10);
-    assertThat(PREFERENCE.key).isEqualTo("lib2813.util.preferences.LongPreferenceTest.Key.KEY");
+    assertThat(value).isEqualTo(42);
+    assertThat(LongPref.HAS_DEFAULT_42.key())
+        .isEqualTo("lib2813.util.preferences.LongPreferenceTest.LongPref.HAS_DEFAULT_42");
   }
 
   @Test
   public void setValue() {
     // Act
-    var newValue = DEFAULT_VALUE + 1;
-    PREFERENCE.set(newValue);
+    var newValue = LongPref.HAS_DEFAULT_42.defaultValue() + 100;
+    LongPref.HAS_DEFAULT_42.set(newValue);
 
     // Assert
-    assertThat(PREFERENCE.getAsLong()).isEqualTo(newValue);
-    var value = Preferences.getLong(PREFERENCE.key, newValue + 10);
+    assertThat(LongPref.HAS_DEFAULT_42.getAsLong()).isEqualTo(newValue);
+    var value = Preferences.getLong(LongPref.HAS_DEFAULT_42.key(), newValue + 10);
     assertThat(value).isEqualTo(newValue);
   }
 }

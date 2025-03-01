@@ -6,31 +6,34 @@ import java.util.function.DoubleSupplier;
 /**
  * Accessor for double values stored in {@link Preferences}.
  *
- * <p>Instances of this class should be stored in static final values. You cannot create more than
- * one instance per enum value.
- *
- * @param <T> An enum used to identify keys.
+ * <p>Robots usually have on enum that implements this interface, using it to access all double
+ * values stored in {@link Preferences}.
  */
-public final class DoublePreference<T extends Enum<T> & PreferenceKey> extends Preference<T>
-    implements DoubleSupplier {
-  private final double defaultValue;
+public interface DoublePreference extends DoubleSupplier, Preference {
 
-  public DoublePreference(T key, double defaultValue) {
-    super(key);
-    this.defaultValue = defaultValue;
-    Preferences.initDouble(this.key, defaultValue);
-  }
+  /** Returns the value that should be provided if no value is stored in NetworkTables. */
+  int defaultValue();
 
   @Override
-  public double getAsDouble() {
+  default double getAsDouble() {
     return get();
   }
 
-  public double get() {
-    return Preferences.getDouble(this.key, defaultValue);
+  /**
+   * Returns the double at the given key. If this table does not have a value the key for this
+   * preference, then the value provided by {@link #defaultValue()} will be returned.
+   */
+  default double get() {
+    var key = key();
+    var defaultValue = defaultValue();
+    if (!Preferences.containsKey(key)) {
+      Preferences.initDouble(key, defaultValue);
+    }
+    return Preferences.getDouble(key, defaultValue);
   }
 
-  public void set(double value) {
-    Preferences.setDouble(this.key, value);
+  /** Puts the given double into the preferences table. */
+  default void set(double value) {
+    Preferences.setDouble(key(), value);
   }
 }
