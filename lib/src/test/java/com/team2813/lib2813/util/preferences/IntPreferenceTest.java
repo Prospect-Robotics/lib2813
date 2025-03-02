@@ -3,6 +3,7 @@ package com.team2813.lib2813.util.preferences;
 import static com.google.common.truth.Truth.assertThat;
 
 import edu.wpi.first.wpilibj.Preferences;
+import java.util.function.IntSupplier;
 import org.junit.After;
 import org.junit.Test;
 
@@ -42,18 +43,39 @@ public final class IntPreferenceTest {
   @Test
   public void getValue() {
     // Act
-    long value = IntPref.CONFIGURABLE_VALUE1.getAsInt();
+    long value = IntPref.CONFIGURABLE_VALUE1.get();
 
     // Assert
     assertThat(value).isEqualTo(DEFAULT_VALUE1);
 
     // Act
-    value = IntPref.CONFIGURABLE_VALUE1.get();
+    value = Preferences.getInt(IntPref.CONFIGURABLE_VALUE1.key(), DEFAULT_VALUE1 + 10);
 
     // Assert
     assertThat(value).isEqualTo(DEFAULT_VALUE1);
+  }
 
-    value = Preferences.getInt(IntPref.CONFIGURABLE_VALUE1.key(), DEFAULT_VALUE1 + 10);
+  @Test
+  public void asSupplier() {
+    // Act
+    IntSupplier supplier = IntPreferenceTest.IntPref.CONFIGURABLE_VALUE1.asSupplier();
+
+    // Assert
+    assertThat(supplier.getAsInt()).isEqualTo(DEFAULT_VALUE1);
+
+    // Act
+    IntPreferenceTest.IntPref.CONFIGURABLE_VALUE1.set(DEFAULT_VALUE1 + 2);
+
+    // Assert
+    assertThat(supplier.getAsInt()).isEqualTo(DEFAULT_VALUE1 + 2);
+
+    // Reset
+    IntPreferenceTest.IntPref.CONFIGURABLE_VALUE1.set(DEFAULT_VALUE1);
+
+    // Act - get value directly from Network Tables
+    int value = Preferences.getInt(IntPreferenceTest.IntPref.CONFIGURABLE_VALUE1.key(), -1);
+
+    // Assert
     assertThat(value).isEqualTo(DEFAULT_VALUE1);
   }
 
@@ -64,7 +86,7 @@ public final class IntPreferenceTest {
     IntPref.CONFIGURABLE_VALUE1.set(newValue);
 
     // Assert
-    assertThat(IntPref.CONFIGURABLE_VALUE1.getAsInt()).isEqualTo(newValue);
+    assertThat(IntPref.CONFIGURABLE_VALUE1.get()).isEqualTo(newValue);
     var value = Preferences.getInt(IntPref.CONFIGURABLE_VALUE1.key(), newValue + 10);
     assertThat(value).isEqualTo(newValue);
 
@@ -72,6 +94,6 @@ public final class IntPreferenceTest {
     IntPref.CONFIGURABLE_VALUE1.set(DEFAULT_VALUE1);
 
     // Assert
-    assertThat(IntPref.CONFIGURABLE_VALUE1.getAsInt()).isEqualTo(DEFAULT_VALUE1);
+    assertThat(IntPref.CONFIGURABLE_VALUE1.get()).isEqualTo(DEFAULT_VALUE1);
   }
 }

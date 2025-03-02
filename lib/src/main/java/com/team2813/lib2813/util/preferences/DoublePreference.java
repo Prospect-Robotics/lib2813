@@ -28,14 +28,17 @@ import java.util.function.DoubleSupplier;
  * }
  * </pre>
  */
-public interface DoublePreference extends DoubleSupplier, Preference {
+public interface DoublePreference extends Preference {
 
   /** Returns the value that should be provided if no value is stored in NetworkTables. */
   int defaultValue();
 
-  @Override
-  default double getAsDouble() {
-    return get();
+  /** Returns a supplier that can be used to access this preference. */
+  default DoubleSupplier asSupplier() {
+    initialize();
+    var key = key();
+
+    return () -> Preferences.getDouble(key, 0);
   }
 
   /**

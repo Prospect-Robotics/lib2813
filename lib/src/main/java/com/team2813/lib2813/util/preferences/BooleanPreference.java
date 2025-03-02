@@ -32,20 +32,19 @@ import java.util.function.BooleanSupplier;
  * }
  * </pre>
  */
-public interface BooleanPreference extends BooleanSupplier, Preference {
+public interface BooleanPreference extends Preference {
 
   /** Returns the value that should be provided if no value is stored in NetworkTables. */
   default boolean defaultValue() {
     return false;
   }
 
-  /**
-   * Returns the boolean from the preferences table. If the table does not have a value for the key
-   * for this preference, then the value provided by {@link #defaultValue()} will be returned.
-   */
-  @Override
-  default boolean getAsBoolean() {
-    return get();
+  /** Returns a supplier that can be used to access this preference. */
+  default BooleanSupplier asSupplier() {
+    initialize();
+    var key = key();
+
+    return () -> Preferences.getBoolean(key, false);
   }
 
   /**

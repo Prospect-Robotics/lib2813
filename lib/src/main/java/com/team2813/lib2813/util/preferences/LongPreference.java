@@ -28,18 +28,17 @@ import java.util.function.LongSupplier;
  * }
  * </pre>
  */
-public interface LongPreference extends LongSupplier, Preference {
+public interface LongPreference extends Preference {
 
   /** Returns the value that should be provided if no value is stored in NetworkTables. */
   long defaultValue();
 
-  /**
-   * Returns the long from the preferences table. If the table does not have a value for the key for
-   * this preference, then the value provided by {@link #defaultValue()} will be returned.
-   */
-  @Override
-  default long getAsLong() {
-    return get();
+  /** Returns a supplier that can be used to access this preference. */
+  default LongSupplier asSupplier() {
+    initialize();
+    var key = key();
+
+    return () -> Preferences.getLong(key, 0);
   }
 
   /**

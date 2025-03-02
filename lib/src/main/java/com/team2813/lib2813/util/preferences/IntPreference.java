@@ -27,18 +27,17 @@ import java.util.function.IntSupplier;
  * }
  * </pre>
  */
-public interface IntPreference extends IntSupplier, Preference {
+public interface IntPreference extends Preference {
 
   /** Returns the value that should be provided if no value is stored in NetworkTables. */
   int defaultValue();
 
-  /**
-   * Returns the int from the preferences table. If the table does not have a value for the key for
-   * this preference, then the value provided by {@link #defaultValue()} will be returned.
-   */
-  @Override
-  default int getAsInt() {
-    return get();
+  /** Returns a supplier that can be used to access this preference. */
+  default IntSupplier asSupplier() {
+    initialize();
+    var key = key();
+
+    return () -> Preferences.getInt(key, 0);
   }
 
   /**
