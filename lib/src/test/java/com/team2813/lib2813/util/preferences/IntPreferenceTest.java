@@ -15,6 +15,7 @@ public final class IntPreferenceTest {
 
     IntPref(int defaultValue) {
       this.defaultValue = defaultValue;
+      initialize();
     }
 
     private final int defaultValue;

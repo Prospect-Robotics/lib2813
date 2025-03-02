@@ -7,7 +7,30 @@ import java.util.function.BooleanSupplier;
  * Accessor for boolean values stored in {@link Preferences}.
  *
  * <p>Robots usually have on enum that implements this interface, using it to access all boolean
- * values stored in {@link Preferences}.
+ * values stored in {@link Preferences}. Example use:
+ *
+ * <pre>
+ * public enum BooleanPref implements BooleanPreference {
+ *   ENABLE_LIMELIGHT(true),
+ *   ENABLE_SUPER_PURSUIT_MODE(false);
+ *
+ *   BooleanPref(boolean defaultValue) {
+ *     this.defaultValue = defaultValue;
+ *     initialize();
+ *   }
+ *
+ *   BooleanPref() {
+ *     this(false);
+ *   }
+ *
+ *   private final boolean defaultValue;
+ *
+ *   &#064;Override
+ *   public boolean defaultValue() {
+ *     return defaultValue;
+ *   }
+ * }
+ * </pre>
  */
 public interface BooleanPreference extends BooleanSupplier, Preference {
 
@@ -30,16 +53,19 @@ public interface BooleanPreference extends BooleanSupplier, Preference {
    * for this preference, then the value returned by {@link #defaultValue()} will be returned.
    */
   default boolean get() {
-    var key = key();
-    var defaultValue = defaultValue();
-    if (!Preferences.containsKey(key)) {
-      Preferences.initBoolean(key, defaultValue);
-    }
-    return Preferences.getBoolean(key, defaultValue);
+    initialize();
+    return Preferences.getBoolean(key(), false);
   }
 
   /** Puts the given boolean into the preferences table. */
   default void set(boolean value) {
     Preferences.setBoolean(key(), value);
+  }
+
+  default void initialize() {
+    var key = key();
+    if (!Preferences.containsKey(key)) {
+      Preferences.initBoolean(key, defaultValue());
+    }
   }
 }

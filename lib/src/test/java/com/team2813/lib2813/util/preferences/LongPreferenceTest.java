@@ -13,6 +13,7 @@ public final class LongPreferenceTest {
 
     LongPref(long defaultValue) {
       this.defaultValue = defaultValue;
+      initialize();
     }
 
     private final long defaultValue;

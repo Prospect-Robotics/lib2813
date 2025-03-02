@@ -14,6 +14,7 @@ public final class BooleanPreferenceTest {
 
     BooleanPref(boolean defaultValue) {
       this.defaultValue = defaultValue;
+      initialize();
     }
 
     BooleanPref() {

@@ -7,7 +7,26 @@ import java.util.function.DoubleSupplier;
  * Accessor for double values stored in {@link Preferences}.
  *
  * <p>Robots usually have on enum that implements this interface, using it to access all double
- * values stored in {@link Preferences}.
+ * values stored in {@link Preferences}. Example use:
+ *
+ * <pre>
+ * public enum DoublePref implements DoublePreference {
+ *   MAX_CLIMB_VOLTAGE(0.8d),
+ *   SUPER_PURSUIT_MODE_SPEED(2.1d);
+ *
+ *   DoublePref(double defaultValue) {
+ *     this.defaultValue = defaultValue;
+ *     initialize();
+ *   }
+ *
+ *   private final double defaultValue;
+ *
+ *   &#064;Override
+ *   public double defaultValue() {
+ *     return defaultValue;
+ *   }
+ * }
+ * </pre>
  */
 public interface DoublePreference extends DoubleSupplier, Preference {
 
@@ -24,16 +43,19 @@ public interface DoublePreference extends DoubleSupplier, Preference {
    * preference, then the value provided by {@link #defaultValue()} will be returned.
    */
   default double get() {
-    var key = key();
-    var defaultValue = defaultValue();
-    if (!Preferences.containsKey(key)) {
-      Preferences.initDouble(key, defaultValue);
-    }
-    return Preferences.getDouble(key, defaultValue);
+    initialize();
+    return Preferences.getDouble(key(), 0);
   }
 
   /** Puts the given double into the preferences table. */
   default void set(double value) {
     Preferences.setDouble(key(), value);
+  }
+
+  default void initialize() {
+    var key = key();
+    if (!Preferences.containsKey(key)) {
+      Preferences.initDouble(key, defaultValue());
+    }
   }
 }

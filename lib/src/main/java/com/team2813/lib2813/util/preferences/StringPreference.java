@@ -6,8 +6,26 @@ import java.util.function.Supplier;
 /**
  * Accessor for string values stored in {@link Preferences}.
  *
- * <p>Robots usually have on enum that implements this interface, using it to access all String
- * values stored in {@link Preferences}.
+ * <p>Robots usually have on enum that implements this Stringerface, using it to access all String
+ * values stored in {@link Preferences}. Example use:
+ *
+ * <pre>
+ * public enum StringPref implements StringPreference {
+ *   NUM_CHICKENS(2);
+ *
+ *   StringPref(String defaultValue) {
+ *     this.defaultValue = defaultValue;
+ *     initialize();
+ *   }
+ *
+ *   private final String defaultValue;
+ *
+ *   &#064;Override
+ *   public String defaultValue() {
+ *     return defaultValue;
+ *   }
+ * }
+ * </pre>
  */
 public interface StringPreference extends Supplier<String>, Preference {
 
@@ -20,11 +38,14 @@ public interface StringPreference extends Supplier<String>, Preference {
    */
   @Override
   default String get() {
+    initialize();
+    return Preferences.getString(key(), "");
+  }
+
+  default void initialize() {
     var key = key();
-    var defaultValue = defaultValue();
     if (!Preferences.containsKey(key)) {
-      Preferences.initString(key, defaultValue);
+      Preferences.initString(key, defaultValue());
     }
-    return Preferences.getString(key, defaultValue);
   }
 }
