@@ -99,7 +99,7 @@ public final class BooleanPreferenceTest {
   }
 
   @Test
-  public void setValue_defaulFalse() {
+  public void setValue_defaultFalse() {
     // Act
     BooleanPref.HAS_DEFAULT_FALSE.set(true);
 
