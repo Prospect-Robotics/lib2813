@@ -1,9 +1,12 @@
 package com.team2813.lib2813.limelight;
 
-import static com.team2813.lib2813.limelight.JSONHelper.*;
-import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
-import static com.team2813.lib2813.limelight.Optionals.unboxLong;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.wpilibj.DriverStation;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -11,16 +14,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import edu.wpi.first.wpilibj.DriverStation;
+import static com.team2813.lib2813.limelight.JSONHelper.*;
+import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
+import static com.team2813.lib2813.limelight.Optionals.unboxLong;
 
 class RestLimelight implements Limelight {
 	private static final Map<String, RestLimelight> limelights = new HashMap<>();
-	private final String name;
+	private final AprilTagMapPoseHelper aprilTagMapPoseHelper;
 	private final DataCollection collectionThread;
 	private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 
@@ -35,8 +35,8 @@ class RestLimelight implements Limelight {
 
 	RestLimelight(String address) {
 		data = new RestLocationalData();
-		this.name = address;
 		collectionThread = new DataCollection(address);
+		aprilTagMapPoseHelper = new AprilTagMapPoseHelper(address);
 	}
 
 	void start() {
@@ -48,10 +48,6 @@ class RestLimelight implements Limelight {
 
 	void runThread() {
 		collectionThread.run();
-	}
-
-	String getName() {
-		return name;
 	}
 
 	@Override
@@ -75,7 +71,23 @@ class RestLimelight implements Limelight {
 	public OptionalDouble getTimestamp() {
 		return unboxDouble(getJsonDump().flatMap(getRoot()).flatMap(getDouble("ts")));
 	}
-
+	
+	/**
+	 * Sets the field map for the limelight. Additionally, this may also upload the field map to the Limelight if desired.
+	 * This will likely be a slow operation, and should not be regularly called.
+	 * @param stream The reader which
+	 * @param updateLimelight If the limelight should be updated with this field map
+	 */
+	@Override
+	public void setFieldMap(InputStream stream, boolean updateLimelight) {
+		aprilTagMapPoseHelper.setFieldMap(stream, updateLimelight);
+	}
+	
+	@Override
+	public List<Pose3d> getLocatedApriltags() {
+		return aprilTagMapPoseHelper.getVisibleTagPoses(getVisibleTags());
+	}
+	
 	private static <T> Function<T, Boolean> not(Function<? super T, Boolean> fnc) {
 		return (t) -> !fnc.apply(t);
 	} 
@@ -131,12 +143,12 @@ class RestLimelight implements Limelight {
 	
 	@Override
 	public Set<Integer> getVisibleTags() {
-		return getJsonDump().flatMap(getRoot()).flatMap(getJSONArray("Fiducial")).map((arr) -> {
+		return getJsonDump().flatMap(getRoot()).flatMap(getArr("Fiducial")).map((arr) -> {
 			Set<Integer> ints = new HashSet<>();
 			for (int i = 0; i < arr.length(); i++) {
 				JSONObject obj = arr.optJSONObject(i);
-				if (obj != null && obj.has("fid")) {
-					ints.add(obj.getInt("fid"));
+				if (obj != null && obj.has("fID")) {
+					ints.add(obj.getInt("fID"));
 				}
 			}
 			return ints;
@@ -150,8 +162,8 @@ class RestLimelight implements Limelight {
 			if (simple) {
 				return true;
 			}
-			Integer intZero = Integer.valueOf(0);
-			Double doubleZero = Double.valueOf(0);
+			Integer intZero = 0;
+			Double doubleZero = 0.0;
 			for (Object o : arr) {
 				if (!intZero.equals(o) && !doubleZero.equals(o)) {
 					return false;

@@ -1,16 +1,16 @@
 package com.team2813.lib2813.limelight;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import org.json.JSONObject;
+import org.junit.rules.ExternalResource;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-
-import org.json.JSONObject;
-import org.junit.rules.ExternalResource;
-
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
 
 public class FakeLimelight extends ExternalResource {
 	private static Logger logger = Logger.getLogger("FakeLimelight");
