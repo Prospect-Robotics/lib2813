@@ -35,6 +35,19 @@ class JSONHelper {
 			}
 		};
 	}
+	
+	static Function<JSONObject, Optional<JSONArray>> getJSONArray(String key) {
+		return (j) -> {
+			if (!j.has(key)) {
+				return Optional.empty();
+			}
+			try {
+				return Optional.of(j.getJSONArray(key));
+			} catch (JSONException e) {
+				return Optional.empty();
+			}
+		};
+	}
 
 	static Function<JSONObject, Optional<JSONObject>> getRoot() {
 		return (json) -> {

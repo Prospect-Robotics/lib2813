@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.Set;
 
 public interface Limelight {
 	
@@ -24,6 +25,8 @@ public interface Limelight {
 	 * @return an object for getting locational data
 	 */
 	LocationalData getLocationalData();
+	
+	Set<Integer> getVisibleTags();
 
 	OptionalDouble getCaptureLatency();
 

@@ -2,10 +2,7 @@ package com.team2813.lib2813.limelight;
 
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalLong;
+import java.util.*;
 
 import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -28,7 +25,12 @@ class NetworkTablesLimelight implements Limelight {
   public boolean hasTarget() {
     return getResults().map(results -> results.targets_Fiducials.length > 0).orElse(false);
   }
-
+  
+  @Override
+  public Set<Integer> getVisibleTags() {
+    return Set.of();
+  }
+  
   @Override
   public LocationalData getLocationalData() {
     Optional<LimelightHelpers.LimelightResults> results = getResults();

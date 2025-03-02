@@ -1,9 +1,6 @@
 package com.team2813.lib2813.limelight;
 
-import static com.team2813.lib2813.limelight.JSONHelper.getArr;
-import static com.team2813.lib2813.limelight.JSONHelper.getDouble;
-import static com.team2813.lib2813.limelight.JSONHelper.getLong;
-import static com.team2813.lib2813.limelight.JSONHelper.getRoot;
+import static com.team2813.lib2813.limelight.JSONHelper.*;
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
 import static com.team2813.lib2813.limelight.Optionals.unboxLong;
 
@@ -130,6 +127,20 @@ class RestLimelight implements Limelight {
 			limelight.clean();
 		}
 		limelights.clear();
+	}
+	
+	@Override
+	public Set<Integer> getVisibleTags() {
+		return getJsonDump().flatMap(getRoot()).flatMap(getJSONArray("Fiducial")).map((arr) -> {
+			Set<Integer> ints = new HashSet<>();
+			for (int i = 0; i < arr.length(); i++) {
+				JSONObject obj = arr.optJSONObject(i);
+				if (obj != null && obj.has("fid")) {
+					ints.add(obj.getInt("fid"));
+				}
+			}
+			return ints;
+		}).orElseGet(Set::of);
 	}
 	
 	private class RestLocationalData implements LocationalData {
