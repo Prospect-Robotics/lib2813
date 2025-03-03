@@ -1,4 +1,4 @@
-package com.team2813.lib2813.util.preferences;
+package com.team2813.lib2813.preferences;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -40,7 +40,7 @@ public final class BooleanPreferenceTest {
   @Test
   public void key() {
     assertThat(BooleanPref.HAS_DEFAULT_TRUE.key())
-        .isEqualTo("lib2813.util.preferences.BooleanPreferenceTest.BooleanPref.HAS_DEFAULT_TRUE");
+        .isEqualTo("lib2813.preferences.BooleanPreferenceTest.BooleanPref.HAS_DEFAULT_TRUE");
   }
 
   @Test

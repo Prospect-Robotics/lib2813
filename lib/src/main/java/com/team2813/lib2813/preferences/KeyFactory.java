@@ -1,4 +1,4 @@
-package com.team2813.lib2813.util.preferences;
+package com.team2813.lib2813.preferences;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

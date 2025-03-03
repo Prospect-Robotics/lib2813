@@ -1,4 +1,4 @@
-package com.team2813.lib2813.util.preferences;
+package com.team2813.lib2813.preferences;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -46,7 +46,7 @@ public final class LongPreferenceTest {
     // Assert
     assertThat(value).isEqualTo(42);
     assertThat(LongPref.HAS_DEFAULT_42.key())
-        .isEqualTo("lib2813.util.preferences.LongPreferenceTest.LongPref.HAS_DEFAULT_42");
+        .isEqualTo("lib2813.preferences.LongPreferenceTest.LongPref.HAS_DEFAULT_42");
   }
 
   @Test

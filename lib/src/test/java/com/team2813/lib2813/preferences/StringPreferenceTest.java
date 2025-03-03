@@ -1,4 +1,4 @@
-package com.team2813.lib2813.util.preferences;
+package com.team2813.lib2813.preferences;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -36,7 +36,7 @@ public final class StringPreferenceTest {
   @Test
   public void key() {
     assertThat(StringPref.CONFIGURABLE_NAME.key())
-        .isEqualTo("lib2813.util.preferences.StringPreferenceTest.StringPref.CONFIGURABLE_NAME");
+        .isEqualTo("lib2813.preferences.StringPreferenceTest.StringPref.CONFIGURABLE_NAME");
   }
 
   @Test

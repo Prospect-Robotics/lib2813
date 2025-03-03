@@ -1,4 +1,4 @@
-package com.team2813.lib2813.util.preferences;
+package com.team2813.lib2813.preferences;
 
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.function.Supplier;
