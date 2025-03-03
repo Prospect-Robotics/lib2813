@@ -4,10 +4,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.function.Supplier;
-import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 public final class StringPreferenceTest {
+  @Rule public final TestRule isolatedPreferences = new IsolatedPreferences();
+
   private static final String DEFAULT_VALUE1 = "Chicken";
 
   private enum StringPref implements StringPreference {
@@ -23,13 +26,6 @@ public final class StringPreferenceTest {
     @Override
     public String defaultValue() {
       return defaultValue;
-    }
-  }
-
-  @After
-  public void removePreferences() {
-    for (var preference : StringPref.values()) {
-      Preferences.remove(preference.key());
     }
   }
 

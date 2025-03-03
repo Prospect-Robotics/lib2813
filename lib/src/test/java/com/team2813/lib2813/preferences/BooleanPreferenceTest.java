@@ -4,10 +4,12 @@ import static com.google.common.truth.Truth.assertThat;
 
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.function.BooleanSupplier;
-import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 public final class BooleanPreferenceTest {
+  @Rule public final TestRule isolatedPreferences = new IsolatedPreferences();
 
   private enum BooleanPref implements BooleanPreference {
     HAS_DEFAULT_TRUE(true),
@@ -27,13 +29,6 @@ public final class BooleanPreferenceTest {
     @Override
     public boolean defaultValue() {
       return defaultValue;
-    }
-  }
-
-  @After
-  public void removePreferences() {
-    for (var preference : BooleanPref.values()) {
-      Preferences.remove(preference.key());
     }
   }
 

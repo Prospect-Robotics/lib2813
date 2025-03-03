@@ -4,10 +4,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.function.DoubleSupplier;
-import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 public final class DoublePreferenceTest {
+  @Rule public final TestRule isolatedPreferences = new IsolatedPreferences();
+
   private static final double TOLERANCE = 0.01;
   private static final double DEFAULT_VALUE = 3.14159;
   private static final double OTHER_VALUE = 2.71828; // Should be != DEFAULT_VALUE
@@ -25,13 +28,6 @@ public final class DoublePreferenceTest {
     @Override
     public double defaultValue() {
       return defaultValue;
-    }
-  }
-
-  @After
-  public void removePreferences() {
-    for (var preference : DoublePref.values()) {
-      Preferences.remove(preference.key());
     }
   }
 

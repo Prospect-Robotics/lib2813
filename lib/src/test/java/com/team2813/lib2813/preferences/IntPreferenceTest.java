@@ -4,10 +4,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.function.IntSupplier;
-import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 public final class IntPreferenceTest {
+  @Rule public final TestRule isolatedPreferences = new IsolatedPreferences();
+
   private static final int DEFAULT_VALUE1 = 42;
 
   private enum IntPref implements IntPreference {
@@ -24,13 +27,6 @@ public final class IntPreferenceTest {
     @Override
     public int defaultValue() {
       return defaultValue;
-    }
-  }
-
-  @After
-  public void removePreferences() {
-    for (var preference : IntPref.values()) {
-      Preferences.remove(preference.key());
     }
   }
 

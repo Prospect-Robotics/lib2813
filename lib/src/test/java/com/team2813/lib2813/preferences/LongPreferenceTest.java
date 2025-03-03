@@ -4,10 +4,12 @@ import static com.google.common.truth.Truth.assertThat;
 
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.function.LongSupplier;
-import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 public final class LongPreferenceTest {
+  @Rule public final TestRule isolatedPreferences = new IsolatedPreferences();
 
   private enum LongPref implements LongPreference {
     HAS_DEFAULT_42(42);
@@ -22,13 +24,6 @@ public final class LongPreferenceTest {
     @Override
     public long defaultValue() {
       return defaultValue;
-    }
-  }
-
-  @After
-  public void removePreferences() {
-    for (var preference : LongPreferenceTest.LongPref.values()) {
-      Preferences.remove(preference.key());
     }
   }
 
