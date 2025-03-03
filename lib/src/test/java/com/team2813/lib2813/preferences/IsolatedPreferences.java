@@ -5,14 +5,20 @@ import edu.wpi.first.wpilibj.Preferences;
 import org.junit.rules.ExternalResource;
 
 final class IsolatedPreferences extends ExternalResource {
+  private NetworkTableInstance instance;
 
   @Override
   protected void before() {
-    Preferences.setNetworkTableInstance(NetworkTableInstance.create());
+    instance = NetworkTableInstance.create();
+    Preferences.setNetworkTableInstance(instance);
   }
 
   @Override
   protected void after() {
-    Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
+    try {
+      Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
+    } finally {
+      instance.close();
+    }
   }
 }
