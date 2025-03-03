@@ -8,21 +8,22 @@ import org.junit.After;
 import org.junit.Test;
 
 public final class DoublePreferenceTest {
-  private static final int DEFAULT_VALUE1 = 42;
+  private static final double TOLERANCE = 0.01;
+  private static final double DEFAULT_VALUE = 3.14159;
+  private static final double OTHER_VALUE = 2.71828; // Should be != DEFAULT_VALUE
 
   private enum DoublePref implements DoublePreference {
-    CONFIGURABLE_VALUE1(DEFAULT_VALUE1),
-    CONFIGURABLE_VALUE2(123);
+    CONFIGURABLE_VALUE(DEFAULT_VALUE);
 
-    DoublePref(int defaultValue) {
+    DoublePref(double defaultValue) {
       this.defaultValue = defaultValue;
       initialize();
     }
 
-    private final int defaultValue;
+    private final double defaultValue;
 
     @Override
-    public int defaultValue() {
+    public double defaultValue() {
       return defaultValue;
     }
   }
@@ -36,65 +37,66 @@ public final class DoublePreferenceTest {
 
   @Test
   public void key() {
-    assertThat(DoublePref.CONFIGURABLE_VALUE1.key())
-        .isEqualTo("lib2813.preferences.DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE1");
+    assertThat(DoublePref.CONFIGURABLE_VALUE.key())
+        .isEqualTo("lib2813.preferences.DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE");
   }
 
   @Test
   public void getValue() {
     // Act
-    double value = DoublePref.CONFIGURABLE_VALUE1.get();
+    double value = DoublePref.CONFIGURABLE_VALUE.get();
 
     // Assert
-    assertThat(value).isEqualTo(DEFAULT_VALUE1);
+    assertThat(value).isEqualTo(DEFAULT_VALUE);
 
     // Act
-    value = Preferences.getDouble(DoublePref.CONFIGURABLE_VALUE1.key(), -1);
+    value = Preferences.getDouble(DoublePref.CONFIGURABLE_VALUE.key(), -1);
 
     // Assert
-    assertThat(value).isEqualTo(DEFAULT_VALUE1);
+    assertThat(value).isWithin(TOLERANCE).of(DEFAULT_VALUE);
   }
 
   @Test
   public void asSupplier() {
     // Act
-    DoubleSupplier supplier = DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE1.asSupplier();
+    DoubleSupplier supplier = DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE.asSupplier();
 
     // Assert
-    assertThat(supplier.getAsDouble()).isEqualTo(DEFAULT_VALUE1);
+    assertThat(supplier.getAsDouble()).isWithin(TOLERANCE).of(DEFAULT_VALUE);
 
     // Act
-    DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE1.set(DEFAULT_VALUE1 + 2);
+    double newValue = OTHER_VALUE;
+    DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE.set(newValue);
 
     // Assert
-    assertThat(supplier.getAsDouble()).isEqualTo(DEFAULT_VALUE1 + 2);
+    assertThat(supplier.getAsDouble()).isWithin(TOLERANCE).of(newValue);
 
     // Reset
-    DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE1.set(DEFAULT_VALUE1);
+    DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE.set(DEFAULT_VALUE);
 
     // Act - get value directly from Network Tables
     double value =
-        Preferences.getDouble(DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE1.key(), -1);
+        Preferences.getDouble(DoublePreferenceTest.DoublePref.CONFIGURABLE_VALUE.key(), -1);
 
     // Assert
-    assertThat(value).isEqualTo(DEFAULT_VALUE1);
+    assertThat(value).isWithin(TOLERANCE).of(DEFAULT_VALUE);
   }
 
   @Test
   public void setValue() {
     // Act
-    var newValue = 1024;
-    DoublePref.CONFIGURABLE_VALUE1.set(newValue);
+    double newValue = OTHER_VALUE;
+    DoublePref.CONFIGURABLE_VALUE.set(newValue);
 
     // Assert
-    assertThat(DoublePref.CONFIGURABLE_VALUE1.get()).isEqualTo(newValue);
-    var value = Preferences.getDouble(DoublePref.CONFIGURABLE_VALUE1.key(), newValue + 10);
-    assertThat(value).isEqualTo(newValue);
+    assertThat(DoublePref.CONFIGURABLE_VALUE.get()).isWithin(TOLERANCE).of(newValue);
+    var value = Preferences.getDouble(DoublePref.CONFIGURABLE_VALUE.key(), newValue + 10);
+    assertThat(value).isWithin(TOLERANCE).of(newValue);
 
     // Act
-    DoublePref.CONFIGURABLE_VALUE1.set(DEFAULT_VALUE1);
+    DoublePref.CONFIGURABLE_VALUE.set(DEFAULT_VALUE);
 
     // Assert
-    assertThat(DoublePref.CONFIGURABLE_VALUE1.get()).isEqualTo(DEFAULT_VALUE1);
+    assertThat(DoublePref.CONFIGURABLE_VALUE.get()).isWithin(TOLERANCE).of(DEFAULT_VALUE);
   }
 }

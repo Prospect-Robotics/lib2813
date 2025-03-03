@@ -31,7 +31,7 @@ import java.util.function.DoubleSupplier;
 public interface DoublePreference extends Preference {
 
   /** Returns the value that should be provided if no value is stored in NetworkTables. */
-  int defaultValue();
+  double defaultValue();
 
   /** Returns a supplier that can be used to access this preference. */
   default DoubleSupplier asSupplier() {
