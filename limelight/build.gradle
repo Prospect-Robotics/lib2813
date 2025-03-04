@@ -2,6 +2,8 @@ plugins {
 	id 'java-library'
 	id "edu.wpi.first.GradleRIO" version "2025.1.1"
 	id 'idea'
+	// Spotless code formatter.
+	id 'com.diffplug.spotless' version '6.25.0'
 }
 
 idea {
@@ -38,4 +40,27 @@ wpi.java.configureTestTasks(test)
 tasks.named('test') {
 	// Use JUnit 4 for tests
 	useJUnit()
+}
+
+spotless {
+	// See https://github.com/diffplug/spotless/tree/main/plugin-gradle
+	format 'misc', {
+		// define the files to apply `misc` to
+		target '.gitattributes', '.gitignore'
+
+		// define the steps to apply to those files
+		trimTrailingWhitespace()
+		indentWithSpaces()
+		endWithNewline()
+	}
+	java {
+		// importOrder() // Use the default importOrder configuration (can override)
+		removeUnusedImports()
+
+		// Use Google Java Format
+		// - aosp() causes it to use a four-space indent
+		// googleJavaFormat('1.24.0').reflowLongStrings()
+
+		formatAnnotations()  // fix formatting of type annotations
+	}
 }

@@ -13,7 +13,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 public class FakeLimelight extends ExternalResource {
-	private static Logger logger = Logger.getLogger("FakeLimelight");
+	private static final Logger logger = Logger.getLogger("FakeLimelight");
 	HttpServer server;
 	@Override
 	protected void before() throws Throwable {
@@ -50,7 +50,7 @@ public class FakeLimelight extends ExternalResource {
 		}
 	}
 
-	private FakeGet resultsResponse = new FakeGet();
+	private final FakeGet resultsResponse = new FakeGet();
 
 	public void reset() {
 		resultsResponse.setBody("");

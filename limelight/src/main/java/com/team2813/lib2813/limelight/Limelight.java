@@ -11,7 +11,7 @@ public interface Limelight {
 	 * Gets the limelight with the default name.
 	 * @return the {@link Limelight} object for interfacing with the limelight
 	 */
-	public static Limelight getDefaultLimelight() {
+	static Limelight getDefaultLimelight() {
 		return RestLimelight.getDefaultLimelight();
 	}
 

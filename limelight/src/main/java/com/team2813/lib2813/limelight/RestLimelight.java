@@ -53,7 +53,7 @@ class RestLimelight implements Limelight {
 		collectionThread.run();
 	}
 
-	String getName() {
+	public String getName() {
 		return name;
 	}
 
@@ -139,8 +139,8 @@ class RestLimelight implements Limelight {
 			if (simple) {
 				return true;
 			}
-			Integer intZero = Integer.valueOf(0);
-			Double doubleZero = Double.valueOf(0);
+			Integer intZero = 0;
+			Double doubleZero = 0d;
 			for (Object o : arr) {
 				if (!intZero.equals(o) && !doubleZero.equals(o)) {
 					return false;
