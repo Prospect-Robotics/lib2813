@@ -46,42 +46,36 @@ class JSONHelper {
  		};
 	}
 
-	static Function<JSONObject, Optional<Long>> getLong(String key) {
-		return (j) -> {
-			if (!j.has(key)) {
-				return Optional.empty();
-			}
-			try {
-				return Optional.of(j.getLong(key));
-			} catch (JSONException e) {
-				return Optional.empty();
-			}
-		};
+	static Optional<Long> getLong(JSONObject obj, String key) {
+		if (!obj.has(key)) {
+			return Optional.empty();
+		}
+		try {
+			return Optional.of(obj.getLong(key));
+		} catch (JSONException e) {
+			return Optional.empty();
+		}
 	}
 
-	static Function<JSONObject, Optional<Double>> getDouble(String key) {
-		return (j) -> {
-			if (!j.has(key)) {
-				return Optional.empty();
-			}
-			try {
-				return Optional.of(j.getDouble(key));
-			} catch (JSONException e) {
-				return Optional.empty();
-			}
-		};
+	static Optional<Double> getDouble(JSONObject obj, String key) {
+		if (!obj.has(key)) {
+			return Optional.empty();
+		}
+		try {
+			return Optional.of(obj.getDouble(key));
+		} catch (JSONException e) {
+			return Optional.empty();
+		}
 	}
 	
-	static Function<JSONObject, Optional<JSONArray>> getArr(String key) {
-		return (obj) -> {
-			if (!obj.has(key)) {
-				return Optional.empty();
-			}
-			try {
-				return Optional.of(obj.getJSONArray(key));
-			} catch (JSONException e) {
-				return Optional.empty();
-			}
-		};
+	static Optional<JSONArray> getArr(JSONObject obj, String key) {
+		if (!obj.has(key)) {
+			return Optional.empty();
+		}
+		try {
+			return Optional.of(obj.getJSONArray(key));
+		} catch (JSONException e) {
+			return Optional.empty();
+		}
 	}
 }

@@ -141,7 +141,7 @@ class RestLimelight implements Limelight {
 
 		@Override
 		public boolean hasTarget() {
-			return getArr("Fiducial").apply(root).map(not(JSONArray::isEmpty)).orElse(false);
+			return getArr(root, "Fiducial").map(not(JSONArray::isEmpty)).orElse(false);
 		}
 
 		private boolean invalidArray(JSONArray arr) {
@@ -173,22 +173,22 @@ class RestLimelight implements Limelight {
 
 		@Override
 		public OptionalDouble getTimestamp() {
-			return unboxDouble(getDouble("ts").apply(root));
+			return unboxDouble(getDouble(root, "ts"));
 		}
 
 		@Override
 		public OptionalDouble getCaptureLatency() {
-			return unboxDouble(getDouble("cl").apply(root));
+			return unboxDouble(getDouble(root, "cl"));
 		}
 
 		@Override
 		public OptionalDouble getTargetingLatency() {
-			return unboxDouble(getDouble("tl").apply(root));
+			return unboxDouble(getDouble(root, "tl"));
 		}
 
 		@Override
 		public Optional<Pose3d> getBotpose() {
-			return getArr("botpose").apply(root).flatMap(this::parseArr);
+			return getArr(root, "botpose").flatMap(this::parseArr);
 		}
 
 		/**
@@ -197,7 +197,7 @@ class RestLimelight implements Limelight {
 		 */
 		@Override
 		public Optional<Pose3d> getBotposeBlue() {
-			return getArr("botpose_wpiblue").apply(root).flatMap(this::parseArr);
+			return getArr(root, "botpose_wpiblue").flatMap(this::parseArr);
 		}
 
 		/**
@@ -206,14 +206,14 @@ class RestLimelight implements Limelight {
 		 */
 		@Override
 		public Optional<Pose3d> getBotposeRed() {
-			return getArr("botpose_wpired").apply(root).flatMap(this::parseArr);
+			return getArr(root, "botpose_wpired").flatMap(this::parseArr);
 		}
 
 		/**
 		 * Gets the id of the targeted tag.
 		 */
 		OptionalLong getTagID() {
-			return unboxLong(getLong("pID").apply(root));
+			return unboxLong(getLong(root, "pID"));
 		}
 	}
 }

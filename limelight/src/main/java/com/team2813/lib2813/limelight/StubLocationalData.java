@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 
 /** Implementation of LocationalData where all optional values return empty values. */
-class StubLocationalData implements LocationalData {
+final class StubLocationalData implements LocationalData {
   static final StubLocationalData INSTANCE = new StubLocationalData();
 
   @Override
