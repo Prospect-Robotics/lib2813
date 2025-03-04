@@ -15,16 +15,27 @@ public interface Limelight {
 		return RestLimelight.getDefaultLimelight();
 	}
 
+	/**
+	 * @deprecated use {@link LocationalData#getTimestamp()}
+	 */
+	@Deprecated
 	OptionalDouble getTimestamp();
 
+	/**
+	 * Returns {@code true} if the limelight has identified a target.
+	 *
+	 * @deprecated use {@link LocationalData#hasTarget()}
+	 */
+	@Deprecated
 	boolean hasTarget();
 
-	/**
-	 * Gets an object for getting locational data
-	 * @return an object for getting locational data
-	 */
+	/** Gets an object for getting locational data. */
 	LocationalData getLocationalData();
 
+	/**
+	 * @deprecated use {@link LocationalData#getCaptureLatency()}
+	 */
+	@Deprecated
 	OptionalDouble getCaptureLatency();
 
 	@Deprecated
