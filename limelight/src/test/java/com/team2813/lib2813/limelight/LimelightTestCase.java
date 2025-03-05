@@ -146,6 +146,11 @@ abstract class LimelightTestCase {
 		setJson(obj);
 		Limelight limelight = createLimelight();
 		
+		boolean updateLimelight = false;
+		try (var stream = getClass().getResourceAsStream("frc2025r2.fmap")) {
+			limelight.setFieldMap(stream, updateLimelight);
+		}
+		
 		List<Pose3d> apriltags = limelight.getLocatedAprilTags();
 		assertEquals(1, apriltags.size());
 	}
