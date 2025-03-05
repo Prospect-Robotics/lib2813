@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 
 class AprilTagMapPoseHelper {
+  private static final int PORT = 5807;
   private final String hostname;
   private FiducialRetriever retriever;
   private static final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(20))
@@ -27,33 +28,30 @@ class AprilTagMapPoseHelper {
     this.hostname = hostname;
   }
   
-  public void setFieldMap(InputStream stream, boolean updateLimelight) {
+  public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
     if (updateLimelight) {
       stream.mark(Integer.MAX_VALUE);
     }
     retriever = new FiducialRetriever(stream);
     if (updateLimelight) {
-      URI uri;
-      try {
-        uri = new URI("http", null, hostname, 5807, "/upload-fieldmap", null, null);
-      } catch (URISyntaxException e) {
-        throw new RuntimeException(e);
-      }
-      HttpRequest.BodyPublisher publisher = HttpRequest.BodyPublishers.ofInputStream(() -> {
-        try {
-          stream.reset();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-        return stream;
-      });
-      try {
-        client.send(HttpRequest.newBuilder(uri).POST(publisher).build(), HttpResponse.BodyHandlers.discarding());
-      } catch (IOException | InterruptedException e) {
-        throw new RuntimeException(e);
-      }
+      stream.reset();
+      HttpRequest.BodyPublisher publisher = HttpRequest.BodyPublishers.ofInputStream(() -> stream);
+      sendRequest("/upload-fieldmap", publisher);
     }
   }
+
+  private void sendRequest(String path, HttpRequest.BodyPublisher publisher) throws IOException {
+    try {
+      URI uri = new URI("http", null, hostname, PORT, path, null, null);
+      client.send(HttpRequest.newBuilder(uri).POST(publisher).build(), HttpResponse.BodyHandlers.discarding());
+    } catch (URISyntaxException e) {
+      throw new IOException(String.format("Could not create URI for http://%s:%d%s", hostname, PORT, path), e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(String.format("Thread interrupted while trying to send request to http://%s:%d%s", hostname, PORT, path), e);
+    }
+  }
+
   public List<Pose3d> getVisibleTagPoses(Set<Integer> ids) {
     if (retriever == null) {
       return List.of();

@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -79,12 +80,12 @@ class RestLimelight implements Limelight {
 	 * @param updateLimelight If the limelight should be updated with this field map
 	 */
 	@Override
-	public void setFieldMap(InputStream stream, boolean updateLimelight) {
+	public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
 		aprilTagMapPoseHelper.setFieldMap(stream, updateLimelight);
 	}
 	
 	@Override
-	public List<Pose3d> getLocatedApriltags() {
+	public List<Pose3d> getLocatedAprilTags() {
 		return aprilTagMapPoseHelper.getVisibleTagPoses(getVisibleTags());
 	}
 	

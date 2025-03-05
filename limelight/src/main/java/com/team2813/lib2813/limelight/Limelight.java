@@ -1,14 +1,10 @@
 package com.team2813.lib2813.limelight;
 
-import com.team2813.lib2813.limelight.apriltag_map.FiducialRetriever;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.Filesystem;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -40,7 +36,7 @@ public interface Limelight {
 	 */
 	Set<Integer> getVisibleTags();
 	
-	void setFieldMap(InputStream stream, boolean updateLimelight);
+	void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException;
 	
 	/**
 	 * Sets the field map for the limelight with a file in the deploy directory.
@@ -48,19 +44,21 @@ public interface Limelight {
 	 * This will likely be a slow operation, and should not be regularly called.
 	 * @param filepath The path to the file from the deploy directory (using UNIX file seperators)
 	 * @param updateLimelight If the limelight should be updated with this field map
-	 * @throws FileNotFoundException If the given filepath does not exist in the deploy directory
+	 * @throws IOException If the given filepath does not exist in the deploy directory or could not be read
 	 */
-	default void setFieldMap(String filepath, boolean updateLimelight) throws FileNotFoundException {
+	default void setFieldMap(String filepath, boolean updateLimelight) throws IOException {
 		File file = new File(Filesystem.getDeployDirectory(), filepath);
-		setFieldMap(new FileInputStream(file), updateLimelight);
+		try (var stream = new FileInputStream(file)) {
+			setFieldMap(stream, updateLimelight);
+		}
 	}
 	
 	/**
 	 * Gets the locations of the viewed AprilTags.
-	 * This will always return an empty set if the field map was not set with {@link #setFieldMap(Reader, boolean)}
+	 * This will always return an empty set if the field map was not set with {@link #setFieldMap(InputStream, boolean)}
 	 * @return The located AprilTags
 	 */
-	List<Pose3d> getLocatedApriltags();
+	List<Pose3d> getLocatedAprilTags();
 
 	OptionalDouble getCaptureLatency();
 

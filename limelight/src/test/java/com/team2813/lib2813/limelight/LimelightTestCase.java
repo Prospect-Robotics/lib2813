@@ -140,12 +140,13 @@ abstract class LimelightTestCase {
 		assertEquals(Set.of(20), tags);
 	}
 	
+	@Test
 	public final void visibleTagLocationTest() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
 		
-		List<Pose3d> apriltags = limelight.getLocatedApriltags();
+		List<Pose3d> apriltags = limelight.getLocatedAprilTags();
 		assertEquals(1, apriltags.size());
 	}
 
