@@ -48,6 +48,8 @@ class AprilTagMapPoseHelper {
     if (retriever == null) {
       return List.of();
     }
-    return Arrays.stream(retriever.getFidicuals()).filter((fidicual) -> ids.contains(fidicual.getId())).map(Fiducial::getPosition).toList();
+    return retriever.getFidicuals().stream()
+            .filter(fidicual -> ids.contains(fidicual.getId()))
+            .map(Fiducial::getPosition).toList();
   }
 }
