@@ -4,6 +4,7 @@ import com.team2813.lib2813.limelight.apriltag_map.Fiducial;
 import com.team2813.lib2813.limelight.apriltag_map.FiducialRetriever;
 import edu.wpi.first.math.geometry.Pose3d;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpClient;
@@ -26,13 +27,12 @@ class AprilTagMapPoseHelper {
   }
   
   public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
-    if (updateLimelight) {
-      stream.mark(Integer.MAX_VALUE);
-    }
-    retriever = new FiducialRetriever(stream);
-    if (updateLimelight) {
-      stream.reset();
-      HttpRequest.BodyPublisher publisher = HttpRequest.BodyPublishers.ofInputStream(() -> stream);
+    if (!updateLimelight) {
+      retriever = new FiducialRetriever(stream);
+    } else {
+      byte[] bytes = stream.readAllBytes();
+      retriever = new FiducialRetriever(new ByteArrayInputStream(bytes));
+      HttpRequest.BodyPublisher publisher = HttpRequest.BodyPublishers.ofByteArray(bytes);
 
       HttpRequest request = limelightClient.newBuilder("/upload-fieldmap").POST(publisher).build();
       try {
