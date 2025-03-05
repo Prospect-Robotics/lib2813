@@ -11,7 +11,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -34,7 +33,7 @@ class AprilTagMapPoseHelper {
       retriever = new FiducialRetriever(new ByteArrayInputStream(bytes));
       HttpRequest.BodyPublisher publisher = HttpRequest.BodyPublishers.ofByteArray(bytes);
 
-      HttpRequest request = limelightClient.newBuilder("/upload-fieldmap").POST(publisher).build();
+      HttpRequest request = limelightClient.newRequestBuilder("/upload-fieldmap").POST(publisher).build();
       try {
         client.send(request, HttpResponse.BodyHandlers.discarding());
       } catch (InterruptedException e) {

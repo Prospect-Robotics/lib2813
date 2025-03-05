@@ -23,9 +23,9 @@ class DataCollection implements Runnable {
 	public DataCollection(LimelightClient limelightClient) {
 		lastResult = Optional.empty();
 		try {
-			dumpRequest = limelightClient.newBuilder("/results").GET().build();
-		} catch (LimelightClient.InvalidPathException e) {
-			throw new IllegalArgumentException("invalid hostname", e);
+			dumpRequest = limelightClient.newRequestBuilder("/results").GET().build();
+		} catch (LimelightClient.HttpRequestException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

@@ -10,8 +10,8 @@ final class LimelightClient {
   private final String hostname;
   private final int port;
 
-  static class InvalidPathException extends IOException {
-    public InvalidPathException(String message, URISyntaxException e) {
+  static class HttpRequestException extends IOException {
+    public HttpRequestException(String message, URISyntaxException e) {
       super(message, e);
     }
   }
@@ -28,14 +28,14 @@ final class LimelightClient {
   /**
    * Creates an HttpRequest builder for the limelight with the given path.
    *
-   * @throws InvalidPathException If the path is relative
+   * @throws HttpRequestException If the request could not be created
    */
-  HttpRequest.Builder newBuilder(String path) throws InvalidPathException {
+  HttpRequest.Builder newRequestBuilder(String path) throws HttpRequestException {
     try {
       URI uri = new URI("http", null, hostname, port, path, null, null);
       return HttpRequest.newBuilder(uri);
     } catch (URISyntaxException e) {
-      throw new InvalidPathException(String.format("Could not create URI to %s:%d for '%s'", hostname, port, path), e);
+      throw new HttpRequestException(String.format("Could not create URI to %s:%d for '%s'", hostname, port, path), e);
     }
   }
 }
