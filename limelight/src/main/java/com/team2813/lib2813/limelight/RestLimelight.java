@@ -36,8 +36,9 @@ class RestLimelight implements Limelight {
 
 	RestLimelight(String address) {
 		data = new RestLocationalData();
-		collectionThread = new DataCollection(address);
-		aprilTagMapPoseHelper = new AprilTagMapPoseHelper(address);
+		var limelightClient = new LimelightClient(address);
+		collectionThread = new DataCollection(limelightClient);
+		aprilTagMapPoseHelper = new AprilTagMapPoseHelper(limelightClient);
 	}
 
 	void start() {

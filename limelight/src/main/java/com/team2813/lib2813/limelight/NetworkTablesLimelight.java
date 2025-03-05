@@ -18,7 +18,7 @@ class NetworkTablesLimelight implements Limelight {
 
   NetworkTablesLimelight(String limelightName) {
     this.limelightName = limelightName;
-    aprilTagMapPoseHelper = new AprilTagMapPoseHelper(limelightName);
+    aprilTagMapPoseHelper = new AprilTagMapPoseHelper(new LimelightClient(limelightName));
   }
   
   @Override

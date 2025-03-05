@@ -6,8 +6,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -18,14 +16,13 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 
 class AprilTagMapPoseHelper {
-  private static final int PORT = 5807;
-  private final String hostname;
+  private final LimelightClient limelightClient;
   private FiducialRetriever retriever;
   private static final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(20))
           .executor(Executors.newFixedThreadPool(1)).build();
   
-  public AprilTagMapPoseHelper(String hostname) {
-    this.hostname = hostname;
+  public AprilTagMapPoseHelper(LimelightClient client) {
+    this.limelightClient = client;
   }
   
   public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
@@ -36,19 +33,14 @@ class AprilTagMapPoseHelper {
     if (updateLimelight) {
       stream.reset();
       HttpRequest.BodyPublisher publisher = HttpRequest.BodyPublishers.ofInputStream(() -> stream);
-      sendRequest("/upload-fieldmap", publisher);
-    }
-  }
 
-  private void sendRequest(String path, HttpRequest.BodyPublisher publisher) throws IOException {
-    try {
-      URI uri = new URI("http", null, hostname, PORT, path, null, null);
-      client.send(HttpRequest.newBuilder(uri).POST(publisher).build(), HttpResponse.BodyHandlers.discarding());
-    } catch (URISyntaxException e) {
-      throw new IOException(String.format("Could not create URI for http://%s:%d%s", hostname, PORT, path), e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(String.format("Thread interrupted while trying to send request to http://%s:%d%s", hostname, PORT, path), e);
+      HttpRequest request = limelightClient.newBuilder("/upload-fieldmap").POST(publisher).build();
+      try {
+        client.send(request, HttpResponse.BodyHandlers.discarding());
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(String.format("Thread interrupted while trying to send request to %s", request.uri()), e);
+      }
     }
   }
 

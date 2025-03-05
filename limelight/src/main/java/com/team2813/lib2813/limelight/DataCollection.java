@@ -1,7 +1,5 @@
 package com.team2813.lib2813.limelight;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -22,12 +20,11 @@ class DataCollection implements Runnable {
 			.executor(Executors.newFixedThreadPool(2)).build();
 	private final HttpRequest dumpRequest;
 
-	public DataCollection(String hostname) {
+	public DataCollection(LimelightClient limelightClient) {
 		lastResult = Optional.empty();
 		try {
-			URI dumpRequestUri = new URI("http", null, hostname, 5807, "/results", null, null);
-			dumpRequest = HttpRequest.newBuilder(dumpRequestUri).GET().build();
-		} catch (URISyntaxException e) {
+			dumpRequest = limelightClient.newBuilder("/results").GET().build();
+		} catch (LimelightClient.InvalidPathException e) {
 			throw new IllegalArgumentException("invalid hostname", e);
 		}
 	}
