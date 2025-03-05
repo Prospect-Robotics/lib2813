@@ -27,21 +27,29 @@ public class KeyFactory {
   /**
    * Creates a key for the given preference class and name.
    *
-   * @param preference The preference instance. Usually an enum class.
+   * @param preference The preference instance. Usually an enum instance.
    * @param name The preference name. Usually the enum instance name.
    */
-  public String createKey(Preference preference, String name) {
+  public final String createKey(Preference preference, String name) {
     return instanceToKey.computeIfAbsent(
         preference,
-        p -> {
-          String prefix = p.getClass().getCanonicalName();
-          if (prefix.startsWith(this.removePrefix)) {
-            prefix = prefix.substring(this.removePrefixLen);
-            if (prefix.isEmpty()) {
-              return name;
-            }
-          }
-          return prefix + "." + name;
-        });
+        p -> createKey(p.getClass(), name));
+  }
+
+  /**
+   * Creates a key for the given preference class and name.
+   *
+   * @param containingClass The class that contains the preference.
+   * @param name The preference name.
+   */
+  public String createKey(Class<?> containingClass, String name) {
+    String prefix = containingClass.getCanonicalName();
+    if (prefix.startsWith(this.removePrefix)) {
+      prefix = prefix.substring(this.removePrefixLen);
+      if (prefix.isEmpty()) {
+        return name;
+      }
+    }
+    return prefix + "." + name;
   }
 }
