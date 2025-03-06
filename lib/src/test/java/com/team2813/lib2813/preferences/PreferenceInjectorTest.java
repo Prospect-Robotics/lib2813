@@ -106,7 +106,9 @@ public final class PreferenceInjectorTest {
     Map<String, Long> map = new HashMap<>();
     var table = isolatedPreferences.getNetworkTableInstance();
     for (String key : Preferences.getKeys()) {
-      map.put(key, table.getEntry(key).getLastChange());
+      if (!key.startsWith(".")) { // Preferences adds a ".type" key
+        map.put(key, table.getEntry(key).getLastChange());
+      }
     }
     return map;
   }
