@@ -1,22 +1,24 @@
 package com.team2813.lib2813.preferences;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import edu.wpi.first.wpilibj.Preferences;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
-import org.junit.rules.TestRule;
 
 public final class PreferenceInjectorTest {
   final PreferenceInjector injector =
       new PreferenceInjector("com.team2813.lib2813.preferences.PreferenceInjectorTest.");
   final Set<String> originalKeys = new HashSet<>();
 
-  @Rule public final TestRule isolatedPreferences = new IsolatedPreferences();
+  @Rule public final IsolatedPreferences isolatedPreferences = new IsolatedPreferences();
   @Rule public final ErrorCollector errorCollector = new ErrorCollector();
 
   @Before
@@ -76,7 +78,7 @@ public final class PreferenceInjectorTest {
     String key2 = "ContainsBooleans.second";
     Preferences.initBoolean(key1, false);
     Preferences.initBoolean(key2, true);
-    originalKeys.addAll(Preferences.getKeys());
+    Map<String, Long> lastChanges = lastChanges();
     var defaults = new ContainsBooleans(true, false);
 
     // Act
@@ -84,16 +86,28 @@ public final class PreferenceInjectorTest {
 
     // Assert
     assertThat(injected).isEqualTo(new ContainsBooleans(false, true));
-    assertThat(newPreferenceKeys()).isEmpty();
-    boolean value = Preferences.getBoolean(key1, true);
-    assertThat(value).isFalse();
-    value = Preferences.getBoolean(key2, false);
-    assertThat(value).isTrue();
+    assertHasNoChangesSince(lastChanges);
+  }
+
+  private void assertHasNoChangesSince(Map<String, Long> previousSnapshot) {
+    var lastChanges = lastChanges();
+    assertWithMessage("Unexpected changes to preference values")
+        .that(lastChanges)
+        .isEqualTo(previousSnapshot);
   }
 
   private Set<String> newPreferenceKeys() {
     Set<String> keys = new HashSet<>(Preferences.getKeys());
     keys.removeAll(originalKeys);
     return keys;
+  }
+
+  private Map<String, Long> lastChanges() {
+    Map<String, Long> map = new HashMap<>();
+    var table = isolatedPreferences.getNetworkTableInstance();
+    for (String key : Preferences.getKeys()) {
+      map.put(key, table.getEntry(key).getLastChange());
+    }
+    return map;
   }
 }

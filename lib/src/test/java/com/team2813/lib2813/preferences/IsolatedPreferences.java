@@ -4,8 +4,12 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Preferences;
 import org.junit.rules.ExternalResource;
 
-final class IsolatedPreferences extends ExternalResource {
+public final class IsolatedPreferences extends ExternalResource {
   private NetworkTableInstance instance;
+
+  public NetworkTableInstance getNetworkTableInstance() {
+    return instance;
+  }
 
   @Override
   protected void before() {
