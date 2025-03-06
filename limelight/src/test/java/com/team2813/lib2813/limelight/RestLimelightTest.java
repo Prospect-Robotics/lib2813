@@ -5,7 +5,6 @@ import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
