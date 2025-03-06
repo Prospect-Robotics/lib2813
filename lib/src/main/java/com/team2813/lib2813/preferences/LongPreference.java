@@ -11,8 +11,8 @@ import java.util.function.LongSupplier;
  *
  * <pre>
  * public enum LongPref implements LongPreference {
- *   MAX_CLIMB_VOLTAGE(0.8d),
- *   SUPER_PURSUIT_MODE_SPEED(2.1d);
+ *   MAX_SHEEP_COUNT(2546167841),
+ *   LOG_MESSAGES_TO_KEEP(28132321690);
  *
  *   LongPref(long defaultValue) {
  *     this.defaultValue = defaultValue;

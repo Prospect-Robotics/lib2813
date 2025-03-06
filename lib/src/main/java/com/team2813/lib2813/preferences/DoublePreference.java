@@ -11,8 +11,8 @@ import java.util.function.DoubleSupplier;
  *
  * <pre>
  * public enum DoublePref implements DoublePreference {
- *   MAX_CLIMB_VOLTAGE(0.8d),
- *   SUPER_PURSUIT_MODE_SPEED(2.1d);
+ *   MAX_CLIMB_VOLTAGE(0.8),
+ *   SUPER_PURSUIT_MODE_SPEED(2.1);
  *
  *   DoublePref(double defaultValue) {
  *     this.defaultValue = defaultValue;

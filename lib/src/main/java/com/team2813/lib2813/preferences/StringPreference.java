@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  *
  * <pre>
  * public enum StringPref implements StringPreference {
- *   NUM_CHICKENS(2);
+ *   ROBOT_NAME("Maelstørm");
  *
  *   StringPref(String defaultValue) {
  *     this.defaultValue = defaultValue;
