@@ -49,7 +49,6 @@ dependencies {
     simulationRelease wpi.sim.enableRelease()
 
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'com.google.truth:truth:1.4.4'
 }
 
 // the magic line that makes tests work :)
