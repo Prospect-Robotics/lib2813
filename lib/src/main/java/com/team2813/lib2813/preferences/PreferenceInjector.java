@@ -4,8 +4,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Preferences;
 import java.lang.reflect.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.*;
 
 public class PreferenceInjector {
@@ -24,16 +23,16 @@ public class PreferenceInjector {
    * <p>To be stored in preferences, the type of the record components can be any of the following:
    *
    * <ul>
-   *   <li>{@code boolean} or {@code BooleanSupplier}
-   *   <li>{@code int} or {@code IntSupplier}
-   *   <li>{@code long} or {@code LongSupplier}
-   *   <li>{@code double} or {@code DoubleSupplier}
+   *   <li>{@code boolean} or {@code BooleanSupplier} or {@code Supplier<Boolean>}
+   *   <li>{@code int} or {@code IntSupplier} or {@code Supplier<Integer>}
+   *   <li>{@code long} or {@code LongSupplier} or {@code Supplier<Long>}
+   *   <li>{@code double} or {@code DoubleSupplier} or {@code Supplier<Double>}
    *   <li>{@code String} or {@code Supplier<String>}
    * </ul>
    *
    * <p>The values for the components for the passed-in instance will be used as the default value
-   * for the preference. If a component is a supplier, the supplier will be called to get the
-   * default instance.
+   * for the preference. If a component is a supplier, the supplier will be called at most once to
+   * get the default instance. Suppliers cannot return {@code null}.
    *
    * @param configWithDefaults Record instance with all values set to their preferred default
    *     values.
@@ -141,7 +140,17 @@ public class PreferenceInjector {
     register(Supplier.class, PreferenceInjector::supplierFactory);
   }
 
-  private static boolean booleanFactory(RecordComponent component, String key, Boolean defaultValue) {
+  /** Maps the generic types supported by Preferences to their primitive types. */
+  private static final Map<Type, Type> WRAPPER_TO_PRIMITIVE =
+      Map.of(
+          Boolean.class, Boolean.TYPE,
+          Integer.class, Integer.TYPE,
+          Long.class, Long.TYPE,
+          Double.class, Double.TYPE,
+          String.class, String.class);
+
+  private static boolean booleanFactory(
+      RecordComponent component, String key, Boolean defaultValue) {
     if (defaultValue != null) {
       Preferences.initBoolean(key, defaultValue);
     }
@@ -216,21 +225,24 @@ public class PreferenceInjector {
       RecordComponent component, String key, Supplier<?> defaultValueSupplier) {
     Type supplierType =
         ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
-    if (!supplierType.equals(String.class)) {
+    Type supplierPrimativeType = WRAPPER_TO_PRIMITIVE.get(supplierType);
+    if (supplierPrimativeType == null) {
       warn(
           "Cannot store '%s' in Preferences; type %s is unsupported",
           component.getName(), component.getGenericType());
       return defaultValueSupplier;
     }
+    PreferenceFactory factory = TYPE_TO_FACTORY.get(supplierPrimativeType);
+
     if (defaultValueSupplier != null) {
-      String defaultValue = (String) defaultValueSupplier.get();
+      Object defaultValue = defaultValueSupplier.get();
       if (defaultValue == null) {
         warn("Cannot store '%s' in Preferences; default value is null", component.getName());
         return defaultValueSupplier;
       }
-      Preferences.initString(key, defaultValue);
+      factory.create(component, key, defaultValue); // Call Preferences.init{String,Double,etc}()
     }
-    return () -> Preferences.getString(key, "");
+    return () -> factory.create(component, key, null);
   }
 
   private static void warn(String format, Object... args) {
