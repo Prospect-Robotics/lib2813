@@ -72,9 +72,7 @@ public class PreferenceInjector {
 
         PreferenceFactory factory = typeToFactory.get(type);
         if (factory == null) {
-          DataLogManager.log(
-              String.format(
-                  "WARNING: cannot store '%s' in Preferences; type %s is unsupported", name, type));
+          warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
           getDefaultValue = true;
         } else {
           key = createKey(component);
@@ -90,7 +88,7 @@ public class PreferenceInjector {
           params[i] = defaultValue;
         } else {
           if (getDefaultValue && defaultValue == null) {
-            DataLogManager.log(String.format("WARNING: cannot store '%s' in Preferences; default value is null", name));
+            warn("Cannot store '%s' in Preferences; default value is null", name);
             params[i] = null;
           } else {
             params[i] = factory.create(component, key, defaultValue);
@@ -215,20 +213,23 @@ public class PreferenceInjector {
     Type supplierType =
         ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
     if (!supplierType.equals(String.class)) {
-      DataLogManager.log(
-          String.format(
-              "WARNING: cannot store '%s' in Preferences; type %s is unsupported",
-              component.getName(), component.getGenericType()));
+      warn(
+          "Cannot store '%s' in Preferences; type %s is unsupported",
+          component.getName(), component.getGenericType());
       return supplier;
     }
     if (supplier != null) {
       String defaultValue = (String) supplier.get();
       if (defaultValue == null) {
-        DataLogManager.log(String.format("WARNING: cannot store '%s' in Preferences; default value is null", component.getName()));
+        warn("Cannot store '%s' in Preferences; default value is null", component.getName());
         return supplier;
       }
       Preferences.initString(key, defaultValue);
     }
     return () -> Preferences.getString(key, "");
+  }
+
+  private static void warn(String format, Object... args) {
+    DataLogManager.log(String.format("WARNING: " + format, args));
   }
 }
