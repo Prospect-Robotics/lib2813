@@ -7,7 +7,6 @@ import static com.team2813.lib2813.limelight.JSONHelper.getRoot;
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
 import static com.team2813.lib2813.limelight.Optionals.unboxLong;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -17,6 +16,8 @@ import java.util.function.Function;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Time;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -181,10 +182,10 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
-		public Optional<Duration> getTotalLatency() {
+		public Optional<Time> getTotalLatency() {
 			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
 			double millis = jsonParseTimeMillis + getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
-			return Optional.of(Duration.ofMillis(Math.round(millis)));
+			return Optional.of(Units.Milliseconds.of(millis));
 		}
 
 		/**

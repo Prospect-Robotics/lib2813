@@ -1,8 +1,8 @@
 package com.team2813.lib2813.limelight;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.units.measure.Time;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
@@ -41,7 +41,7 @@ final class StubLocationalData implements LocationalData {
   }
 
   @Override
-  public Optional<Duration> getTotalLatency() {
+  public Optional<Time> getTotalLatency() {
     return Optional.empty();
   }
 }
