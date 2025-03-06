@@ -58,10 +58,6 @@ public class PreferenceInjector {
       Class<? extends T> clazz = (Class<? extends T>) configWithDefaults.getClass();
 
       var components = clazz.getRecordComponents();
-      if (components == null) {
-        throw new IllegalArgumentException("Must pass in a record class");
-      }
-
       Object[] params = new Object[components.length];
       Class<?>[] types = new Class[components.length];
       int i = 0;
@@ -94,10 +90,11 @@ public class PreferenceInjector {
           params[i] = defaultValue;
         } else {
           if (getDefaultValue && defaultValue == null) {
-            throw new IllegalArgumentException(
-                String.format("Default value for '%s' cannot be null", name));
+            DataLogManager.log(String.format("WARNING: cannot store '%s' in Preferences; default value is null", name));
+            params[i] = null;
+          } else {
+            params[i] = factory.create(component, key, defaultValue);
           }
-          params[i] = factory.create(component, key, defaultValue);
         }
         i++;
       }
@@ -227,8 +224,8 @@ public class PreferenceInjector {
     if (supplier != null) {
       String defaultValue = (String) supplier.get();
       if (defaultValue == null) {
-        throw new IllegalArgumentException(
-            String.format("Default value for '%s' cannot be null", component.getName()));
+        DataLogManager.log(String.format("WARNING: cannot store '%s' in Preferences; default value is null", component.getName()));
+        return supplier;
       }
       Preferences.initString(key, defaultValue);
     }
