@@ -8,6 +8,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 import org.junit.rules.TestRule;
 
 public final class PreferenceInjectorTest {
@@ -16,6 +17,7 @@ public final class PreferenceInjectorTest {
   final Set<String> originalKeys = new HashSet<>();
 
   @Rule public final TestRule isolatedPreferences = new IsolatedPreferences();
+  @Rule public final ErrorCollector errorCollector = new ErrorCollector();
 
   @Before
   public void copyOriginalKeys() {
@@ -26,7 +28,9 @@ public final class PreferenceInjectorTest {
   @Before
   public void configureInjector() {
     injector.throwExceptions = true;
-    injector.errorReporter = org.junit.Assert::fail; // May be overridden by some tests.
+    injector.errorReporter =
+        message ->
+            errorCollector.addError(new AssertionError("Unexpected warning: \"" + message + "\""));
   }
 
   record ContainsBooleans(boolean first, boolean second) {}
