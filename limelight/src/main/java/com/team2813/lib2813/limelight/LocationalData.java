@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.units.measure.Time;
 
 /**
  * Get positional data from limelight
@@ -36,14 +37,6 @@ public interface LocationalData {
 
 	OptionalDouble getTargetingLatency();
 
-	OptionalDouble getTimestamp();
-
-	default OptionalDouble lastMSDelay(){
-		OptionalDouble a = getCaptureLatency();
-		OptionalDouble b = getTargetingLatency();
-		if (a.isPresent() && b.isPresent()) {
-			return OptionalDouble.of(a.getAsDouble() + b.getAsDouble());
-		}
-		return OptionalDouble.empty();
-	}
+	/** Gets the total latency of this data. */
+	Optional<Time> getTotalLatency();
 }

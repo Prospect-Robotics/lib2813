@@ -6,6 +6,8 @@ import java.util.OptionalDouble;
 
 import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Time;
 import org.json.JSONObject;
 
 class NetworkTablesLimelight implements Limelight {
@@ -14,11 +16,6 @@ class NetworkTablesLimelight implements Limelight {
 
   NetworkTablesLimelight(String limelightName) {
     this.limelightName = limelightName;
-  }
-  
-  @Override
-  public OptionalDouble getTimestamp() {
-    return getLocationalData().getTimestamp();
   }
 
   @Override
@@ -91,8 +88,10 @@ class NetworkTablesLimelight implements Limelight {
     }
 
     @Override
-    public OptionalDouble getTimestamp() {
-      return OptionalDouble.of(results.timestamp_LIMELIGHT_publish);
+    public Optional<Time> getTotalLatency() {
+      // See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
+      var millis = results.latency_capture + results.latency_pipeline + results.latency_jsonParse;
+      return Optional.of(Units.Milliseconds.of(millis));
     }
 
     private static Optional<Pose3d> toPose3D(double[] inData) {

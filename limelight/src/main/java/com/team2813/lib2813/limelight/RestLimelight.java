@@ -16,6 +16,8 @@ import java.util.function.Function;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Time;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -55,7 +57,7 @@ class RestLimelight implements Limelight {
 
 	@Override
 	public Optional<JSONObject> getJsonDump() {
-		return collectionThread.getMostRecent();
+		return collectionThread.getMostRecent().map(DataCollection.Result::json);
 	}
 
 	/**
@@ -70,11 +72,6 @@ class RestLimelight implements Limelight {
 		return getLocationalData().getCaptureLatency();
 	}
 
-	@Override
-	public OptionalDouble getTimestamp() {
-		return getLocationalData().getTimestamp();
-	}
-
 	private static <T> Function<T, Boolean> not(Function<? super T, Boolean> fnc) {
 		return (t) -> !fnc.apply(t);
 	}
@@ -82,9 +79,9 @@ class RestLimelight implements Limelight {
 	public boolean hasTarget() {
 		return getLocationalData().hasTarget();
 	}
-
+   
 	public LocationalData getLocationalData() {
-		return getJsonDump().flatMap(getRoot()).map(RestLocationalData::fromJsonDump).orElse(StubLocationalData.INSTANCE);
+		return collectionThread.getMostRecent().map(RestLocationalData::fromResult).orElse(StubLocationalData.INSTANCE);
 	}
 
 	private void clean() {
@@ -130,13 +127,16 @@ class RestLimelight implements Limelight {
 	
 	private static class RestLocationalData implements LocationalData {
 		private final JSONObject root;
+		private final double jsonParseTimeMillis;
 
-		static LocationalData fromJsonDump(JSONObject root) {
-			return new RestLocationalData(root);
+		static LocationalData fromResult(DataCollection.Result result) {
+			JSONObject root = getRoot(result.json());
+			return new RestLocationalData(root, result.jsonParseTimeMillis());
 		}
 
-		RestLocationalData(JSONObject root) {
+		RestLocationalData(JSONObject root, double jsonParseTimeMillis) {
 			this.root = root;
+			this.jsonParseTimeMillis = jsonParseTimeMillis;
 		}
 
 		@Override
@@ -172,11 +172,6 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
-		public OptionalDouble getTimestamp() {
-			return unboxDouble(getDouble(root, "ts"));
-		}
-
-		@Override
 		public OptionalDouble getCaptureLatency() {
 			return unboxDouble(getDouble(root, "cl"));
 		}
@@ -187,6 +182,16 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
+		public Optional<Time> getTotalLatency() {
+			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
+			double millis = jsonParseTimeMillis + getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
+			return Optional.of(Units.Milliseconds.of(millis));
+		}
+
+		/**
+		 * Gets the position of the robot with the center of the field as the origin
+		 * @return The position of the robot
+		 */
 		public Optional<Pose3d> getBotpose() {
 			return getArr(root, "botpose").flatMap(this::parseArr);
 		}
