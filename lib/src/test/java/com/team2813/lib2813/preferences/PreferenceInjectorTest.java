@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static java.util.stream.Collectors.toSet;
 
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +52,7 @@ public final class PreferenceInjectorTest {
     // Arrange: Update preferences
     Preferences.setBoolean(key1, false);
     Preferences.setBoolean(key2, true);
+    var preferenceValues = preferenceValues();
 
     // Act
     injected = injector.injectPreferences(defaults);
@@ -62,6 +64,7 @@ public final class PreferenceInjectorTest {
     assertThat(value).isFalse();
     value = Preferences.getBoolean(key2, false);
     assertThat(value).isTrue();
+    assertHasNoChangesSince(preferenceValues);
   }
 
   @Test
@@ -71,7 +74,7 @@ public final class PreferenceInjectorTest {
     String key2 = "ContainsBooleans.second";
     Preferences.initBoolean(key1, false);
     Preferences.initBoolean(key2, true);
-    Map<String, Long> lastChanges = lastChanges();
+    var preferenceValues = preferenceValues();
     var defaults = new ContainsBooleans(true, false);
 
     // Act
@@ -79,21 +82,22 @@ public final class PreferenceInjectorTest {
 
     // Assert
     assertThat(injected).isEqualTo(new ContainsBooleans(false, true));
-    assertHasNoChangesSince(lastChanges);
+    assertHasNoChangesSince(preferenceValues);
   }
 
-  private void assertHasNoChangesSince(Map<String, Long> previousSnapshot) {
-    var lastChanges = lastChanges();
-    assertWithMessage("Unexpected changes to preference values")
-        .that(lastChanges)
-        .isEqualTo(previousSnapshot);
+  private void assertHasNoChangesSince(Map<String, Object> previousValues) {
+    var preferenceValues = preferenceValues();
+    assertWithMessage("Unexpected no changes to preference values")
+        .that(preferenceValues)
+        .isEqualTo(previousValues);
   }
 
-  private Map<String, Long> lastChanges() {
-    Map<String, Long> map = new HashMap<>();
-    var table = isolatedPreferences.getNetworkTableInstance();
+  private Map<String, Object> preferenceValues() {
+    NetworkTable table = isolatedPreferences.getTable();
+    Map<String, Object> map = new HashMap<>();
     for (String key : preferenceKeys()) {
-      map.put(key, table.getEntry(key).getLastChange());
+      Object value = table.getEntry(key).getValue().getValue();
+      map.put(key, value);
     }
     return map;
   }

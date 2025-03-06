@@ -1,20 +1,22 @@
 package com.team2813.lib2813.preferences;
 
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Preferences;
 import org.junit.rules.ExternalResource;
 
 public final class IsolatedPreferences extends ExternalResource {
-  private NetworkTableInstance instance;
+  private NetworkTableInstance tempInstance;
 
-  public NetworkTableInstance getNetworkTableInstance() {
-    return instance;
+  /** Gets the {@link NetworkTable} that contains the preference values. */
+  public NetworkTable getTable() {
+    return tempInstance.getTable("Preferences");
   }
 
   @Override
   protected void before() {
-    instance = NetworkTableInstance.create();
-    Preferences.setNetworkTableInstance(instance);
+    tempInstance = NetworkTableInstance.create();
+    Preferences.setNetworkTableInstance(tempInstance);
   }
 
   @Override
@@ -22,7 +24,7 @@ public final class IsolatedPreferences extends ExternalResource {
     try {
       Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
     } finally {
-      instance.close();
+      tempInstance.close();
     }
   }
 }
