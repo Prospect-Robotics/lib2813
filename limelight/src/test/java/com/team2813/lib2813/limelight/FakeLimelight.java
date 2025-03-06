@@ -44,8 +44,7 @@ public class FakeLimelight extends ExternalResource {
 
 		@Override
 		public void handle(HttpExchange exchange) throws IOException {
-			logger.info("Request for results received:");
-			logger.info(exchange.getRequestHeaders().toString());
+			logger.info("Request for results received");
 			if (!"GET".equals(exchange.getRequestMethod())) {
 				exchange.sendResponseHeaders(405, -1);
 				logger.warning(String.format("Unexpected request method: %s", exchange.getRequestMethod()));
@@ -62,8 +61,7 @@ public class FakeLimelight extends ExternalResource {
 		private String post;
 		@Override
 		public void handle(HttpExchange exchange) throws IOException {
-			logger.info("Request for field map received:");
-			logger.info(exchange.getRequestHeaders().toString());
+			logger.info("Request for field map received");
 			if (!"POST".equals(exchange.getRequestMethod())) {
 				exchange.sendResponseHeaders(405, -1);
 				logger.warning(String.format("Unexpected request method: %s", exchange.getRequestMethod()));
