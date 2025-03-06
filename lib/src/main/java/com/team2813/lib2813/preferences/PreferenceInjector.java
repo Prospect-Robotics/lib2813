@@ -12,6 +12,10 @@ public class PreferenceInjector {
   private final String removePrefix;
   private final int removePrefixLen;
 
+  // The below package-scope fields are for the self-tests.
+  boolean throwExceptions = false;
+  Consumer<String> errorReporter = DataLogManager::log;
+
   public PreferenceInjector(String removePrefix) {
     this.removePrefix = removePrefix;
     this.removePrefixLen = removePrefix.length();
@@ -44,6 +48,9 @@ public class PreferenceInjector {
     try {
       return injectPreferences(clazz, configWithDefaults);
     } catch (ReflectiveOperationException e) {
+      if (throwExceptions) {
+        throw new RuntimeException(e); // For self-tests.
+      }
       DriverStation.reportWarning(
           String.format("Could not inject preferences into %s: %s", clazz.getSimpleName(), e),
           e.getStackTrace());
@@ -100,22 +107,23 @@ public class PreferenceInjector {
           warn("Cannot store '%s' in Preferences; default value is null", name);
           params[i] = null;
         } else {
-          params[i] = factory.create(component, key, defaultValue);
+          params[i] = factory.create(this, component, key, defaultValue);
         }
       }
       i++;
     }
-    return clazz.getConstructor(types).newInstance(params);
+    return clazz.getDeclaredConstructor(types).newInstance(params);
   }
 
   @FunctionalInterface
   private interface PreferenceFactory {
-    Object create(RecordComponent component, String key, Object defaultValue);
+    Object create(
+        PreferenceInjector injector, RecordComponent component, String key, Object defaultValue);
   }
 
   @FunctionalInterface
   private interface GenericPreferenceFactory<T> {
-    T create(RecordComponent component, String key, T defaultValue);
+    T create(PreferenceInjector injector, RecordComponent component, String key, T defaultValue);
   }
 
   private static final Map<Type, PreferenceFactory> TYPE_TO_FACTORY = new HashMap<>();
@@ -123,7 +131,8 @@ public class PreferenceInjector {
   @SuppressWarnings("unchecked")
   private static <T> void register(Class<T> type, GenericPreferenceFactory<T> simpleFactory) {
     PreferenceFactory factory =
-        (component, key, defaultValue) -> simpleFactory.create(component, key, (T) defaultValue);
+        (injector, component, key, defaultValue) ->
+            simpleFactory.create(injector, component, key, (T) defaultValue);
     TYPE_TO_FACTORY.put(type, factory);
   }
 
@@ -150,7 +159,7 @@ public class PreferenceInjector {
           String.class, String.class);
 
   private static boolean booleanFactory(
-      RecordComponent component, String key, Boolean defaultValue) {
+      PreferenceInjector injector, RecordComponent component, String key, Boolean defaultValue) {
     if (defaultValue != null) {
       Preferences.initBoolean(key, defaultValue);
     }
@@ -158,7 +167,10 @@ public class PreferenceInjector {
   }
 
   private static BooleanSupplier booleanSupplierFactory(
-      RecordComponent component, String key, BooleanSupplier defaultValueSupplier) {
+      PreferenceInjector injector,
+      RecordComponent component,
+      String key,
+      BooleanSupplier defaultValueSupplier) {
     if (defaultValueSupplier != null) {
       boolean defaultValue = defaultValueSupplier.getAsBoolean();
       Preferences.initBoolean(key, defaultValue);
@@ -166,7 +178,8 @@ public class PreferenceInjector {
     return () -> Preferences.getBoolean(key, false);
   }
 
-  private static int intFactory(RecordComponent component, String key, Integer defaultValue) {
+  private static int intFactory(
+      PreferenceInjector injector, RecordComponent component, String key, Integer defaultValue) {
     if (defaultValue != null) {
       Preferences.initInt(key, defaultValue);
     }
@@ -174,7 +187,10 @@ public class PreferenceInjector {
   }
 
   private static IntSupplier intSupplierFactory(
-      RecordComponent component, String key, IntSupplier defaultValueSupplier) {
+      PreferenceInjector injector,
+      RecordComponent component,
+      String key,
+      IntSupplier defaultValueSupplier) {
     if (defaultValueSupplier != null) {
       int defaultValue = defaultValueSupplier.getAsInt();
       Preferences.initInt(key, defaultValue);
@@ -182,7 +198,8 @@ public class PreferenceInjector {
     return () -> Preferences.getInt(key, 0);
   }
 
-  private static long longFactory(RecordComponent component, String key, Long defaultValue) {
+  private static long longFactory(
+      PreferenceInjector injector, RecordComponent component, String key, Long defaultValue) {
     if (defaultValue != null) {
       Preferences.initLong(key, defaultValue);
     }
@@ -190,7 +207,10 @@ public class PreferenceInjector {
   }
 
   private static LongSupplier longSupplierFactory(
-      RecordComponent component, String key, LongSupplier defaultValueSupplier) {
+      PreferenceInjector injector,
+      RecordComponent component,
+      String key,
+      LongSupplier defaultValueSupplier) {
     if (defaultValueSupplier != null) {
       long defaultValue = defaultValueSupplier.getAsLong();
       Preferences.initLong(key, defaultValue);
@@ -198,7 +218,8 @@ public class PreferenceInjector {
     return () -> Preferences.getLong(key, 0);
   }
 
-  private static double doubleFactory(RecordComponent component, String key, Double defaultValue) {
+  private static double doubleFactory(
+      PreferenceInjector injector, RecordComponent component, String key, Double defaultValue) {
     if (defaultValue != null) {
       Preferences.initDouble(key, defaultValue);
     }
@@ -206,7 +227,10 @@ public class PreferenceInjector {
   }
 
   private static DoubleSupplier doubleSupplierFactory(
-      RecordComponent component, String key, DoubleSupplier defaultValueSupplier) {
+      PreferenceInjector injector,
+      RecordComponent component,
+      String key,
+      DoubleSupplier defaultValueSupplier) {
     if (defaultValueSupplier != null) {
       double defaultValue = defaultValueSupplier.getAsDouble();
       Preferences.initDouble(key, defaultValue);
@@ -214,7 +238,8 @@ public class PreferenceInjector {
     return () -> Preferences.getDouble(key, 0);
   }
 
-  private static String stringFactory(RecordComponent component, String key, String defaultValue) {
+  private static String stringFactory(
+      PreferenceInjector injector, RecordComponent component, String key, String defaultValue) {
     if (defaultValue != null) {
       Preferences.initString(key, defaultValue);
     }
@@ -222,12 +247,15 @@ public class PreferenceInjector {
   }
 
   private static Supplier<?> supplierFactory(
-      RecordComponent component, String key, Supplier<?> defaultValueSupplier) {
+      PreferenceInjector injector,
+      RecordComponent component,
+      String key,
+      Supplier<?> defaultValueSupplier) {
     Type supplierType =
         ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
     Type supplierPrimativeType = WRAPPER_TO_PRIMITIVE.get(supplierType);
     if (supplierPrimativeType == null) {
-      warn(
+      injector.warn(
           "Cannot store '%s' in Preferences; type %s is unsupported",
           component.getName(), component.getGenericType());
       return defaultValueSupplier;
@@ -237,15 +265,18 @@ public class PreferenceInjector {
     if (defaultValueSupplier != null) {
       Object defaultValue = defaultValueSupplier.get();
       if (defaultValue == null) {
-        warn("Cannot store '%s' in Preferences; default value is null", component.getName());
+        injector.warn(
+            "Cannot store '%s' in Preferences; default value is null", component.getName());
         return defaultValueSupplier;
       }
-      factory.create(component, key, defaultValue); // Call Preferences.init{String,Double,etc}()
+      factory.create(
+          injector, component, key, defaultValue); // Call Preferences.init{String,Double,etc}()
     }
-    return () -> factory.create(component, key, null);
+    return () -> factory.create(injector, component, key, null);
   }
 
-  private static void warn(String format, Object... args) {
-    DataLogManager.log(String.format("WARNING: " + format, args));
+  private void warn(String format, Object... args) {
+    String message = String.format("WARNING: " + format, args);
+    errorReporter.accept(message);
   }
 }
