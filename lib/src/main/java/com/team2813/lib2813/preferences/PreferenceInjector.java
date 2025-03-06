@@ -3,10 +3,7 @@ package com.team2813.lib2813.preferences;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Preferences;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.RecordComponent;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.*;
@@ -15,22 +12,10 @@ public class PreferenceInjector {
   public static final PreferenceInjector DEFAULT_INSTANCE = new PreferenceInjector("com.team2813.");
   private final String removePrefix;
   private final int removePrefixLen;
-  private final Map<Type, PreferenceFactory> typeToFactory = new HashMap<>();
 
   public PreferenceInjector(String removePrefix) {
     this.removePrefix = removePrefix;
     this.removePrefixLen = removePrefix.length();
-
-    typeToFactory.put(Boolean.TYPE, this::booleanFactory);
-    typeToFactory.put(BooleanSupplier.class, this::booleanSupplierFactory);
-    typeToFactory.put(Integer.TYPE, this::intFactory);
-    typeToFactory.put(IntSupplier.class, this::intSupplierFactory);
-    typeToFactory.put(Long.TYPE, this::longFactory);
-    typeToFactory.put(LongSupplier.class, this::longSupplierFactory);
-    typeToFactory.put(Double.TYPE, this::doubleFactory);
-    typeToFactory.put(DoubleSupplier.class, this::doubleSupplierFactory);
-    typeToFactory.put(String.class, this::stringFactory);
-    typeToFactory.put(Supplier.class, this::supplierFactory);
   }
 
   /**
@@ -58,46 +43,7 @@ public class PreferenceInjector {
     Class<? extends T> clazz = (Class<? extends T>) configWithDefaults.getClass();
 
     try {
-      var components = clazz.getRecordComponents();
-      Object[] params = new Object[components.length];
-      Class<?>[] types = new Class[components.length];
-      int i = 0;
-      for (RecordComponent component : clazz.getRecordComponents()) {
-        String name = component.getName();
-        Class<?> type = component.getType();
-        types[i] = type;
-
-        Object defaultValue = null;
-        String key = null;
-        boolean getDefaultValue;
-
-        PreferenceFactory factory = typeToFactory.get(type);
-        if (factory == null) {
-          warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
-          getDefaultValue = true;
-        } else {
-          key = createKey(component);
-          getDefaultValue = !Preferences.containsKey(key);
-        }
-        if (getDefaultValue) {
-          Field defaultValueField = clazz.getDeclaredField(name);
-          defaultValueField.setAccessible(true);
-          defaultValue = defaultValueField.get(configWithDefaults);
-        }
-
-        if (factory == null) {
-          params[i] = defaultValue;
-        } else {
-          if (getDefaultValue && defaultValue == null) {
-            warn("Cannot store '%s' in Preferences; default value is null", name);
-            params[i] = null;
-          } else {
-            params[i] = factory.create(component, key, defaultValue);
-          }
-        }
-        i++;
-      }
-      return clazz.getConstructor(types).newInstance(params);
+      return injectPreferences(clazz, configWithDefaults);
     } catch (ReflectiveOperationException e) {
       DriverStation.reportWarning(
           String.format("Could not inject preferences into %s: %s", clazz.getSimpleName(), e),
@@ -119,12 +65,71 @@ public class PreferenceInjector {
     return prefix + "." + name;
   }
 
+  private <T extends java.lang.Record> T injectPreferences(
+      Class<? extends T> clazz, T configWithDefaults) throws ReflectiveOperationException {
+    var components = clazz.getRecordComponents();
+    Object[] params = new Object[components.length];
+    Class<?>[] types = new Class[components.length];
+    int i = 0;
+    for (RecordComponent component : clazz.getRecordComponents()) {
+      String name = component.getName();
+      Class<?> type = component.getType();
+      types[i] = type;
+
+      Object defaultValue = null;
+      String key = null;
+      boolean getDefaultValue;
+
+      PreferenceFactory factory = TYPE_TO_FACTORY.get(type);
+      if (factory == null) {
+        warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
+        getDefaultValue = true;
+      } else {
+        key = createKey(component);
+        getDefaultValue = !Preferences.containsKey(key);
+      }
+      if (getDefaultValue) {
+        Field defaultValueField = clazz.getDeclaredField(name);
+        defaultValueField.setAccessible(true);
+        defaultValue = defaultValueField.get(configWithDefaults);
+      }
+
+      if (factory == null) {
+        params[i] = defaultValue;
+      } else {
+        if (getDefaultValue && defaultValue == null) {
+          warn("Cannot store '%s' in Preferences; default value is null", name);
+          params[i] = null;
+        } else {
+          params[i] = factory.create(component, key, defaultValue);
+        }
+      }
+      i++;
+    }
+    return clazz.getConstructor(types).newInstance(params);
+  }
+
   @FunctionalInterface
   private interface PreferenceFactory {
     Object create(RecordComponent component, String key, Object defaultValue);
   }
 
-  private boolean booleanFactory(RecordComponent component, String key, Object value) {
+  private static final Map<Type, PreferenceFactory> TYPE_TO_FACTORY = new HashMap<>();
+
+  static {
+    TYPE_TO_FACTORY.put(Boolean.TYPE, PreferenceInjector::booleanFactory);
+    TYPE_TO_FACTORY.put(BooleanSupplier.class, PreferenceInjector::booleanSupplierFactory);
+    TYPE_TO_FACTORY.put(Integer.TYPE, PreferenceInjector::intFactory);
+    TYPE_TO_FACTORY.put(IntSupplier.class, PreferenceInjector::intSupplierFactory);
+    TYPE_TO_FACTORY.put(Long.TYPE, PreferenceInjector::longFactory);
+    TYPE_TO_FACTORY.put(LongSupplier.class, PreferenceInjector::longSupplierFactory);
+    TYPE_TO_FACTORY.put(Double.TYPE, PreferenceInjector::doubleFactory);
+    TYPE_TO_FACTORY.put(DoubleSupplier.class, PreferenceInjector::doubleSupplierFactory);
+    TYPE_TO_FACTORY.put(String.class, PreferenceInjector::stringFactory);
+    TYPE_TO_FACTORY.put(Supplier.class, PreferenceInjector::supplierFactory);
+  }
+
+  private static boolean booleanFactory(RecordComponent component, String key, Object value) {
     Boolean defaultValue = (Boolean) value;
 
     if (defaultValue != null) {
@@ -133,7 +138,7 @@ public class PreferenceInjector {
     return Preferences.getBoolean(key, false);
   }
 
-  private BooleanSupplier booleanSupplierFactory(
+  private static BooleanSupplier booleanSupplierFactory(
       RecordComponent component, String key, Object value) {
     BooleanSupplier supplier = (BooleanSupplier) value;
 
@@ -144,7 +149,7 @@ public class PreferenceInjector {
     return () -> Preferences.getBoolean(key, false);
   }
 
-  private long intFactory(RecordComponent component, String key, Object value) {
+  private static long intFactory(RecordComponent component, String key, Object value) {
     Integer defaultValue = (Integer) value;
 
     if (defaultValue != null) {
@@ -153,7 +158,8 @@ public class PreferenceInjector {
     return Preferences.getInt(key, 0);
   }
 
-  private IntSupplier intSupplierFactory(RecordComponent component, String key, Object value) {
+  private static IntSupplier intSupplierFactory(
+      RecordComponent component, String key, Object value) {
     IntSupplier supplier = (IntSupplier) value;
 
     if (supplier != null) {
@@ -163,7 +169,7 @@ public class PreferenceInjector {
     return () -> Preferences.getInt(key, 0);
   }
 
-  private long longFactory(RecordComponent component, String key, Object value) {
+  private static long longFactory(RecordComponent component, String key, Object value) {
     Long defaultValue = (Long) value;
 
     if (defaultValue != null) {
@@ -172,7 +178,8 @@ public class PreferenceInjector {
     return Preferences.getLong(key, 0);
   }
 
-  private LongSupplier longSupplierFactory(RecordComponent component, String key, Object value) {
+  private static LongSupplier longSupplierFactory(
+      RecordComponent component, String key, Object value) {
     LongSupplier supplier = (LongSupplier) value;
 
     if (supplier != null) {
@@ -182,7 +189,7 @@ public class PreferenceInjector {
     return () -> Preferences.getLong(key, 0);
   }
 
-  private double doubleFactory(RecordComponent component, String key, Object value) {
+  private static double doubleFactory(RecordComponent component, String key, Object value) {
     Double defaultValue = (Double) value;
 
     if (defaultValue != null) {
@@ -191,7 +198,7 @@ public class PreferenceInjector {
     return Preferences.getDouble(key, 0);
   }
 
-  private DoubleSupplier doubleSupplierFactory(
+  private static DoubleSupplier doubleSupplierFactory(
       RecordComponent component, String key, Object value) {
     DoubleSupplier supplier = (DoubleSupplier) value;
 
@@ -202,7 +209,7 @@ public class PreferenceInjector {
     return () -> Preferences.getDouble(key, 0);
   }
 
-  private String stringFactory(RecordComponent component, String key, Object value) {
+  private static String stringFactory(RecordComponent component, String key, Object value) {
     String defaultValue = (String) value;
 
     if (defaultValue != null) {
@@ -211,7 +218,7 @@ public class PreferenceInjector {
     return Preferences.getString(key, "");
   }
 
-  private Supplier<?> supplierFactory(RecordComponent component, String key, Object value) {
+  private static Supplier<?> supplierFactory(RecordComponent component, String key, Object value) {
     Supplier<?> supplier = (Supplier<?>) value;
 
     Type supplierType =
