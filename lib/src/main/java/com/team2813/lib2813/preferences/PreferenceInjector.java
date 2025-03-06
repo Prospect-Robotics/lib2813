@@ -100,7 +100,7 @@ public class PreferenceInjector {
       return clazz.getConstructor(types).newInstance(params);
     } catch (ReflectiveOperationException e) {
       DriverStation.reportWarning(
-          String.format("Could not inject preferences into %s", clazz.getSimpleName()),
+          String.format("Could not inject preferences into %s: %s", clazz.getSimpleName(), e),
           e.getStackTrace());
       return configWithDefaults;
     }
