@@ -2,13 +2,14 @@ package com.team2813.lib2813.preferences;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.Preferences;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -94,12 +95,8 @@ public final class PreferenceInjectorTest {
 
   private Map<String, Object> preferenceValues() {
     NetworkTable table = isolatedPreferences.getTable();
-    Map<String, Object> map = new HashMap<>();
-    for (String key : preferenceKeys()) {
-      Object value = table.getEntry(key).getValue().getValue();
-      map.put(key, value);
-    }
-    return map;
+    return preferenceKeys().stream()
+        .collect(toMap(Function.identity(), key -> table.getEntry(key).getValue().getValue()));
   }
 
   private Set<String> preferenceKeys() {
