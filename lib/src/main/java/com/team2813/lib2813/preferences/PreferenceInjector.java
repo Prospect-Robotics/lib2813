@@ -1,6 +1,7 @@
 package com.team2813.lib2813.preferences;
 
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Preferences;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -53,10 +54,10 @@ public class PreferenceInjector {
    *     values.
    */
   public final <T extends java.lang.Record> T injectPreferences(T configWithDefaults) {
-    try {
-      @SuppressWarnings("unchecked")
-      Class<? extends T> clazz = (Class<? extends T>) configWithDefaults.getClass();
+    @SuppressWarnings("unchecked")
+    Class<? extends T> clazz = (Class<? extends T>) configWithDefaults.getClass();
 
+    try {
       var components = clazz.getRecordComponents();
       Object[] params = new Object[components.length];
       Class<?>[] types = new Class[components.length];
@@ -98,7 +99,10 @@ public class PreferenceInjector {
       }
       return clazz.getConstructor(types).newInstance(params);
     } catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
+      DriverStation.reportWarning(
+          String.format("Could not inject preferences into %s", clazz.getSimpleName()),
+          e.getStackTrace());
+      return configWithDefaults;
     }
   }
 
