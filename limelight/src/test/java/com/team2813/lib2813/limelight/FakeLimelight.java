@@ -7,18 +7,21 @@ import org.json.JSONObject;
 import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class FakeLimelight extends ExternalResource {
-	private static Logger logger = Logger.getLogger("FakeLimelight");
+	private final static Logger logger = Logger.getLogger("FakeLimelight");
 	HttpServer server;
 	@Override
 	protected void before() throws Throwable {
 		server = HttpServer.create(new InetSocketAddress(5807), 0);
 		server.createContext("/results", resultsResponse);
+		server.createContext("/upload-fieldmap", fieldMapResponse);
 		server.setExecutor(Executors.newSingleThreadExecutor());
 		server.start();
 	}
@@ -41,16 +44,41 @@ public class FakeLimelight extends ExternalResource {
 
 		@Override
 		public void handle(HttpExchange exchange) throws IOException {
-			logger.info("Request Received:");
+			logger.info("Request for results received:");
 			logger.info(exchange.getRequestHeaders().toString());
+			if (!"GET".equals(exchange.getRequestMethod())) {
+				exchange.sendResponseHeaders(405, -1);
+				logger.warning(String.format("Unexpected request method: %s", exchange.getRequestMethod()));
+				return;
+			}
 			exchange.sendResponseHeaders(200, body.length());
 			try (OutputStream os = exchange.getResponseBody()) {
 				os.write(body.getBytes());
 			}
 		}
 	}
+	
+	private static class FakeFieldMap implements HttpHandler {
+		private String post;
+		@Override
+		public void handle(HttpExchange exchange) throws IOException {
+			logger.info("Request for field map received:");
+			logger.info(exchange.getRequestHeaders().toString());
+			if (!"POST".equals(exchange.getRequestMethod())) {
+				exchange.sendResponseHeaders(405, -1);
+				logger.warning(String.format("Unexpected request method: %s", exchange.getRequestMethod()));
+				return;
+			}
+			try (InputStream is = exchange.getRequestBody()) {
+				byte[] data = is.readAllBytes();
+				post = new String(data, StandardCharsets.UTF_8);
+			}
+			exchange.sendResponseHeaders(200, -1);
+		}
+	}
 
 	private FakeGet resultsResponse = new FakeGet();
+	private final FakeFieldMap fieldMapResponse = new FakeFieldMap();
 
 	public void reset() {
 		resultsResponse.setBody("");
@@ -58,6 +86,10 @@ public class FakeLimelight extends ExternalResource {
 
 	public void setResultsResponse(JSONObject response) {
 		resultsResponse.setBody(response.toString());
+	}
+	
+	public String getFieldMap() {
+		return fieldMapResponse.post;
 	}
 
 	public JSONObject getResultsResponse() {

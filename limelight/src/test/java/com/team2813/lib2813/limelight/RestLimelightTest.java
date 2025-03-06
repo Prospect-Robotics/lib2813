@@ -5,14 +5,18 @@ import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class RestLimelightTest extends LimelightTestCase {
 	@ClassRule
@@ -47,6 +51,20 @@ public class RestLimelightTest extends LimelightTestCase {
 		HttpResponse<String> response = client.send(req, BodyHandlers.ofString());
 		assertEquals("{\"v\":1}", response.body());
 	}
+	
+	@Test
+	public void setFieldMapWorks() throws Exception {
+		String fieldMap;
+		Limelight limelight = createLimelight();
+		try (InputStream is = getClass().getResourceAsStream("frc2025r2.fmap")) {
+      assertNotNull(is);
+			is.mark(Integer.MAX_VALUE);
+      fieldMap = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			is.reset();
+			limelight.setFieldMap(is, true);
+		}
+		assertEquals(fieldMap, fakeLimelight.getFieldMap());
+  }
 
 	@Override
 	protected Limelight createLimelight() {
