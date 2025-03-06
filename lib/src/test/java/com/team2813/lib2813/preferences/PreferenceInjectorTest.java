@@ -2,10 +2,10 @@ package com.team2813.lib2813.preferences;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static java.util.stream.Collectors.toSet;
 
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.junit.Before;
@@ -16,16 +16,9 @@ import org.junit.rules.ErrorCollector;
 public final class PreferenceInjectorTest {
   final PreferenceInjector injector =
       new PreferenceInjector("com.team2813.lib2813.preferences.PreferenceInjectorTest.");
-  final Set<String> originalKeys = new HashSet<>();
 
   @Rule public final IsolatedPreferences isolatedPreferences = new IsolatedPreferences();
   @Rule public final ErrorCollector errorCollector = new ErrorCollector();
-
-  @Before
-  public void copyOriginalKeys() {
-    originalKeys.addAll(Preferences.getKeys());
-    assertThat(originalKeys).hasSize(1);
-  }
 
   @Before
   public void configureInjector() {
@@ -49,7 +42,7 @@ public final class PreferenceInjectorTest {
     assertThat(injected).isEqualTo(defaults);
     String key1 = "ContainsBooleans.first";
     String key2 = "ContainsBooleans.second";
-    assertThat(newPreferenceKeys()).containsExactly(key1, key2);
+    assertThat(preferenceKeys()).containsExactly(key1, key2);
     boolean value = Preferences.getBoolean(key1, false);
     assertThat(value).isTrue();
     value = Preferences.getBoolean(key2, true);
@@ -64,7 +57,7 @@ public final class PreferenceInjectorTest {
 
     // Assert
     assertThat(injected).isEqualTo(new ContainsBooleans(false, true));
-    assertThat(newPreferenceKeys()).containsExactly(key1, key2);
+    assertThat(preferenceKeys()).containsExactly(key1, key2);
     value = Preferences.getBoolean(key1, true);
     assertThat(value).isFalse();
     value = Preferences.getBoolean(key2, false);
@@ -96,20 +89,17 @@ public final class PreferenceInjectorTest {
         .isEqualTo(previousSnapshot);
   }
 
-  private Set<String> newPreferenceKeys() {
-    Set<String> keys = new HashSet<>(Preferences.getKeys());
-    keys.removeAll(originalKeys);
-    return keys;
-  }
-
   private Map<String, Long> lastChanges() {
     Map<String, Long> map = new HashMap<>();
     var table = isolatedPreferences.getNetworkTableInstance();
-    for (String key : Preferences.getKeys()) {
-      if (!key.startsWith(".")) { // Preferences adds a ".type" key
-        map.put(key, table.getEntry(key).getLastChange());
-      }
+    for (String key : preferenceKeys()) {
+      map.put(key, table.getEntry(key).getLastChange());
     }
     return map;
+  }
+
+  private Set<String> preferenceKeys() {
+    // Preferences adds a ".type" key; we filter it out here.
+    return Preferences.getKeys().stream().filter(key -> !key.startsWith(".")).collect(toSet());
   }
 }
