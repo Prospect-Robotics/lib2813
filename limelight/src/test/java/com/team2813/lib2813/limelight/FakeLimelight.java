@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class FakeLimelight extends ExternalResource {
-	private final static final Logger logger = Logger.getLogger("FakeLimelight");
+	private static final Logger logger = Logger.getLogger("FakeLimelight");
 	HttpServer server;
 	@Override
 	protected void before() throws Throwable {
