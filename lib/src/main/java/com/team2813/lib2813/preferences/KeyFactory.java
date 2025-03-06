@@ -31,9 +31,7 @@ public class KeyFactory {
    * @param name The preference name. Usually the enum instance name.
    */
   public final String createKey(Preference preference, String name) {
-    return instanceToKey.computeIfAbsent(
-        preference,
-        p -> createKey(p.getClass(), name));
+    return instanceToKey.computeIfAbsent(preference, p -> createKey(p.getClass(), name));
   }
 
   /**

@@ -1,7 +1,7 @@
 package com.team2813.lib2813.preferences;
 
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Preferences;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
@@ -29,27 +29,28 @@ public class PreferenceInjector {
     typeToFactory.put(Double.TYPE, this::doubleFactory);
     typeToFactory.put(DoubleSupplier.class, this::doubleSupplierFactory);
     typeToFactory.put(String.class, this::stringFactory);
-    typeToFactory.put(Supplier.class, this::stringSupplierFactory);
+    typeToFactory.put(Supplier.class, this::supplierFactory);
   }
 
   /**
-   * Creates an instance of the given record class with all fields populated from
-   * preferences.
+   * Creates an instance of the given record class with all fields populated from preferences.
    *
-   * <p>The type of the record components can be any of the following:
+   * <p>To be stored in preferences, the type of the record components can be any of the following:
+   *
    * <ul>
-   *   <li>{@code boolean} or {@code BooleanSupplier}</li>
-   *   <li>{@code int} or {@code IntSupplier}</li>
-   *   <li>{@code long} or {@code LongSupplier}</li>
-   *   <li>{@code double} or {@code DoubleSupplier}</li>
-   *   <li>{@code String} or {@code Supplier<String>}</li>
+   *   <li>{@code boolean} or {@code BooleanSupplier}
+   *   <li>{@code int} or {@code IntSupplier}
+   *   <li>{@code long} or {@code LongSupplier}
+   *   <li>{@code double} or {@code DoubleSupplier}
+   *   <li>{@code String} or {@code Supplier<String>}
    * </ul>
    *
-   * <p>The values for the components for the passed-in instance will be used
-   * as the default value for the preference. If a component is a supplier, the
-   * supplier will be called to get the default instance.
+   * <p>The values for the components for the passed-in instance will be used as the default value
+   * for the preference. If a component is a supplier, the supplier will be called to get the
+   * default instance.
    *
-   * @param configWithDefaults Record instance with all values set to their preferred default values.
+   * @param configWithDefaults Record instance with all values set to their preferred default
+   *     values.
    */
   public final <T extends java.lang.Record> T injectPreferences(T configWithDefaults) {
     try {
@@ -69,21 +70,34 @@ public class PreferenceInjector {
         Class<?> type = component.getType();
         types[i] = type;
 
+        Object defaultValue = null;
+        String key = null;
+        boolean getDefaultValue;
+
         PreferenceFactory factory = typeToFactory.get(type);
-        if (factory != null) {
-          String key = createKey(component);
-          Object defaultValue = null;
-          if (!Preferences.containsKey(key)) {
-            Field defaultValueField = clazz.getDeclaredField(name);
-            defaultValueField.setAccessible(true);
-            defaultValue = defaultValueField.get(configWithDefaults);
-            if (defaultValue == null) {
-              throw new IllegalArgumentException(String.format("Default value for '%s' cannot be null", name));
-            }
+        if (factory == null) {
+          DataLogManager.log(
+              String.format(
+                  "WARNING: cannot store '%s' in Preferences; type %s is unsupported", name, type));
+          getDefaultValue = true;
+        } else {
+          key = createKey(component);
+          getDefaultValue = !Preferences.containsKey(key);
+        }
+        if (getDefaultValue) {
+          Field defaultValueField = clazz.getDeclaredField(name);
+          defaultValueField.setAccessible(true);
+          defaultValue = defaultValueField.get(configWithDefaults);
+        }
+
+        if (factory == null) {
+          params[i] = defaultValue;
+        } else {
+          if (getDefaultValue && defaultValue == null) {
+            throw new IllegalArgumentException(
+                String.format("Default value for '%s' cannot be null", name));
           }
           params[i] = factory.create(component, key, defaultValue);
-        } else {
-          throw new IllegalArgumentException(String.format("Unsupported type for '%s': %s", name, type));
         }
         i++;
       }
@@ -112,90 +126,112 @@ public class PreferenceInjector {
   }
 
   private boolean booleanFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      boolean defaultValue = (Boolean) value;
+    Boolean defaultValue = (Boolean) value;
+
+    if (defaultValue != null) {
       Preferences.initBoolean(key, defaultValue);
     }
     return Preferences.getBoolean(key, false);
   }
 
-  private BooleanSupplier booleanSupplierFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      boolean defaultValue = ((BooleanSupplier) value).getAsBoolean();
+  private BooleanSupplier booleanSupplierFactory(
+      RecordComponent component, String key, Object value) {
+    BooleanSupplier supplier = (BooleanSupplier) value;
+
+    if (supplier != null) {
+      boolean defaultValue = supplier.getAsBoolean();
       Preferences.initBoolean(key, defaultValue);
     }
     return () -> Preferences.getBoolean(key, false);
   }
 
   private long intFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      int defaultValue = (Integer) value;
+    Integer defaultValue = (Integer) value;
+
+    if (defaultValue != null) {
       Preferences.initInt(key, defaultValue);
     }
     return Preferences.getInt(key, 0);
   }
 
   private IntSupplier intSupplierFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      int defaultValue = ((IntSupplier) value).getAsInt();
+    IntSupplier supplier = (IntSupplier) value;
+
+    if (supplier != null) {
+      int defaultValue = supplier.getAsInt();
       Preferences.initInt(key, defaultValue);
     }
     return () -> Preferences.getInt(key, 0);
   }
 
   private long longFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      long defaultValue = (Long) value;
+    Long defaultValue = (Long) value;
+
+    if (defaultValue != null) {
       Preferences.initLong(key, defaultValue);
     }
     return Preferences.getLong(key, 0);
   }
 
   private LongSupplier longSupplierFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      long defaultValue = ((LongSupplier) value).getAsLong();
+    LongSupplier supplier = (LongSupplier) value;
+
+    if (supplier != null) {
+      long defaultValue = supplier.getAsLong();
       Preferences.initLong(key, defaultValue);
     }
     return () -> Preferences.getLong(key, 0);
   }
 
   private double doubleFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      double defaultValue = (Double) value;
+    Double defaultValue = (Double) value;
+
+    if (defaultValue != null) {
       Preferences.initDouble(key, defaultValue);
     }
     return Preferences.getDouble(key, 0);
   }
 
-  private DoubleSupplier doubleSupplierFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      double defaultValue = ((DoubleSupplier) value).getAsDouble();
+  private DoubleSupplier doubleSupplierFactory(
+      RecordComponent component, String key, Object value) {
+    DoubleSupplier supplier = (DoubleSupplier) value;
+
+    if (supplier != null) {
+      double defaultValue = supplier.getAsDouble();
       Preferences.initDouble(key, defaultValue);
     }
     return () -> Preferences.getDouble(key, 0);
   }
 
   private String stringFactory(RecordComponent component, String key, Object value) {
-    if (value != null) {
-      String defaultValue = (String) value;
+    String defaultValue = (String) value;
+
+    if (defaultValue != null) {
       Preferences.initString(key, defaultValue);
     }
-    return Preferences.getString(key,"");
+    return Preferences.getString(key, "");
   }
 
-  private Supplier<String> stringSupplierFactory(RecordComponent component, String key, Object value) {
-    Type supplierType = ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
+  private Supplier<?> supplierFactory(RecordComponent component, String key, Object value) {
+    Supplier<?> supplier = (Supplier<?>) value;
+
+    Type supplierType =
+        ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
     if (!supplierType.equals(String.class)) {
-      throw new IllegalArgumentException(String.format("Unsupported type for '%s': %s", component.getName(), component.getGenericType()));
+      DataLogManager.log(
+          String.format(
+              "WARNING: cannot store '%s' in Preferences; type %s is unsupported",
+              component.getName(), component.getGenericType()));
+      return supplier;
     }
-    if (value != null) {
-      @SuppressWarnings("unchecked")
-      String defaultValue = ((Supplier<String>) value).get();
+    if (supplier != null) {
+      String defaultValue = (String) supplier.get();
       if (defaultValue == null) {
-        throw new IllegalArgumentException(String.format("Default value for '%s' cannot be null", component.getName()));
+        throw new IllegalArgumentException(
+            String.format("Default value for '%s' cannot be null", component.getName()));
       }
       Preferences.initString(key, defaultValue);
     }
-    return () -> Preferences.getString(key,"");
+    return () -> Preferences.getString(key, "");
   }
 }
