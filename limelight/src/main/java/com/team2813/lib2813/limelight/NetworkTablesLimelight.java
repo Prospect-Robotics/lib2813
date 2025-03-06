@@ -1,7 +1,5 @@
 package com.team2813.lib2813.limelight;
 
-import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
-
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -20,12 +18,12 @@ class NetworkTablesLimelight implements Limelight {
   
   @Override
   public OptionalDouble getTimestamp() {
-    return unboxDouble(getResults().map(results -> results.timestamp_LIMELIGHT_publish));
+    return getLocationalData().getTimestamp();
   }
 
   @Override
   public boolean hasTarget() {
-    return getResults().map(results -> results.targets_Fiducials.length > 0).orElse(false);
+    return getLocationalData().hasTarget();
   }
 
   @Override
@@ -44,7 +42,7 @@ class NetworkTablesLimelight implements Limelight {
 
   @Override
   public OptionalDouble getCaptureLatency() {
-    return unboxDouble(getResults().map(results -> results.latency_capture));
+    return getLocationalData().getCaptureLatency();
   }
 
   private Optional<LimelightResults> getResults() {
@@ -55,45 +53,16 @@ class NetworkTablesLimelight implements Limelight {
     return Optional.empty();
   }
 
-  private static class StubLocationalData implements LocationalData {
-    static final StubLocationalData INSTANCE = new StubLocationalData();
-
-    @Override
-    public Optional<Pose3d> getBotpose() {
-      return Optional.empty();
-    }
-    
-    @Override
-    public Optional<Pose3d> getBotposeBlue() {
-      return Optional.empty();
-    }
-    
-    @Override
-    public Optional<Pose3d> getBotposeRed() {
-      return Optional.empty();
-    }
-
-    @Override
-    public OptionalDouble getCaptureLatency() {
-      return OptionalDouble.empty();
-    }
-
-    @Override
-    public OptionalDouble getTargetingLatency() {
-      return OptionalDouble.empty();
-    }
-
-    @Override
-    public OptionalDouble lastMSDelay() {
-      return OptionalDouble.empty();
-    }
-  }
-
   private static class NTLocationalData implements LocationalData {
     private final LimelightResults results;
 
     NTLocationalData(LimelightHelpers.LimelightResults results) {
       this.results = results;
+    }
+
+    @Override
+    public boolean hasTarget() {
+      return results.targets_Fiducials.length > 0;
     }
 
     @Override
@@ -105,7 +74,7 @@ class NetworkTablesLimelight implements Limelight {
     public Optional<Pose3d> getBotposeBlue() {
       return toPose3D(results.botpose_wpiblue);
     }
-    
+
     @Override
     public Optional<Pose3d> getBotposeRed() {
       return toPose3D(results.botpose_wpired);
@@ -119,6 +88,11 @@ class NetworkTablesLimelight implements Limelight {
     @Override
     public OptionalDouble getTargetingLatency() {
       return OptionalDouble.of(results.latency_pipeline);
+    }
+
+    @Override
+    public OptionalDouble getTimestamp() {
+      return OptionalDouble.of(results.timestamp_LIMELIGHT_publish);
     }
 
     private static Optional<Pose3d> toPose3D(double[] inData) {

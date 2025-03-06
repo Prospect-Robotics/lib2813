@@ -33,11 +33,7 @@ class RestLimelight implements Limelight {
 
 	boolean started = false;
 
-	// specific types of data;
-	private final LocationalData data;
-
 	RestLimelight(String address) {
-		data = new RestLocationalData();
 		this.name = address;
 		collectionThread = new DataCollection(address);
 	}
@@ -67,28 +63,28 @@ class RestLimelight implements Limelight {
 	 * @return The targeting latency
 	 */
 	public OptionalDouble getTargetingLatency() {
-		return unboxDouble(getJsonDump().flatMap(getRoot()).flatMap(getDouble("tl")));
+		return getLocationalData().getTargetingLatency();
 	}
 
 	public OptionalDouble getCaptureLatency() {
-		return unboxDouble(getJsonDump().flatMap(getRoot()).flatMap(getDouble("cl")));
+		return getLocationalData().getCaptureLatency();
 	}
 
 	@Override
 	public OptionalDouble getTimestamp() {
-		return unboxDouble(getJsonDump().flatMap(getRoot()).flatMap(getDouble("ts")));
+		return getLocationalData().getTimestamp();
 	}
 
 	private static <T> Function<T, Boolean> not(Function<? super T, Boolean> fnc) {
 		return (t) -> !fnc.apply(t);
-	} 
+	}
 
 	public boolean hasTarget() {
-		return getJsonDump().flatMap(getRoot()).flatMap(getArr("Fiducial")).map(not(JSONArray::isEmpty)).orElse(false);
+		return getLocationalData().hasTarget();
 	}
 
 	public LocationalData getLocationalData() {
-		return data;
+		return getJsonDump().flatMap(getRoot()).map(RestLocationalData::fromJsonDump).orElse(StubLocationalData.INSTANCE);
 	}
 
 	private void clean() {
@@ -132,7 +128,21 @@ class RestLimelight implements Limelight {
 		limelights.clear();
 	}
 	
-	private class RestLocationalData implements LocationalData {
+	private static class RestLocationalData implements LocationalData {
+		private final JSONObject root;
+
+		static LocationalData fromJsonDump(JSONObject root) {
+			return new RestLocationalData(root);
+		}
+
+		RestLocationalData(JSONObject root) {
+			this.root = root;
+		}
+
+		@Override
+		public boolean hasTarget() {
+			return getArr(root, "Fiducial").map(not(JSONArray::isEmpty)).orElse(false);
+		}
 
 		private boolean invalidArray(JSONArray arr) {
 			boolean simple = arr.length() != 6 || !hasTarget();
@@ -162,21 +172,23 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
+		public OptionalDouble getTimestamp() {
+			return unboxDouble(getDouble(root, "ts"));
+		}
+
+		@Override
 		public OptionalDouble getCaptureLatency() {
-			return RestLimelight.this.getCaptureLatency();
+			return unboxDouble(getDouble(root, "cl"));
 		}
 
 		@Override
 		public OptionalDouble getTargetingLatency() {
-			return RestLimelight.this.getTargetingLatency();
+			return unboxDouble(getDouble(root, "tl"));
 		}
 
-		/**
-		 * Gets the position of the robot with the center of the field as the origin
-		 * @return The position of the robot
-		 */
+		@Override
 		public Optional<Pose3d> getBotpose() {
-			return getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose")).flatMap(this::parseArr);
+			return getArr(root, "botpose").flatMap(this::parseArr);
 		}
 
 		/**
@@ -185,7 +197,7 @@ class RestLimelight implements Limelight {
 		 */
 		@Override
 		public Optional<Pose3d> getBotposeBlue() {
-			return getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose_wpiblue")).flatMap(this::parseArr);
+			return getArr(root, "botpose_wpiblue").flatMap(this::parseArr);
 		}
 
 		/**
@@ -194,14 +206,14 @@ class RestLimelight implements Limelight {
 		 */
 		@Override
 		public Optional<Pose3d> getBotposeRed() {
-			return getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose_wpired")).flatMap(this::parseArr);
+			return getArr(root, "botpose_wpired").flatMap(this::parseArr);
 		}
 
 		/**
 		 * Gets the id of the targeted tag.
 		 */
-		public OptionalLong getTagID() {
-			return unboxLong(getJsonDump().flatMap(getRoot()).flatMap(getLong("pID")));
+		OptionalLong getTagID() {
+			return unboxLong(getLong(root, "pID"));
 		}
 	}
 }
