@@ -9,7 +9,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -42,6 +41,11 @@ public final class PreferenceInjectorTest {
 
     boolean secondValue();
 
+    @FunctionalInterface
+    interface Factory<T extends Record & WithBooleans> {
+      T create(boolean firstDefaultValue, boolean secondDefaultValue);
+    }
+
     default boolean isEqual(Object other) {
       if (this == other) {
         return true;
@@ -57,11 +61,8 @@ public final class PreferenceInjectorTest {
     }
   }
 
+  /** Test record for testing classes that contain boolean fields. */
   record ContainsBooleans(boolean first, boolean second) implements WithBooleans {
-
-    static ContainsBooleans factory(Boolean first, Boolean second) {
-      return new ContainsBooleans(first, second);
-    }
 
     @Override
     public boolean firstValue() {
@@ -74,11 +75,12 @@ public final class PreferenceInjectorTest {
     }
   }
 
+  /** Test record for testing classes that contain {@code BooleanSupplier} fields. */
   record ContainsBooleanSuppliers(BooleanSupplier first, BooleanSupplier second)
       implements WithBooleans {
 
-    static ContainsBooleanSuppliers factory(Boolean firstValue, Boolean secondValue) {
-      return new ContainsBooleanSuppliers(firstValue::booleanValue, secondValue::booleanValue);
+    static ContainsBooleanSuppliers factory(boolean firstValue, boolean secondValue) {
+      return new ContainsBooleanSuppliers(() -> firstValue, () -> secondValue);
     }
 
     @Override
@@ -97,10 +99,11 @@ public final class PreferenceInjectorTest {
     }
   }
 
+  /** Test record for testing classes that contain {@code Supplier<Boolean>} fields. */
   record ContainsSuppliersOfBoolean(Supplier<Boolean> first, Supplier<Boolean> second)
       implements WithBooleans {
 
-    static ContainsSuppliersOfBoolean factory(Boolean firstValue, Boolean secondValue) {
+    static ContainsSuppliersOfBoolean factory(boolean firstValue, boolean secondValue) {
       return new ContainsSuppliersOfBoolean(() -> firstValue, () -> secondValue);
     }
 
@@ -123,7 +126,7 @@ public final class PreferenceInjectorTest {
   @Test
   public void injectsBooleans_newPreferences() {
     var tester = new BooleanTester<>(ContainsBooleans.class);
-    tester.test(ContainsBooleans::factory);
+    tester.test(ContainsBooleans::new);
   }
 
   @Test
@@ -139,29 +142,31 @@ public final class PreferenceInjectorTest {
   }
 
   @Test
-  public void injectsBooleans_existingPreferences() {
+  public void injectsBooleans_withExistingPreferences() {
     var tester = new BooleanTester<>(ContainsBooleans.class);
-    tester.existingPreferences = true;
-    tester.test(ContainsBooleans::factory);
+    tester.withExistingPreferences = true;
+    tester.test(ContainsBooleans::new);
   }
 
   @Test
-  public void injectsBooleanSuppliers_existingPreferences() {
+  public void injectsBooleanSuppliers_withExistingPreferences() {
     var tester = new BooleanTester<>(ContainsBooleanSuppliers.class);
-    tester.existingPreferences = true;
+    tester.withExistingPreferences = true;
     tester.test(ContainsBooleanSuppliers::factory);
   }
 
   @Test
-  public void injectsSuppliersBoolean_existingPreferences() {
+  public void injectsSuppliersBoolean_withExistingPreferences() {
     var tester = new BooleanTester<>(ContainsSuppliersOfBoolean.class);
-    tester.existingPreferences = true;
+    tester.withExistingPreferences = true;
     tester.test(ContainsSuppliersOfBoolean::factory);
   }
 
   private class BooleanTester<T extends Record & WithBooleans> {
     final String prefix;
-    boolean existingPreferences = false;
+
+    /** Whether the Preferences should exist before the test is run. */
+    boolean withExistingPreferences = false;
 
     BooleanTester(Class<T> recordClass) {
       prefix = recordClass.getSimpleName();
@@ -173,26 +178,33 @@ public final class PreferenceInjectorTest {
      * @param defaultInstanceFactory Factory which creates a record, passing the first and second
      *     values as params.
      */
-    void test(BiFunction<Boolean, Boolean, T> defaultInstanceFactory) {
-      // Arrange
-      boolean default1 = !existingPreferences;
-      boolean default2 = !default1;
+    void test(WithBooleans.Factory<T> defaultInstanceFactory) {
+      boolean expectedInjectedValue1 = true;
+      boolean expectedInjectedValue2 = false;
       String key1 = prefix + ".first";
       String key2 = prefix + ".second";
 
-      if (existingPreferences) {
-        Preferences.initBoolean(key1, true);
-        Preferences.initBoolean(key2, false);
+      // Arrange
+      T defaults; // Record with values set to their defaults
+      if (withExistingPreferences) {
+        // Set preference values to what we expected to get after inject() is called (see
+        // expectedInjectedRecord, above). The record passed to injectPreferences() should have the
+        // opposite values.
+        Preferences.initBoolean(key1, expectedInjectedValue1);
+        Preferences.initBoolean(key2, expectedInjectedValue2);
+        defaults = defaultInstanceFactory.create(!expectedInjectedValue1, !expectedInjectedValue2);
+      } else {
+        // No preloaded preferences; the default values in the record should be the expected values.
+        defaults = defaultInstanceFactory.create(expectedInjectedValue1, expectedInjectedValue2);
       }
-      T defaults = defaultInstanceFactory.apply(default1, default2);
 
       // Act
       T injected = injector.injectPreferences(defaults);
 
       // Assert
-      if (!existingPreferences) {
-        assertThat(injected).isEqualTo(defaults);
-      }
+      T expected = defaultInstanceFactory.create(expectedInjectedValue1, expectedInjectedValue2);
+      assertThat(injected).isEqualTo(expected);
+
       assertThat(preferenceKeys()).containsExactly(key1, key2);
       boolean value = Preferences.getBoolean(key1, false);
       assertThat(value).isTrue();
@@ -212,7 +224,7 @@ public final class PreferenceInjectorTest {
       }
 
       // Assert
-      T expected = defaultInstanceFactory.apply(Boolean.FALSE, Boolean.TRUE);
+      expected = defaultInstanceFactory.create(false, true);
       assertThat(injected).isEqualTo(expected);
       assertThat(preferenceKeys()).containsExactly(key1, key2);
       value = Preferences.getBoolean(key1, true);
@@ -221,46 +233,6 @@ public final class PreferenceInjectorTest {
       assertThat(value).isTrue();
       assertHasNoChangesSince(preferenceValues);
     }
-  }
-
-  private <T extends Record & WithBooleans> void withBooleanSuppliers(
-      boolean withExistingPreferences, BiFunction<Boolean, Boolean, T> defaultInstanceFactory) {
-    // Arrange
-    T defaults = defaultInstanceFactory.apply(Boolean.FALSE, Boolean.TRUE);
-    String prefix = defaults.getClass().getSimpleName();
-    String key1 = prefix + ".first";
-    String key2 = prefix + ".second";
-
-    if (withExistingPreferences) {
-      Preferences.initBoolean(key1, true);
-      Preferences.initBoolean(key2, false);
-    }
-
-    // Act
-    T injected = injector.injectPreferences(defaults);
-
-    // Assert
-    assertThat(injected).isEqualTo(defaults);
-    assertThat(preferenceKeys()).containsExactly(key1, key2);
-    boolean value = Preferences.getBoolean(key1, false);
-    assertThat(value).isTrue();
-    value = Preferences.getBoolean(key2, true);
-    assertThat(value).isFalse();
-
-    // Arrange: Update preferences
-    Preferences.setBoolean(key1, false);
-    Preferences.setBoolean(key2, true);
-    var preferenceValues = preferenceValues();
-
-    // Assert
-    T expected = defaultInstanceFactory.apply(Boolean.FALSE, Boolean.TRUE);
-    assertThat(injected).isEqualTo(expected);
-    assertThat(preferenceKeys()).containsExactly(key1, key2);
-    value = Preferences.getBoolean(key1, true);
-    assertThat(value).isFalse();
-    value = Preferences.getBoolean(key2, false);
-    assertThat(value).isTrue();
-    assertHasNoChangesSince(preferenceValues);
   }
 
   private void assertHasNoChangesSince(Map<String, Object> previousValues) {
