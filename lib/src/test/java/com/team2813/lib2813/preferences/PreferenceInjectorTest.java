@@ -28,31 +28,34 @@ import org.junit.runners.Parameterized.Parameters;
 public final class PreferenceInjectorTest {
 
   @RunWith(Parameterized.class)
-  public static class BooleanPreferencesTest extends PreferenceInjectorTestCase {
-    private final TestParams<?> params;
+  public static class BooleanPreferencesTest<T extends Record & BooleanPreferencesTest.WithBooleans>
+      extends PreferenceInjectorTestCase {
+    private final Class<T> recordClass;
+    private final WithBooleans.Factory<T> recordFactory;
 
-    public record TestParams<T extends Record & WithBooleans>(
-        Class<T> recordClass, WithBooleans.Factory<T> recordFactory) {}
+    private static <T extends Record & WithBooleans> Object[] testCase(
+        String name, Class<T> recordClass, WithBooleans.Factory<T> recordFactory) {
+      return new Object[] {name, recordClass, recordFactory};
+    }
 
     @Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
       return Arrays.asList(
-          new Object[][] {
-            {"boolean components", new TestParams<>(ContainsBooleans.class, ContainsBooleans::new)},
-            {
+          testCase("boolean components", ContainsBooleans.class, ContainsBooleans::new),
+          testCase(
               "BooleanSupplier components",
-              new TestParams<>(ContainsBooleanSuppliers.class, ContainsBooleanSuppliers::factory)
-            },
-            {
+              ContainsBooleanSuppliers.class,
+              ContainsBooleanSuppliers::factory),
+          testCase(
               "Supplier<Boolean> components",
-              new TestParams<>(
-                  ContainsSuppliersOfBoolean.class, ContainsSuppliersOfBoolean::factory)
-            }
-          });
+              ContainsSuppliersOfBoolean.class,
+              ContainsSuppliersOfBoolean::factory));
     }
 
-    public BooleanPreferencesTest(String testName, TestParams<?> params) {
-      this.params = params;
+    public BooleanPreferencesTest(
+        String testName, Class<T> recordClass, WithBooleans.Factory<T> recordFactory) {
+      this.recordClass = recordClass;
+      this.recordFactory = recordFactory;
     }
 
     /**
@@ -124,11 +127,11 @@ public final class PreferenceInjectorTest {
 
     @Test
     public void withoutExistingPreferences() {
-      String key1 = keyForFieldName(params.recordClass, "first");
-      String key2 = keyForFieldName(params.recordClass, "second");
+      String key1 = keyForFieldName(recordClass, "first");
+      String key2 = keyForFieldName(recordClass, "second");
 
       // Arrange
-      var recordWithDefaults = params.recordFactory.create(true, false);
+      var recordWithDefaults = recordFactory.create(true, false);
 
       // Act
       var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
@@ -147,7 +150,7 @@ public final class PreferenceInjectorTest {
       var preferenceValues = preferenceValues();
 
       // Act
-      if (params.recordClass.equals(ContainsBooleans.class)) {
+      if (recordClass.equals(ContainsBooleans.class)) {
         // The record is immutable and contains boolean values, so to "see" the new values
         // we need to create a new record from the preferences.
         recordWithPreferences = injector.injectPreferences(recordWithDefaults);
@@ -166,11 +169,11 @@ public final class PreferenceInjectorTest {
     public void withExistingPreferences() {
       boolean expectedInjectedValue1 = true;
       boolean expectedInjectedValue2 = false;
-      String key1 = keyForFieldName(params.recordClass, "first");
-      String key2 = keyForFieldName(params.recordClass, "second");
+      String key1 = keyForFieldName(recordClass, "first");
+      String key2 = keyForFieldName(recordClass, "second");
 
       // Arrange
-      var recordWithDefaults = params.recordFactory.create(false, true);
+      var recordWithDefaults = recordFactory.create(false, true);
       Preferences.initBoolean(key1, true);
       Preferences.initBoolean(key2, false);
 
@@ -191,7 +194,7 @@ public final class PreferenceInjectorTest {
       var preferenceValues = preferenceValues();
 
       // Act
-      if (params.recordClass.equals(ContainsBooleans.class)) {
+      if (recordClass.equals(ContainsBooleans.class)) {
         // The record is immutable and contains boolean values, so to "see" the new values
         // we need to create a new record from the preferences.
         recordWithPreferences = injector.injectPreferences(recordWithDefaults);
@@ -208,35 +211,32 @@ public final class PreferenceInjectorTest {
   }
 
   @RunWith(Parameterized.class)
-  public static class LongPreferencesTest extends PreferenceInjectorTestCase {
-    private final TestParams<?> params;
+  public static class LongPreferencesTest<T extends Record & LongPreferencesTest.WithLong>
+      extends PreferenceInjectorTestCase {
+    private final Class<T> recordClass;
+    private final WithLong.Factory<T> recordFactory;
 
-    public record TestParams<T extends Record & LongPreferencesTest.WithLong>(
-        Class<T> recordClass, WithLong.Factory<T> recordFactory) {}
-
-    public LongPreferencesTest(String testName, TestParams<?> params) {
-      this.params = params;
+    private static <T extends Record & WithLong> Object[] testCase(
+        String name, Class<T> recordClass, WithLong.Factory<T> recordFactory) {
+      return new Object[] {name, recordClass, recordFactory};
     }
 
     @Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
       return Arrays.asList(
-          new Object[][] {
-            {
-              "long components",
-              new LongPreferencesTest.TestParams<>(ContainsLong.class, ContainsLong::new)
-            },
-            {
-              "LongSupplier components",
-              new LongPreferencesTest.TestParams<>(
-                  ContainsLongSupplier.class, ContainsLongSupplier::factory)
-            },
-            {
+          testCase("long components", ContainsLong.class, ContainsLong::new),
+          testCase(
+              "LongSupplier components", ContainsLongSupplier.class, ContainsLongSupplier::factory),
+          testCase(
               "Supplier<Long> components",
-              new LongPreferencesTest.TestParams<>(
-                  ContainsSupplierOfLong.class, ContainsSupplierOfLong::factory)
-            }
-          });
+              ContainsSupplierOfLong.class,
+              ContainsSupplierOfLong::factory));
+    }
+
+    public LongPreferencesTest(
+        String testName, Class<T> recordClass, WithLong.Factory<T> recordFactory) {
+      this.recordClass = recordClass;
+      this.recordFactory = recordFactory;
     }
 
     /**
@@ -289,10 +289,10 @@ public final class PreferenceInjectorTest {
 
     @Test
     public void withoutExistingPreferences() {
-      String key = keyForFieldName(params.recordClass, "value");
+      String key = keyForFieldName(recordClass, "value");
 
       // Arrange
-      var recordWithDefaults = params.recordFactory.create(42);
+      var recordWithDefaults = recordFactory.create(42);
 
       // Act
       var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
@@ -308,7 +308,7 @@ public final class PreferenceInjectorTest {
       var preferenceValues = preferenceValues();
 
       // Act
-      if (params.recordClass.equals(ContainsLong.class)) {
+      if (recordClass.equals(ContainsLong.class)) {
         // The record is immutable and contains primitive values, so to "see" the new values
         // we need to create a new record from the preferences.
         recordWithPreferences = injector.injectPreferences(recordWithDefaults);
@@ -323,11 +323,11 @@ public final class PreferenceInjectorTest {
 
     @Test
     public void withExistingPreferences() {
-      String key = keyForFieldName(params.recordClass, "value");
+      String key = keyForFieldName(recordClass, "value");
 
       // Arrange
       Preferences.initLong(key, 42);
-      var recordWithDefaults = params.recordFactory.create(-1);
+      var recordWithDefaults = recordFactory.create(-1);
 
       // Act
       var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
@@ -343,7 +343,7 @@ public final class PreferenceInjectorTest {
       var preferenceValues = preferenceValues();
 
       // Act
-      if (params.recordClass.equals(ContainsLong.class)) {
+      if (recordClass.equals(ContainsLong.class)) {
         // The record is immutable and contains primitive values, so to "see" the new values
         // we need to create a new record from the preferences.
         recordWithPreferences = injector.injectPreferences(recordWithDefaults);
@@ -358,30 +358,30 @@ public final class PreferenceInjectorTest {
   }
 
   @RunWith(Parameterized.class)
-  public static class StringPreferencesTest extends PreferenceInjectorTestCase {
-    private final TestParams<?> params;
+  public static class StringPreferencesTest<T extends Record & StringPreferencesTest.WithString>
+      extends PreferenceInjectorTestCase {
+    private final Class<T> recordClass;
+    private final WithString.Factory<T> recordFactory;
 
-    public record TestParams<T extends Record & StringPreferencesTest.WithString>(
-        Class<T> recordClass, WithString.Factory<T> recordFactory) {}
-
-    public StringPreferencesTest(String testName, TestParams<?> params) {
-      this.params = params;
+    private static <T extends Record & WithString> Object[] testCase(
+        String name, Class<T> recordClass, WithString.Factory<T> recordFactory) {
+      return new Object[] {name, recordClass, recordFactory};
     }
 
     @Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
       return Arrays.asList(
-          new Object[][] {
-            {
-              "String components",
-              new StringPreferencesTest.TestParams<>(ContainsString.class, ContainsString::new)
-            },
-            {
+          testCase("String components", ContainsString.class, ContainsString::new),
+          testCase(
               "Supplier<String> components",
-              new StringPreferencesTest.TestParams<>(
-                  ContainsSupplierOfString.class, ContainsSupplierOfString::factory)
-            }
-          });
+              ContainsSupplierOfString.class,
+              ContainsSupplierOfString::factory));
+    }
+
+    public StringPreferencesTest(
+        String testName, Class<T> recordClass, WithString.Factory<T> recordFactory) {
+      this.recordClass = recordClass;
+      this.recordFactory = recordFactory;
     }
 
     /**
@@ -421,10 +421,10 @@ public final class PreferenceInjectorTest {
 
     @Test
     public void withoutExistingPreferences() {
-      String key = keyForFieldName(params.recordClass, "value");
+      String key = keyForFieldName(recordClass, "value");
 
       // Arrange
-      var recordWithDefaults = params.recordFactory.create("chicken");
+      var recordWithDefaults = recordFactory.create("chicken");
       assertThat(recordWithDefaults.stringValue()).isEqualTo("chicken");
 
       // Act
@@ -441,7 +441,7 @@ public final class PreferenceInjectorTest {
       var preferenceValues = preferenceValues();
 
       // Act
-      if (params.recordClass.equals(ContainsString.class)) {
+      if (recordClass.equals(ContainsString.class)) {
         // The record is immutable and contains a final String value, so to "see" the new values
         // we need to create a new record from the preferences.
         recordWithPreferences = injector.injectPreferences(recordWithDefaults);
@@ -456,11 +456,11 @@ public final class PreferenceInjectorTest {
 
     @Test
     public void withExistingPreferences() {
-      String key = keyForFieldName(params.recordClass, "value");
+      String key = keyForFieldName(recordClass, "value");
 
       // Arrange
       Preferences.initString(key, "chicken");
-      var recordWithDefaults = params.recordFactory.create("defaultValue");
+      var recordWithDefaults = recordFactory.create("defaultValue");
       assertThat(recordWithDefaults.stringValue()).isEqualTo("defaultValue");
 
       // Act
@@ -477,7 +477,7 @@ public final class PreferenceInjectorTest {
       var preferenceValues = preferenceValues();
 
       // Act
-      if (params.recordClass.equals(ContainsString.class)) {
+      if (recordClass.equals(ContainsString.class)) {
         // The record is immutable and contains a final String field, so to "see" the new values
         // we need to create a new record from the preferences.
         recordWithPreferences = injector.injectPreferences(recordWithDefaults);
