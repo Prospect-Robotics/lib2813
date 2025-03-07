@@ -206,10 +206,8 @@ public final class PreferenceInjectorTest {
       assertThat(injected).isEqualTo(expected);
 
       assertThat(preferenceKeys()).containsExactly(key1, key2);
-      boolean value = Preferences.getBoolean(key1, false);
-      assertThat(value).isTrue();
-      value = Preferences.getBoolean(key2, true);
-      assertThat(value).isFalse();
+      assertThat(Preferences.getBoolean(key1, false)).isTrue();
+      assertThat(Preferences.getBoolean(key2, true)).isFalse();
 
       // Arrange: Update preferences
       Preferences.setBoolean(key1, false);
@@ -227,10 +225,8 @@ public final class PreferenceInjectorTest {
       expected = defaultInstanceFactory.create(false, true);
       assertThat(injected).isEqualTo(expected);
       assertThat(preferenceKeys()).containsExactly(key1, key2);
-      value = Preferences.getBoolean(key1, true);
-      assertThat(value).isFalse();
-      value = Preferences.getBoolean(key2, false);
-      assertThat(value).isTrue();
+      assertThat(Preferences.getBoolean(key1, true)).isFalse();
+      assertThat(Preferences.getBoolean(key2, false)).isTrue();
       assertHasNoChangesSince(preferenceValues);
     }
   }

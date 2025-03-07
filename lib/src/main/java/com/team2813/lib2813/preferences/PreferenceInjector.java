@@ -77,7 +77,7 @@ public class PreferenceInjector {
     Object[] params = new Object[components.length];
     Class<?>[] types = new Class[components.length];
     int i = 0;
-    for (RecordComponent component : clazz.getRecordComponents()) {
+    for (RecordComponent component : components) {
       String name = component.getName();
       Class<?> type = component.getType();
       types[i] = type;
