@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.toSet;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.Preferences;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -16,195 +17,125 @@ import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
 import org.junit.rules.ErrorCollector;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+/** Tests for {@link PreferenceInjector}. */
+@RunWith(Enclosed.class)
 public final class PreferenceInjectorTest {
-  final PreferenceInjector injector =
-      new PreferenceInjector("com.team2813.lib2813.preferences.PreferenceInjectorTest.");
 
-  @Rule public final IsolatedPreferences isolatedPreferences = new IsolatedPreferences();
-  @Rule public final ErrorCollector errorCollector = new ErrorCollector();
+  @RunWith(Parameterized.class)
+  public static class BooleanPreferencesTest extends PreferenceInjectorTestCase {
+    private final TestParams<?> params;
 
-  @Before
-  public void configureInjector() {
-    injector.throwExceptions = true;
-    injector.errorReporter =
-        message ->
-            errorCollector.addError(new AssertionError("Unexpected warning: \"" + message + "\""));
-  }
+    public record TestParams<T extends Record & WithBooleans>(
+        Class<T> recordClass, WithBooleans.Factory<T> recordFactory) {}
 
-  /**
-   * Common interface for test record classes that contain two boolean values. The component names
-   * must be "first" and "second".
-   */
-  interface WithBooleans {
-    boolean firstValue();
-
-    boolean secondValue();
-
-    @FunctionalInterface
-    interface Factory<T extends Record & WithBooleans> {
-      T create(boolean firstDefaultValue, boolean secondDefaultValue);
+    @Parameters(name = "{0}")
+    public static Iterable<Object[]> data() {
+      return Arrays.asList(
+          new Object[][] {
+            {"boolean components", new TestParams<>(ContainsBooleans.class, ContainsBooleans::new)},
+            {
+              "BooleanSupplier components",
+              new TestParams<>(ContainsBooleanSuppliers.class, ContainsBooleanSuppliers::factory)
+            },
+            {
+              "Supplier<Boolean> components",
+              new TestParams<>(
+                  ContainsSuppliersOfBoolean.class, ContainsSuppliersOfBoolean::factory)
+            }
+          });
     }
 
-    default boolean isEqual(Object other) {
-      if (this == other) {
-        return true;
-      }
-      if (other == null) {
-        return false;
-      }
-      if (!other.getClass().equals(getClass())) {
-        return false;
-      }
-      WithBooleans that = (WithBooleans) other;
-      return this.firstValue() == that.firstValue() && this.secondValue() == that.secondValue();
-    }
-  }
-
-  /** Test record for testing classes that contain boolean fields. */
-  record ContainsBooleans(boolean first, boolean second) implements WithBooleans {
-
-    @Override
-    public boolean firstValue() {
-      return first;
-    }
-
-    @Override
-    public boolean secondValue() {
-      return second;
-    }
-  }
-
-  /** Test record for testing classes that contain {@code BooleanSupplier} fields. */
-  record ContainsBooleanSuppliers(BooleanSupplier first, BooleanSupplier second)
-      implements WithBooleans {
-
-    static ContainsBooleanSuppliers factory(boolean firstValue, boolean secondValue) {
-      return new ContainsBooleanSuppliers(() -> firstValue, () -> secondValue);
-    }
-
-    @Override
-    public boolean firstValue() {
-      return first.getAsBoolean();
-    }
-
-    @Override
-    public boolean secondValue() {
-      return second.getAsBoolean();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return isEqual(other);
-    }
-  }
-
-  /** Test record for testing classes that contain {@code Supplier<Boolean>} fields. */
-  record ContainsSuppliersOfBoolean(Supplier<Boolean> first, Supplier<Boolean> second)
-      implements WithBooleans {
-
-    static ContainsSuppliersOfBoolean factory(boolean firstValue, boolean secondValue) {
-      return new ContainsSuppliersOfBoolean(() -> firstValue, () -> secondValue);
-    }
-
-    @Override
-    public boolean firstValue() {
-      return first.get();
-    }
-
-    @Override
-    public boolean secondValue() {
-      return second.get();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return isEqual(other);
-    }
-  }
-
-  @Test
-  public void injectsBooleans_newPreferences() {
-    var tester = new BooleanTester<>(ContainsBooleans.class);
-    tester.test(ContainsBooleans::new);
-  }
-
-  @Test
-  public void injectsBooleanSuppliers_newPreferences() {
-    var tester = new BooleanTester<>(ContainsBooleanSuppliers.class);
-    tester.test(ContainsBooleanSuppliers::factory);
-  }
-
-  @Test
-  public void injectsSuppliersOfBoolean_newPreferences() {
-    var tester = new BooleanTester<>(ContainsSuppliersOfBoolean.class);
-    tester.test(ContainsSuppliersOfBoolean::factory);
-  }
-
-  @Test
-  public void injectsBooleans_withExistingPreferences() {
-    var tester = new BooleanTester<>(ContainsBooleans.class);
-    tester.withExistingPreferences = true;
-    tester.test(ContainsBooleans::new);
-  }
-
-  @Test
-  public void injectsBooleanSuppliers_withExistingPreferences() {
-    var tester = new BooleanTester<>(ContainsBooleanSuppliers.class);
-    tester.withExistingPreferences = true;
-    tester.test(ContainsBooleanSuppliers::factory);
-  }
-
-  @Test
-  public void injectsSuppliersBoolean_withExistingPreferences() {
-    var tester = new BooleanTester<>(ContainsSuppliersOfBoolean.class);
-    tester.withExistingPreferences = true;
-    tester.test(ContainsSuppliersOfBoolean::factory);
-  }
-
-  private class BooleanTester<T extends Record & WithBooleans> {
-    final String prefix;
-
-    /** Whether the Preferences should exist before the test is run. */
-    boolean withExistingPreferences = false;
-
-    BooleanTester(Class<T> recordClass) {
-      prefix = recordClass.getSimpleName();
+    public BooleanPreferencesTest(String testName, TestParams<?> params) {
+      this.params = params;
     }
 
     /**
-     * Runs the test.
-     *
-     * @param defaultInstanceFactory Factory which creates a record, passing the first and second
-     *     values as params.
+     * Common interface for test record classes that contain two boolean values. The component names
+     * must be "first" and "second".
      */
-    void test(WithBooleans.Factory<T> defaultInstanceFactory) {
-      boolean expectedInjectedValue1 = true;
-      boolean expectedInjectedValue2 = false;
-      String key1 = prefix + ".first";
-      String key2 = prefix + ".second";
+    interface WithBooleans {
+      boolean firstValue();
 
-      // Arrange
-      T defaults; // Record with values set to their defaults
-      if (withExistingPreferences) {
-        // Set preference values to what we expected to get after inject() is called (see
-        // expectedInjectedRecord, above). The record passed to injectPreferences() should have the
-        // opposite values.
-        Preferences.initBoolean(key1, expectedInjectedValue1);
-        Preferences.initBoolean(key2, expectedInjectedValue2);
-        defaults = defaultInstanceFactory.create(!expectedInjectedValue1, !expectedInjectedValue2);
-      } else {
-        // No preloaded preferences; the default values in the record should be the expected values.
-        defaults = defaultInstanceFactory.create(expectedInjectedValue1, expectedInjectedValue2);
+      boolean secondValue();
+
+      @FunctionalInterface
+      interface Factory<T extends Record & WithBooleans> {
+        T create(boolean firstDefaultValue, boolean secondDefaultValue);
+      }
+    }
+
+    /** Test record for testing classes that contain boolean fields. */
+    record ContainsBooleans(boolean first, boolean second) implements WithBooleans {
+
+      @Override
+      public boolean firstValue() {
+        return first;
       }
 
+      @Override
+      public boolean secondValue() {
+        return second;
+      }
+    }
+
+    /** Test record for testing classes that contain {@code BooleanSupplier} fields. */
+    record ContainsBooleanSuppliers(BooleanSupplier first, BooleanSupplier second)
+        implements WithBooleans {
+
+      static ContainsBooleanSuppliers factory(boolean firstValue, boolean secondValue) {
+        return new ContainsBooleanSuppliers(() -> firstValue, () -> secondValue);
+      }
+
+      @Override
+      public boolean firstValue() {
+        return first.getAsBoolean();
+      }
+
+      @Override
+      public boolean secondValue() {
+        return second.getAsBoolean();
+      }
+    }
+
+    /** Test record for testing classes that contain {@code Supplier<Boolean>} fields. */
+    record ContainsSuppliersOfBoolean(Supplier<Boolean> first, Supplier<Boolean> second)
+        implements WithBooleans {
+
+      static ContainsSuppliersOfBoolean factory(boolean firstValue, boolean secondValue) {
+        return new ContainsSuppliersOfBoolean(() -> firstValue, () -> secondValue);
+      }
+
+      @Override
+      public boolean firstValue() {
+        return first.get();
+      }
+
+      @Override
+      public boolean secondValue() {
+        return second.get();
+      }
+    }
+
+    @Test
+    public void withoutExistingPreferences() {
+      String key1 = keyForFieldName(params.recordClass, "first");
+      String key2 = keyForFieldName(params.recordClass, "second");
+
+      // Arrange
+      var recordWithDefaults = params.recordFactory.create(true, false);
+
       // Act
-      T injected = injector.injectPreferences(defaults);
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
 
       // Assert
-      T expected = defaultInstanceFactory.create(expectedInjectedValue1, expectedInjectedValue2);
-      assertThat(injected).isEqualTo(expected);
+      assertThat(recordWithPreferences.firstValue()).isTrue();
+      assertThat(recordWithPreferences.secondValue()).isFalse();
 
       assertThat(preferenceKeys()).containsExactly(key1, key2);
       assertThat(Preferences.getBoolean(key1, false)).isTrue();
@@ -216,15 +147,59 @@ public final class PreferenceInjectorTest {
       var preferenceValues = preferenceValues();
 
       // Act
-      if (injected.getClass().equals(ContainsBooleans.class)) {
+      if (params.recordClass.equals(ContainsBooleans.class)) {
         // The record is immutable and contains boolean values, so to "see" the new values
         // we need to create a new record from the preferences.
-        injected = injector.injectPreferences(defaults);
+        recordWithPreferences = injector.injectPreferences(recordWithDefaults);
       }
 
       // Assert
-      expected = defaultInstanceFactory.create(false, true);
-      assertThat(injected).isEqualTo(expected);
+      assertThat(recordWithPreferences.firstValue()).isFalse();
+      assertThat(recordWithPreferences.secondValue()).isTrue();
+      assertThat(preferenceKeys()).containsExactly(key1, key2);
+      assertThat(Preferences.getBoolean(key1, true)).isFalse();
+      assertThat(Preferences.getBoolean(key2, false)).isTrue();
+      assertHasNoChangesSince(preferenceValues);
+    }
+
+    @Test
+    public void withExistingPreferences() {
+      boolean expectedInjectedValue1 = true;
+      boolean expectedInjectedValue2 = false;
+      String key1 = keyForFieldName(params.recordClass, "first");
+      String key2 = keyForFieldName(params.recordClass, "second");
+
+      // Arrange
+      var recordWithDefaults = params.recordFactory.create(false, true);
+      Preferences.initBoolean(key1, true);
+      Preferences.initBoolean(key2, false);
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert
+      assertThat(Preferences.getBoolean(key1, false)).isTrue();
+      assertThat(Preferences.getBoolean(key2, true)).isFalse();
+
+      assertThat(preferenceKeys()).containsExactly(key1, key2);
+      assertThat(Preferences.getBoolean(key1, false)).isTrue();
+      assertThat(Preferences.getBoolean(key2, true)).isFalse();
+
+      // Arrange: Update preferences
+      Preferences.setBoolean(key1, false);
+      Preferences.setBoolean(key2, true);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      if (params.recordClass.equals(ContainsBooleans.class)) {
+        // The record is immutable and contains boolean values, so to "see" the new values
+        // we need to create a new record from the preferences.
+        recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+      }
+
+      // Assert
+      assertThat(recordWithPreferences.firstValue()).isFalse();
+      assertThat(recordWithPreferences.secondValue()).isTrue();
       assertThat(preferenceKeys()).containsExactly(key1, key2);
       assertThat(Preferences.getBoolean(key1, true)).isFalse();
       assertThat(Preferences.getBoolean(key2, false)).isTrue();
@@ -232,195 +207,194 @@ public final class PreferenceInjectorTest {
     }
   }
 
-  /**
-   * Common interface for test record classes that contain two long values. The component names must
-   * be "first" and "second".
-   */
-  interface WithLong {
-    long longValue();
+  @RunWith(Parameterized.class)
+  public static class LongPreferencesTest extends PreferenceInjectorTestCase {
+    private final TestParams<?> params;
 
-    @FunctionalInterface
-    interface Factory<T extends Record & WithLong> {
-      T create(long value);
+    public record TestParams<T extends Record & LongPreferencesTest.WithLong>(
+        Class<T> recordClass, WithLong.Factory<T> recordFactory) {}
+
+    public LongPreferencesTest(String testName, TestParams<?> params) {
+      this.params = params;
     }
 
-    default boolean isEqual(Object other) {
-      if (this == other) {
-        return true;
-      }
-      if (other == null) {
-        return false;
-      }
-      if (!other.getClass().equals(getClass())) {
-        return false;
-      }
-      WithLong that = (WithLong) other;
-      return this.longValue() == that.longValue();
-    }
-  }
-
-  /** Test record for testing classes that contain long fields. */
-  record ContainsLong(long value) implements WithLong {
-
-    @Override
-    public long longValue() {
-      return value;
-    }
-  }
-
-  /** Test record for testing classes that contain {@code LongSupplier} fields. */
-  record ContainsLongSupplier(LongSupplier value) implements WithLong {
-
-    static ContainsLongSupplier factory(long value) {
-      return new ContainsLongSupplier(() -> value);
-    }
-
-    @Override
-    public long longValue() {
-      return value.getAsLong();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return isEqual(other);
-    }
-  }
-
-  /** Test record for testing classes that contain {@code Supplier<Long>} fields. */
-  record ContainsSupplierOfLong(Supplier<Long> value) implements WithLong {
-
-    static ContainsSupplierOfLong factory(long value) {
-      return new ContainsSupplierOfLong(() -> value);
-    }
-
-    @Override
-    public long longValue() {
-      return value.get();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return isEqual(other);
-    }
-  }
-
-  @Test
-  public void injectsLongs_newPreferences() {
-    var tester = new LongTester<>(ContainsLong.class);
-    tester.test(ContainsLong::new);
-  }
-
-  @Test
-  public void injectsLongSupplier_newPreferences() {
-    var tester = new LongTester<>(ContainsLongSupplier.class);
-    tester.test(ContainsLongSupplier::factory);
-  }
-
-  @Test
-  public void injectsSupplierOfLong_newPreferences() {
-    var tester = new LongTester<>(ContainsSupplierOfLong.class);
-    tester.test(ContainsSupplierOfLong::factory);
-  }
-
-  @Test
-  public void injectsLongs_withExistingPreferences() {
-    var tester = new LongTester<>(ContainsLong.class);
-    tester.withExistingPreferences = true;
-    tester.test(ContainsLong::new);
-  }
-
-  @Test
-  public void injectsLongSuppliers_withExistingPreferences() {
-    var tester = new LongTester<>(ContainsLongSupplier.class);
-    tester.withExistingPreferences = true;
-    tester.test(ContainsLongSupplier::factory);
-  }
-
-  @Test
-  public void injectsSuppliersLong_withExistingPreferences() {
-    var tester = new LongTester<>(ContainsSupplierOfLong.class);
-    tester.withExistingPreferences = true;
-    tester.test(ContainsSupplierOfLong::factory);
-  }
-
-  private class LongTester<T extends Record & WithLong> {
-    final String prefix;
-
-    /** Whether the Preferences should exist before the test is run. */
-    boolean withExistingPreferences = false;
-
-    LongTester(Class<T> recordClass) {
-      prefix = recordClass.getSimpleName();
+    @Parameters(name = "{0}")
+    public static Iterable<Object[]> data() {
+      return Arrays.asList(
+          new Object[][] {
+            {
+              "boolean components",
+              new LongPreferencesTest.TestParams<>(ContainsLong.class, ContainsLong::new)
+            },
+            {
+              "BooleanSupplier components",
+              new LongPreferencesTest.TestParams<>(
+                  ContainsLongSupplier.class, ContainsLongSupplier::factory)
+            },
+            {
+              "Supplier<Boolean> components",
+              new LongPreferencesTest.TestParams<>(
+                  ContainsSupplierOfLong.class, ContainsSupplierOfLong::factory)
+            }
+          });
     }
 
     /**
-     * Runs the test.
-     *
-     * @param defaultInstanceFactory Factory which creates a record, passing the first and second
-     *     values as params.
+     * Common interface for test record classes that contain a long value. The component name must
+     * be "value".
      */
-    void test(WithLong.Factory<T> defaultInstanceFactory) {
-      long expectedInjectedValue = 42;
-      String key = prefix + ".value";
+    interface WithLong {
+      long longValue();
 
-      // Arrange
-      T defaults; // Record with values set to their defaults
-      if (withExistingPreferences) {
-        // Set preference value to what we expected to get after inject() is called (see
-        // expectedInjectedRecord, above).
-        Preferences.initLong(key, expectedInjectedValue);
-        defaults = defaultInstanceFactory.create(-1);
-      } else {
-        // No preloaded preferences; the default values in the record should be the expected value.
-        defaults = defaultInstanceFactory.create(expectedInjectedValue);
+      @FunctionalInterface
+      interface Factory<T extends Record & WithLong> {
+        T create(long value);
+      }
+    }
+
+    /** Test record for testing classes that contain long fields. */
+    record ContainsLong(long value) implements WithLong {
+
+      @Override
+      public long longValue() {
+        return value;
+      }
+    }
+
+    /** Test record for testing classes that contain {@code LongSupplier} fields. */
+    record ContainsLongSupplier(LongSupplier value) implements WithLong {
+
+      static ContainsLongSupplier factory(long value) {
+        return new ContainsLongSupplier(() -> value);
       }
 
+      @Override
+      public long longValue() {
+        return value.getAsLong();
+      }
+    }
+
+    /** Test record for testing classes that contain {@code Supplier<Long>} fields. */
+    record ContainsSupplierOfLong(Supplier<Long> value) implements WithLong {
+
+      static ContainsSupplierOfLong factory(long value) {
+        return new ContainsSupplierOfLong(() -> value);
+      }
+
+      @Override
+      public long longValue() {
+        return value.get();
+      }
+    }
+
+    @Test
+    public void withoutExistingPreferences() {
+      String key = keyForFieldName(params.recordClass, "value");
+
+      // Arrange
+      var recordWithDefaults = params.recordFactory.create(42);
+
       // Act
-      T injected = injector.injectPreferences(defaults);
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
 
       // Assert
-      T expected = defaultInstanceFactory.create(expectedInjectedValue);
-      assertThat(injected).isEqualTo(expected);
+      assertThat(recordWithPreferences.longValue()).isEqualTo(42);
 
       assertThat(preferenceKeys()).containsExactly(key);
-      assertThat(Preferences.getLong(key, -2)).isEqualTo(expectedInjectedValue);
+      assertThat(Preferences.getLong(key, -2)).isEqualTo(42);
 
       // Arrange: Update preferences
-      expectedInjectedValue = 99;
-      Preferences.setLong(key, expectedInjectedValue);
+      Preferences.setLong(key, 99);
       var preferenceValues = preferenceValues();
 
       // Act
-      if (injected.getClass().equals(ContainsLong.class)) {
-        // The record is immutable and contains primative values, so to "see" the new values
+      if (params.recordClass.equals(ContainsLong.class)) {
+        // The record is immutable and contains primitive values, so to "see" the new values
         // we need to create a new record from the preferences.
-        injected = injector.injectPreferences(defaults);
+        recordWithPreferences = injector.injectPreferences(recordWithDefaults);
       }
 
       // Assert
-      expected = defaultInstanceFactory.create(expectedInjectedValue);
-      assertThat(injected).isEqualTo(expected);
+      assertThat(recordWithPreferences.longValue()).isEqualTo(99);
       assertThat(preferenceKeys()).containsExactly(key);
-      assertThat(Preferences.getLong(key, -2)).isEqualTo(expectedInjectedValue);
+      assertThat(Preferences.getLong(key, -2)).isEqualTo(99);
+      assertHasNoChangesSince(preferenceValues);
+    }
+
+    @Test
+    public void withExistingPreferences() {
+      String key = keyForFieldName(params.recordClass, "value");
+
+      // Arrange
+      Preferences.initLong(key, 42);
+      var recordWithDefaults = params.recordFactory.create(-1);
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert
+      assertThat(recordWithPreferences.longValue()).isEqualTo(42);
+
+      assertThat(preferenceKeys()).containsExactly(key);
+      assertThat(Preferences.getLong(key, -2)).isEqualTo(42);
+
+      // Arrange: Update preferences
+      Preferences.setLong(key, 99);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      if (params.recordClass.equals(ContainsLong.class)) {
+        // The record is immutable and contains primitive values, so to "see" the new values
+        // we need to create a new record from the preferences.
+        recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+      }
+
+      // Assert
+      assertThat(recordWithPreferences.longValue()).isEqualTo(99);
+      assertThat(preferenceKeys()).containsExactly(key);
+      assertThat(Preferences.getLong(key, -2)).isEqualTo(99);
       assertHasNoChangesSince(preferenceValues);
     }
   }
 
-  private void assertHasNoChangesSince(Map<String, Object> previousValues) {
-    var preferenceValues = preferenceValues();
-    assertWithMessage("Unexpected no changes to preference values")
-        .that(preferenceValues)
-        .isEqualTo(previousValues);
-  }
+  /** Base class for all nested classes of {@link PreferenceInjectorTest}. */
+  private abstract static class PreferenceInjectorTestCase {
+    PreferenceInjector injector;
 
-  private Map<String, Object> preferenceValues() {
-    NetworkTable table = isolatedPreferences.getTable();
-    return preferenceKeys().stream()
-        .collect(toMap(Function.identity(), key -> table.getEntry(key).getValue().getValue()));
-  }
+    @Rule public final IsolatedPreferences isolatedPreferences = new IsolatedPreferences();
+    @Rule public final ErrorCollector errorCollector = new ErrorCollector();
 
-  private Set<String> preferenceKeys() {
-    // Preferences adds a ".type" key; we filter it out here.
-    return Preferences.getKeys().stream().filter(key -> !key.startsWith(".")).collect(toSet());
+    @Before
+    public void createInjector() {
+      String removePrefix = getClass().getCanonicalName() + ".";
+      injector = new PreferenceInjector(removePrefix);
+      injector.throwExceptions = true;
+      injector.errorReporter =
+          message ->
+              errorCollector.addError(
+                  new AssertionError("Unexpected warning: \"" + message + "\""));
+    }
+
+    protected final String keyForFieldName(Class<? extends Record> recordClass, String fieldName) {
+      return recordClass.getSimpleName() + "." + fieldName;
+    }
+
+    protected final void assertHasNoChangesSince(Map<String, Object> previousValues) {
+      var preferenceValues = preferenceValues();
+      assertWithMessage("Unexpected no changes to preference values")
+          .that(preferenceValues)
+          .isEqualTo(previousValues);
+    }
+
+    protected final Map<String, Object> preferenceValues() {
+      NetworkTable table = isolatedPreferences.getTable();
+      return preferenceKeys().stream()
+          .collect(toMap(Function.identity(), key -> table.getEntry(key).getValue().getValue()));
+    }
+
+    protected final Set<String> preferenceKeys() {
+      // Preferences adds a ".type" key; we filter it out here.
+      return Preferences.getKeys().stream().filter(key -> !key.startsWith(".")).collect(toSet());
+    }
   }
 }
