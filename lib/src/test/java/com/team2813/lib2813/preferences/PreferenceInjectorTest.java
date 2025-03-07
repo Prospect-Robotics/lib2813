@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Rule;
@@ -217,7 +218,7 @@ public final class PreferenceInjectorTest {
       // Act
       if (injected.getClass().equals(ContainsBooleans.class)) {
         // The record is immutable and contains boolean values, so to "see" the new values
-        // we need to create a new record from the prefereces.
+        // we need to create a new record from the preferences.
         injected = injector.injectPreferences(defaults);
       }
 
@@ -227,6 +228,180 @@ public final class PreferenceInjectorTest {
       assertThat(preferenceKeys()).containsExactly(key1, key2);
       assertThat(Preferences.getBoolean(key1, true)).isFalse();
       assertThat(Preferences.getBoolean(key2, false)).isTrue();
+      assertHasNoChangesSince(preferenceValues);
+    }
+  }
+
+  /**
+   * Common interface for test record classes that contain two long values. The component names must
+   * be "first" and "second".
+   */
+  interface WithLong {
+    long longValue();
+
+    @FunctionalInterface
+    interface Factory<T extends Record & WithLong> {
+      T create(long value);
+    }
+
+    default boolean isEqual(Object other) {
+      if (this == other) {
+        return true;
+      }
+      if (other == null) {
+        return false;
+      }
+      if (!other.getClass().equals(getClass())) {
+        return false;
+      }
+      WithLong that = (WithLong) other;
+      return this.longValue() == that.longValue();
+    }
+  }
+
+  /** Test record for testing classes that contain long fields. */
+  record ContainsLong(long value) implements WithLong {
+
+    @Override
+    public long longValue() {
+      return value;
+    }
+  }
+
+  /** Test record for testing classes that contain {@code LongSupplier} fields. */
+  record ContainsLongSupplier(LongSupplier value) implements WithLong {
+
+    static ContainsLongSupplier factory(long value) {
+      return new ContainsLongSupplier(() -> value);
+    }
+
+    @Override
+    public long longValue() {
+      return value.getAsLong();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return isEqual(other);
+    }
+  }
+
+  /** Test record for testing classes that contain {@code Supplier<Long>} fields. */
+  record ContainsSupplierOfLong(Supplier<Long> value) implements WithLong {
+
+    static ContainsSupplierOfLong factory(long value) {
+      return new ContainsSupplierOfLong(() -> value);
+    }
+
+    @Override
+    public long longValue() {
+      return value.get();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return isEqual(other);
+    }
+  }
+
+  @Test
+  public void injectsLongs_newPreferences() {
+    var tester = new LongTester<>(ContainsLong.class);
+    tester.test(ContainsLong::new);
+  }
+
+  @Test
+  public void injectsLongSupplier_newPreferences() {
+    var tester = new LongTester<>(ContainsLongSupplier.class);
+    tester.test(ContainsLongSupplier::factory);
+  }
+
+  @Test
+  public void injectsSupplierOfLong_newPreferences() {
+    var tester = new LongTester<>(ContainsSupplierOfLong.class);
+    tester.test(ContainsSupplierOfLong::factory);
+  }
+
+  @Test
+  public void injectsLongs_withExistingPreferences() {
+    var tester = new LongTester<>(ContainsLong.class);
+    tester.withExistingPreferences = true;
+    tester.test(ContainsLong::new);
+  }
+
+  @Test
+  public void injectsLongSuppliers_withExistingPreferences() {
+    var tester = new LongTester<>(ContainsLongSupplier.class);
+    tester.withExistingPreferences = true;
+    tester.test(ContainsLongSupplier::factory);
+  }
+
+  @Test
+  public void injectsSuppliersLong_withExistingPreferences() {
+    var tester = new LongTester<>(ContainsSupplierOfLong.class);
+    tester.withExistingPreferences = true;
+    tester.test(ContainsSupplierOfLong::factory);
+  }
+
+  private class LongTester<T extends Record & WithLong> {
+    final String prefix;
+
+    /** Whether the Preferences should exist before the test is run. */
+    boolean withExistingPreferences = false;
+
+    LongTester(Class<T> recordClass) {
+      prefix = recordClass.getSimpleName();
+    }
+
+    /**
+     * Runs the test.
+     *
+     * @param defaultInstanceFactory Factory which creates a record, passing the first and second
+     *     values as params.
+     */
+    void test(WithLong.Factory<T> defaultInstanceFactory) {
+      long expectedInjectedValue = 42;
+      String key = prefix + ".value";
+
+      // Arrange
+      T defaults; // Record with values set to their defaults
+      if (withExistingPreferences) {
+        // Set preference value to what we expected to get after inject() is called (see
+        // expectedInjectedRecord, above).
+        Preferences.initLong(key, expectedInjectedValue);
+        defaults = defaultInstanceFactory.create(-1);
+      } else {
+        // No preloaded preferences; the default values in the record should be the expected value.
+        defaults = defaultInstanceFactory.create(expectedInjectedValue);
+      }
+
+      // Act
+      T injected = injector.injectPreferences(defaults);
+
+      // Assert
+      T expected = defaultInstanceFactory.create(expectedInjectedValue);
+      assertThat(injected).isEqualTo(expected);
+
+      assertThat(preferenceKeys()).containsExactly(key);
+      assertThat(Preferences.getLong(key, -2)).isEqualTo(expectedInjectedValue);
+
+      // Arrange: Update preferences
+      expectedInjectedValue = 99;
+      Preferences.setLong(key, expectedInjectedValue);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      if (injected.getClass().equals(ContainsLong.class)) {
+        // The record is immutable and contains primative values, so to "see" the new values
+        // we need to create a new record from the preferences.
+        injected = injector.injectPreferences(defaults);
+      }
+
+      // Assert
+      expected = defaultInstanceFactory.create(expectedInjectedValue);
+      assertThat(injected).isEqualTo(expected);
+      assertThat(preferenceKeys()).containsExactly(key);
+      assertThat(Preferences.getLong(key, -2)).isEqualTo(expectedInjectedValue);
       assertHasNoChangesSince(preferenceValues);
     }
   }
