@@ -223,16 +223,16 @@ public final class PreferenceInjectorTest {
       return Arrays.asList(
           new Object[][] {
             {
-              "boolean components",
+              "long components",
               new LongPreferencesTest.TestParams<>(ContainsLong.class, ContainsLong::new)
             },
             {
-              "BooleanSupplier components",
+              "LongSupplier components",
               new LongPreferencesTest.TestParams<>(
                   ContainsLongSupplier.class, ContainsLongSupplier::factory)
             },
             {
-              "Supplier<Boolean> components",
+              "Supplier<Long> components",
               new LongPreferencesTest.TestParams<>(
                   ContainsSupplierOfLong.class, ContainsSupplierOfLong::factory)
             }
@@ -353,6 +353,140 @@ public final class PreferenceInjectorTest {
       assertThat(recordWithPreferences.longValue()).isEqualTo(99);
       assertThat(preferenceKeys()).containsExactly(key);
       assertThat(Preferences.getLong(key, -2)).isEqualTo(99);
+      assertHasNoChangesSince(preferenceValues);
+    }
+  }
+
+  @RunWith(Parameterized.class)
+  public static class StringPreferencesTest extends PreferenceInjectorTestCase {
+    private final TestParams<?> params;
+
+    public record TestParams<T extends Record & StringPreferencesTest.WithString>(
+        Class<T> recordClass, WithString.Factory<T> recordFactory) {}
+
+    public StringPreferencesTest(String testName, TestParams<?> params) {
+      this.params = params;
+    }
+
+    @Parameters(name = "{0}")
+    public static Iterable<Object[]> data() {
+      return Arrays.asList(
+          new Object[][] {
+            {
+              "String components",
+              new StringPreferencesTest.TestParams<>(ContainsString.class, ContainsString::new)
+            },
+            {
+              "Supplier<String> components",
+              new StringPreferencesTest.TestParams<>(
+                  ContainsSupplierOfString.class, ContainsSupplierOfString::factory)
+            }
+          });
+    }
+
+    /**
+     * Common interface for test record classes that contain a String value. The component name must
+     * be "value".
+     */
+    interface WithString {
+      String stringValue();
+
+      @FunctionalInterface
+      interface Factory<T extends Record & WithString> {
+        T create(String value);
+      }
+    }
+
+    /** Test record for testing classes that contain String fields. */
+    record ContainsString(String value) implements WithString {
+
+      @Override
+      public String stringValue() {
+        return value;
+      }
+    }
+
+    /** Test record for testing classes that contain {@code Supplier<String>} fields. */
+    record ContainsSupplierOfString(Supplier<String> value) implements WithString {
+
+      static ContainsSupplierOfString factory(String value) {
+        return new ContainsSupplierOfString(() -> value);
+      }
+
+      @Override
+      public String stringValue() {
+        return value.get();
+      }
+    }
+
+    @Test
+    public void withoutExistingPreferences() {
+      String key = keyForFieldName(params.recordClass, "value");
+
+      // Arrange
+      var recordWithDefaults = params.recordFactory.create("chicken");
+      assertThat(recordWithDefaults.stringValue()).isEqualTo("chicken");
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert
+      assertThat(recordWithPreferences.stringValue()).isEqualTo("chicken");
+
+      assertThat(preferenceKeys()).containsExactly(key);
+      assertThat(Preferences.getString(key, "")).isEqualTo("chicken");
+
+      // Arrange: Update preferences
+      Preferences.setString(key, "bus");
+      var preferenceValues = preferenceValues();
+
+      // Act
+      if (params.recordClass.equals(ContainsString.class)) {
+        // The record is immutable and contains a final String value, so to "see" the new values
+        // we need to create a new record from the preferences.
+        recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+      }
+
+      // Assert
+      assertThat(recordWithPreferences.stringValue()).isEqualTo("bus");
+      assertThat(preferenceKeys()).containsExactly(key);
+      assertThat(Preferences.getString(key, "")).isEqualTo("bus");
+      assertHasNoChangesSince(preferenceValues);
+    }
+
+    @Test
+    public void withExistingPreferences() {
+      String key = keyForFieldName(params.recordClass, "value");
+
+      // Arrange
+      Preferences.initString(key, "chicken");
+      var recordWithDefaults = params.recordFactory.create("defaultValue");
+      assertThat(recordWithDefaults.stringValue()).isEqualTo("defaultValue");
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert
+      assertThat(recordWithPreferences.stringValue()).isEqualTo("chicken");
+
+      assertThat(preferenceKeys()).containsExactly(key);
+      assertThat(Preferences.getString(key, "")).isEqualTo("chicken");
+
+      // Arrange: Update preferences
+      Preferences.setString(key, "robot");
+      var preferenceValues = preferenceValues();
+
+      // Act
+      if (params.recordClass.equals(ContainsString.class)) {
+        // The record is immutable and contains a final String field, so to "see" the new values
+        // we need to create a new record from the preferences.
+        recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+      }
+
+      // Assert
+      assertThat(recordWithPreferences.stringValue()).isEqualTo("robot");
+      assertThat(preferenceKeys()).containsExactly(key);
+      assertThat(Preferences.getString(key, "")).isEqualTo("robot");
       assertHasNoChangesSince(preferenceValues);
     }
   }
