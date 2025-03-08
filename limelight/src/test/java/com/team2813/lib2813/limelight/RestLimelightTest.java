@@ -53,16 +53,19 @@ public class RestLimelightTest extends LimelightTestCase {
 	
 	@Test
 	public void setFieldMapWorks() throws Exception {
-		String fieldMap;
 		Limelight limelight = createLimelight();
-		try (InputStream is = getClass().getResourceAsStream("frc2025r2.fmap")) {
-      assertNotNull(is);
-			is.mark(Integer.MAX_VALUE);
-      fieldMap = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			is.reset();
+		String resourceName = "frc2025r2.fmap";
+		try (InputStream is = getClass().getResourceAsStream(resourceName)) {
 			limelight.setFieldMap(is, true);
 		}
-		assertEquals(fieldMap, fakeLimelight.getFieldMap());
+		String fieldMap = fakeLimelight.getFieldMap();
+		assertNotNull(fieldMap);
+		
+		String expectedFieldMap;
+		try (InputStream is = getClass().getResourceAsStream(resourceName)) {
+			expectedFieldMap = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+		assertEquals(expectedFieldMap, fieldMap);
   }
 
 	@Override
