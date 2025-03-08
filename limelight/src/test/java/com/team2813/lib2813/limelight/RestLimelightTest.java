@@ -1,18 +1,21 @@
 package com.team2813.lib2813.limelight;
 
-import static org.junit.Assert.assertEquals;
+import org.json.JSONObject;
+import org.junit.After;
+import org.junit.ClassRule;
+import org.junit.Test;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 
-import org.json.JSONObject;
-import org.junit.After;
-import org.junit.ClassRule;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class RestLimelightTest extends LimelightTestCase {
 	@ClassRule
@@ -47,6 +50,23 @@ public class RestLimelightTest extends LimelightTestCase {
 		HttpResponse<String> response = client.send(req, BodyHandlers.ofString());
 		assertEquals("{\"v\":1}", response.body());
 	}
+	
+	@Test
+	public void setFieldMapWorks() throws Exception {
+		Limelight limelight = createLimelight();
+		String resourceName = "frc2025r2.fmap";
+		try (InputStream is = getClass().getResourceAsStream(resourceName)) {
+			limelight.setFieldMap(is, true);
+		}
+		String fieldMap = fakeLimelight.getFieldMap();
+		assertNotNull(fieldMap);
+		
+		String expectedFieldMap;
+		try (InputStream is = getClass().getResourceAsStream(resourceName)) {
+			expectedFieldMap = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+		assertEquals(expectedFieldMap, fieldMap);
+  }
 
 	@Override
 	protected Limelight createLimelight() {

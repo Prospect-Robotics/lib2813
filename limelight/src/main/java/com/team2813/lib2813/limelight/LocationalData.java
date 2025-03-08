@@ -2,6 +2,7 @@ package com.team2813.lib2813.limelight;
 
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.Set;
 
 import edu.wpi.first.math.geometry.Pose3d;
 
@@ -46,4 +47,10 @@ public interface LocationalData {
 		}
 		return OptionalDouble.empty();
 	}
+
+	/**
+	 * Gets the set of all visible tags
+	 * @return The visible tags
+	 */
+	Set<Integer> getVisibleTags();
 }

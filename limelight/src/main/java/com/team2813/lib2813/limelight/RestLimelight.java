@@ -1,12 +1,13 @@
 package com.team2813.lib2813.limelight;
 
-import static com.team2813.lib2813.limelight.JSONHelper.getArr;
-import static com.team2813.lib2813.limelight.JSONHelper.getDouble;
-import static com.team2813.lib2813.limelight.JSONHelper.getLong;
-import static com.team2813.lib2813.limelight.JSONHelper.getRoot;
-import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
-import static com.team2813.lib2813.limelight.Optionals.unboxLong;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.wpilibj.DriverStation;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,16 +15,14 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import edu.wpi.first.wpilibj.DriverStation;
+import static com.team2813.lib2813.limelight.JSONHelper.*;
+import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
+import static com.team2813.lib2813.limelight.Optionals.unboxLong;
+import static java.util.Collections.unmodifiableSet;
 
 class RestLimelight implements Limelight {
 	private static final Map<String, RestLimelight> limelights = new HashMap<>();
-	private final String name;
+	private final AprilTagMapPoseHelper aprilTagMapPoseHelper;
 	private final DataCollection collectionThread;
 	private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 
@@ -34,8 +33,9 @@ class RestLimelight implements Limelight {
 	boolean started = false;
 
 	RestLimelight(String address) {
-		this.name = address;
-		collectionThread = new DataCollection(address);
+		var limelightClient = new LimelightClient(address);
+		collectionThread = new DataCollection(limelightClient);
+		aprilTagMapPoseHelper = new AprilTagMapPoseHelper(limelightClient);
 	}
 
 	void start() {
@@ -47,10 +47,6 @@ class RestLimelight implements Limelight {
 
 	void runThread() {
 		collectionThread.run();
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	@Override
@@ -73,6 +69,22 @@ class RestLimelight implements Limelight {
 	@Override
 	public OptionalDouble getTimestamp() {
 		return getLocationalData().getTimestamp();
+	}
+
+	/**
+	 * Sets the field map for the limelight. Additionally, this may also upload the field map to the Limelight if desired.
+	 * This will likely be a slow operation, and should not be regularly called.
+	 * @param stream The reader which
+	 * @param updateLimelight If the limelight should be updated with this field map
+	 */
+	@Override
+	public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
+		aprilTagMapPoseHelper.setFieldMap(stream, updateLimelight);
+	}
+
+	@Override
+	public List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags) {
+		return aprilTagMapPoseHelper.getVisibleTagPoses(visibleTags);
 	}
 
 	private static <T> Function<T, Boolean> not(Function<? super T, Boolean> fnc) {
@@ -127,7 +139,7 @@ class RestLimelight implements Limelight {
 		}
 		limelights.clear();
 	}
-	
+
 	private static class RestLocationalData implements LocationalData {
 		private final JSONObject root;
 
@@ -150,7 +162,7 @@ class RestLimelight implements Limelight {
 				return true;
 			}
 			Integer intZero = 0;
-			Double doubleZero = 0d;
+			Double doubleZero = 0.0;
 			for (Object o : arr) {
 				if (!intZero.equals(o) && !doubleZero.equals(o)) {
 					return false;
@@ -214,6 +226,20 @@ class RestLimelight implements Limelight {
 		 */
 		OptionalLong getTagID() {
 			return unboxLong(getLong(root, "pID"));
+		}
+
+		@Override
+		public Set<Integer> getVisibleTags() {
+			return getArr(root, "Fiducial").map(arr -> {
+				Set<Integer> ints = new HashSet<>();
+				for (int i = 0; i < arr.length(); i++) {
+					JSONObject obj = arr.optJSONObject(i);
+					if (obj != null && obj.has("fID")) {
+						ints.add(obj.getInt("fID"));
+					}
+				}
+				return unmodifiableSet(ints);
+			}).orElseGet(Set::of);
 		}
 	}
 }

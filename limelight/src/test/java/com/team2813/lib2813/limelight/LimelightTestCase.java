@@ -1,23 +1,18 @@
 package com.team2813.lib2813.limelight;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.stream.Collectors;
-
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import org.json.JSONObject;
 import org.junit.Test;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
+import java.io.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.*;
 
 abstract class LimelightTestCase {
 
@@ -132,6 +127,33 @@ abstract class LimelightTestCase {
 		Rotation3d rotationDiff = expectedRotation.minus(actualPose.getRotation());
 		double angleDiff = rotationDiff.getAngle();
 		assertAlmostEqual(0, OptionalDouble.of(angleDiff), Math.PI / 12.0);
+	}
+	
+	@Test
+	public final void visibleTagTest() throws Exception {
+		JSONObject obj = readJSON("BotposeBlueRedTest.json");
+		setJson(obj);
+		Limelight limelight = createLimelight();
+		assertTrue(limelight.hasTarget());
+		
+		Set<Integer> tags = limelight.getLocationalData().getVisibleTags();
+		assertEquals(Set.of(20), tags);
+	}
+	
+	@Test
+	public final void visibleTagLocationTest() throws Exception {
+		JSONObject obj = readJSON("BotposeBlueRedTest.json");
+		setJson(obj);
+		Limelight limelight = createLimelight();
+		
+		boolean updateLimelight = false;
+		try (var stream = getClass().getResourceAsStream("frc2025r2.fmap")) {
+			limelight.setFieldMap(stream, updateLimelight);
+		}
+
+		Set<Integer> visibleTags = limelight.getLocationalData().getVisibleTags();
+		List<Pose3d> apriltags = limelight.getLocatedAprilTags(visibleTags);
+		assertEquals(1, apriltags.size());
 	}
 
 	protected abstract Limelight createLimelight();

@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.Set;
 
 /** Implementation of LocationalData where all optional values return empty values. */
 final class StubLocationalData implements LocationalData {
@@ -47,5 +48,10 @@ final class StubLocationalData implements LocationalData {
   @Override
   public OptionalDouble lastMSDelay() {
     return OptionalDouble.empty();
+  }
+
+  @Override
+  public Set<Integer> getVisibleTags() {
+    return Set.of();
   }
 }
