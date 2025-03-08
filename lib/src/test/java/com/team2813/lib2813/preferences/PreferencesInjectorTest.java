@@ -22,12 +22,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-/** Tests for {@link PreferenceInjector}. */
+/** Tests for {@link PreferencesInjector}. */
 @RunWith(Enclosed.class)
-public final class PreferenceInjectorTest {
+public final class PreferencesInjectorTest {
 
   @RunWith(Parameterized.class)
-  public static class BooleanPreferencesTest extends PreferenceInjectorTestCase {
+  public static class BooleanPreferencesTest extends PreferencesInjectorTestCase {
     final boolean defaultValue;
     final String booleanValueKey = keyForFieldName(RecordWithBooleans.class, "booleanValue");
     final String booleanSupplierKey = keyForFieldName(RecordWithBooleans.class, "booleanSupplier");
@@ -134,7 +134,7 @@ public final class PreferenceInjectorTest {
     }
   }
 
-  public static class LongPreferencesTest extends PreferenceInjectorTestCase {
+  public static class LongPreferencesTest extends PreferencesInjectorTestCase {
     final String longValueKey = keyForFieldName(RecordWithLongs.class, "longValue");
     final String longSupplierKey = keyForFieldName(RecordWithLongs.class, "longSupplier");
     final String supplierLongKey = keyForFieldName(RecordWithLongs.class, "supplierLong");
@@ -221,7 +221,7 @@ public final class PreferenceInjectorTest {
     }
   }
 
-  public static class StringPreferencesTest extends PreferenceInjectorTestCase {
+  public static class StringPreferencesTest extends PreferencesInjectorTestCase {
     final String stringValueKey = keyForFieldName(RecordWithStrings.class, "stringValue");
     final String stringSupplierKey = keyForFieldName(RecordWithStrings.class, "stringSupplier");
 
@@ -296,9 +296,9 @@ public final class PreferenceInjectorTest {
     }
   }
 
-  /** Base class for all nested classes of {@link PreferenceInjectorTest}. */
-  private abstract static class PreferenceInjectorTestCase {
-    PreferenceInjector injector;
+  /** Base class for all nested classes of {@link PreferencesInjectorTest}. */
+  private abstract static class PreferencesInjectorTestCase {
+    PreferencesInjector injector;
 
     @Rule public final IsolatedPreferences isolatedPreferences = new IsolatedPreferences();
     @Rule public final ErrorCollector errorCollector = new ErrorCollector();
@@ -306,7 +306,7 @@ public final class PreferenceInjectorTest {
     @Before
     public void createInjector() {
       String removePrefix = getClass().getCanonicalName() + ".";
-      injector = new PreferenceInjector(removePrefix);
+      injector = new PreferencesInjector(removePrefix);
       injector.throwExceptions = true;
       injector.errorReporter =
           message ->
