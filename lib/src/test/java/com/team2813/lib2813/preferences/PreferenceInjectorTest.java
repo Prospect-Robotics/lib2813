@@ -7,7 +7,6 @@ import static java.util.stream.Collectors.toSet;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.Preferences;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -28,182 +27,109 @@ import org.junit.runners.Parameterized.Parameters;
 public final class PreferenceInjectorTest {
 
   @RunWith(Parameterized.class)
-  public static class BooleanPreferencesTest<T extends Record & BooleanPreferencesTest.WithBooleans>
-      extends PreferenceInjectorTestCase {
-    private final Class<T> recordClass;
-    private final WithBooleans.Factory<T> recordFactory;
+  public static class BooleanPreferencesTest extends PreferenceInjectorTestCase {
+    final boolean defaultValue;
+    final String booleanValueKey = keyForFieldName(RecordWithBooleans.class, "booleanValue");
+    final String booleanSupplierKey = keyForFieldName(RecordWithBooleans.class, "booleanSupplier");
+    final String booleanBooleanKey = keyForFieldName(RecordWithBooleans.class, "supplierBoolean");
+    final Set<String> allKeys = Set.of(booleanValueKey, booleanSupplierKey, booleanBooleanKey);
 
-    private static <T extends Record & WithBooleans> Object[] testCase(
-        String name, Class<T> recordClass, WithBooleans.Factory<T> recordFactory) {
-      return new Object[] {name, recordClass, recordFactory};
+    @Parameters(name = "defaultValue={0}")
+    public static Object[] data() {
+      return new Object[] {true, false};
     }
 
-    @Parameters(name = "{0}")
-    public static Iterable<Object[]> data() {
-      return Arrays.asList(
-          testCase("boolean components", ContainsBooleans.class, ContainsBooleans::new),
-          testCase(
-              "BooleanSupplier components",
-              ContainsBooleanSuppliers.class,
-              ContainsBooleanSuppliers::factory),
-          testCase(
-              "Supplier<Boolean> components",
-              ContainsSuppliersOfBoolean.class,
-              ContainsSuppliersOfBoolean::factory));
-    }
-
-    public BooleanPreferencesTest(
-        String testName, Class<T> recordClass, WithBooleans.Factory<T> recordFactory) {
-      this.recordClass = recordClass;
-      this.recordFactory = recordFactory;
-    }
-
-    /**
-     * Common interface for test record classes that contain two boolean values. The component names
-     * must be "first" and "second".
-     */
-    interface WithBooleans {
-      boolean firstValue();
-
-      boolean secondValue();
-
-      @FunctionalInterface
-      interface Factory<T extends Record & WithBooleans> {
-        T create(boolean firstDefaultValue, boolean secondDefaultValue);
-      }
+    public BooleanPreferencesTest(boolean defaultValue) {
+      this.defaultValue = defaultValue;
     }
 
     /** Test record for testing classes that contain boolean fields. */
-    record ContainsBooleans(boolean first, boolean second) implements WithBooleans {
+    record RecordWithBooleans(
+        boolean booleanValue, BooleanSupplier booleanSupplier, Supplier<Boolean> supplierBoolean) {
 
-      @Override
-      public boolean firstValue() {
-        return first;
-      }
-
-      @Override
-      public boolean secondValue() {
-        return second;
-      }
-    }
-
-    /** Test record for testing classes that contain {@code BooleanSupplier} fields. */
-    record ContainsBooleanSuppliers(BooleanSupplier first, BooleanSupplier second)
-        implements WithBooleans {
-
-      static ContainsBooleanSuppliers factory(boolean firstValue, boolean secondValue) {
-        return new ContainsBooleanSuppliers(() -> firstValue, () -> secondValue);
-      }
-
-      @Override
-      public boolean firstValue() {
-        return first.getAsBoolean();
-      }
-
-      @Override
-      public boolean secondValue() {
-        return second.getAsBoolean();
-      }
-    }
-
-    /** Test record for testing classes that contain {@code Supplier<Boolean>} fields. */
-    record ContainsSuppliersOfBoolean(Supplier<Boolean> first, Supplier<Boolean> second)
-        implements WithBooleans {
-
-      static ContainsSuppliersOfBoolean factory(boolean firstValue, boolean secondValue) {
-        return new ContainsSuppliersOfBoolean(() -> firstValue, () -> secondValue);
-      }
-
-      @Override
-      public boolean firstValue() {
-        return first.get();
-      }
-
-      @Override
-      public boolean secondValue() {
-        return second.get();
+      public RecordWithBooleans(boolean defaultValue) {
+        this(defaultValue, () -> defaultValue, () -> Boolean.valueOf(defaultValue));
       }
     }
 
     @Test
     public void withoutExistingPreferences() {
-      String key1 = keyForFieldName(recordClass, "first");
-      String key2 = keyForFieldName(recordClass, "second");
-
       // Arrange
-      var recordWithDefaults = recordFactory.create(true, false);
+      var recordWithDefaults = new RecordWithBooleans(defaultValue);
 
       // Act
       var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
 
-      // Assert
-      assertThat(recordWithPreferences.firstValue()).isTrue();
-      assertThat(recordWithPreferences.secondValue()).isFalse();
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.booleanValue()).isEqualTo(defaultValue);
+      assertThat(recordWithPreferences.booleanSupplier().getAsBoolean()).isEqualTo(defaultValue);
+      assertThat(recordWithPreferences.supplierBoolean().get())
+          .isEqualTo(Boolean.valueOf(defaultValue));
 
-      assertThat(preferenceKeys()).containsExactly(key1, key2);
-      assertThat(Preferences.getBoolean(key1, false)).isTrue();
-      assertThat(Preferences.getBoolean(key2, true)).isFalse();
+      // Assert: Default values set
+      assertThat(preferenceKeys())
+          .containsExactly(booleanValueKey, booleanSupplierKey, booleanBooleanKey);
+      for (String key : allKeys) {
+        assertThat(Preferences.getBoolean(key, !defaultValue)).isEqualTo(defaultValue);
+      }
 
       // Arrange: Update preferences
-      Preferences.setBoolean(key1, false);
-      Preferences.setBoolean(key2, true);
+      boolean configuredValue = !defaultValue;
+      for (String key : allKeys) {
+        Preferences.setBoolean(key, configuredValue);
+      }
       var preferenceValues = preferenceValues();
 
       // Act
-      if (recordClass.equals(ContainsBooleans.class)) {
-        // The record is immutable and contains boolean values, so to "see" the new values
-        // we need to create a new record from the preferences.
-        recordWithPreferences = injector.injectPreferences(recordWithDefaults);
-      }
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
 
-      // Assert
-      assertThat(recordWithPreferences.firstValue()).isFalse();
-      assertThat(recordWithPreferences.secondValue()).isTrue();
-      assertThat(preferenceKeys()).containsExactly(key1, key2);
-      assertThat(Preferences.getBoolean(key1, true)).isFalse();
-      assertThat(Preferences.getBoolean(key2, false)).isTrue();
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.booleanValue()).isEqualTo(configuredValue);
+      assertThat(newRecordWithPreferences.booleanSupplier().getAsBoolean())
+          .isEqualTo(configuredValue);
+      assertThat(recordWithPreferences.booleanSupplier().getAsBoolean()).isEqualTo(configuredValue);
+      assertThat(newRecordWithPreferences.supplierBoolean().get()).isEqualTo(configuredValue);
+      assertThat(recordWithPreferences.supplierBoolean().get()).isEqualTo(configuredValue);
       assertHasNoChangesSince(preferenceValues);
     }
 
     @Test
     public void withExistingPreferences() {
-      String key1 = keyForFieldName(recordClass, "first");
-      String key2 = keyForFieldName(recordClass, "second");
-
       // Arrange
-      var recordWithDefaults = recordFactory.create(false, true);
-      Preferences.initBoolean(key1, true);
-      Preferences.initBoolean(key2, false);
+      var recordWithDefaults = new RecordWithBooleans(defaultValue);
+      boolean configuredValue = !defaultValue;
+      for (String key : allKeys) {
+        Preferences.setBoolean(key, configuredValue);
+      }
+      var preferenceValues = preferenceValues();
 
       // Act
       var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
 
-      // Assert
-      assertThat(Preferences.getBoolean(key1, false)).isTrue();
-      assertThat(Preferences.getBoolean(key2, true)).isFalse();
-
-      assertThat(preferenceKeys()).containsExactly(key1, key2);
-      assertThat(Preferences.getBoolean(key1, false)).isTrue();
-      assertThat(Preferences.getBoolean(key2, true)).isFalse();
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.booleanValue()).isEqualTo(configuredValue);
+      assertThat(recordWithPreferences.booleanSupplier().getAsBoolean()).isEqualTo(configuredValue);
+      assertThat(recordWithPreferences.supplierBoolean().get())
+          .isEqualTo(Boolean.valueOf(configuredValue));
+      assertHasNoChangesSince(preferenceValues);
 
       // Arrange: Update preferences
-      Preferences.setBoolean(key1, false);
-      Preferences.setBoolean(key2, true);
-      var preferenceValues = preferenceValues();
+      configuredValue = defaultValue;
+      for (String key : allKeys) {
+        Preferences.setBoolean(key, configuredValue);
+      }
+      preferenceValues = preferenceValues();
 
       // Act
-      if (recordClass.equals(ContainsBooleans.class)) {
-        // The record is immutable and contains boolean values, so to "see" the new values
-        // we need to create a new record from the preferences.
-        recordWithPreferences = injector.injectPreferences(recordWithDefaults);
-      }
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
 
-      // Assert
-      assertThat(recordWithPreferences.firstValue()).isFalse();
-      assertThat(recordWithPreferences.secondValue()).isTrue();
-      assertThat(preferenceKeys()).containsExactly(key1, key2);
-      assertThat(Preferences.getBoolean(key1, true)).isFalse();
-      assertThat(Preferences.getBoolean(key2, false)).isTrue();
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.booleanValue()).isEqualTo(configuredValue);
+      assertThat(newRecordWithPreferences.booleanSupplier().getAsBoolean())
+          .isEqualTo(configuredValue);
+      assertThat(recordWithPreferences.booleanSupplier().getAsBoolean()).isEqualTo(configuredValue);
+      assertThat(newRecordWithPreferences.supplierBoolean().get()).isEqualTo(configuredValue);
+      assertThat(recordWithPreferences.supplierBoolean().get()).isEqualTo(configuredValue);
       assertHasNoChangesSince(preferenceValues);
     }
   }
