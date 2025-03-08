@@ -32,9 +32,9 @@ import java.util.function.*;
  * each of the components of the {@code DriveConfiguration} record. The keys would be:
  *
  * <ul>
- *   <li>Drive.DriveConfiguration.addLimelightMeasurement
- *   <li>Drive.DriveConfiguration.robotWeight
- *   <li>Drive.DriveConfiguration.powerMultiplier
+ *   <li>"Drive.DriveConfiguration.addLimelightMeasurement"
+ *   <li>"Drive.DriveConfiguration.robotWeight"
+ *   <li>"Drive.DriveConfiguration.powerMultiplier"
  * </ul>
  *
  * <p>The default values of for these Preference values will be the values provided to {@link
@@ -109,17 +109,25 @@ public class PreferenceInjector {
     }
   }
 
-  /** Creates a preference key for the given record component. */
+  /**
+   * Creates a preference key for the given record component.
+   *
+   * <p>This method is protected and non-final so subclasses can change the default behavior.
+   */
   protected String createKey(RecordComponent component) {
-    String prefix = component.getDeclaringRecord().getCanonicalName();
-    String name = component.getName();
-    if (prefix.startsWith(this.removePrefix)) {
-      prefix = prefix.substring(this.removePrefixLen);
-      if (prefix.isEmpty()) {
-        return name;
+    Class<?> recordClass = component.getDeclaringRecord();
+    String recordName = recordClass.getCanonicalName();
+    if (recordName == null) {
+      recordName = recordClass.getName();
+    }
+    String componentName = component.getName();
+    if (recordName.startsWith(this.removePrefix)) {
+      recordName = recordName.substring(this.removePrefixLen);
+      if (recordName.isEmpty()) {
+        return componentName;
       }
     }
-    return prefix + "." + name;
+    return recordName + "." + componentName;
   }
 
   private <T extends java.lang.Record> T injectPreferences(
@@ -157,6 +165,7 @@ public class PreferenceInjector {
         warn("Cannot store '%s' in Preferences; default value is null", name);
         params[i] = null;
       } else {
+        // Fetch the value from Preferences
         params[i] = factory.create(this, component, key, defaultValue);
       }
       i++;
@@ -207,6 +216,7 @@ public class PreferenceInjector {
           Double.class, Double.TYPE,
           String.class, String.class);
 
+  /** Gets a boolean value from Preferences for the given component. */
   private static boolean booleanFactory(
       PreferenceInjector injector, RecordComponent component, String key, Boolean defaultValue) {
     if (defaultValue != null) {
@@ -215,6 +225,7 @@ public class PreferenceInjector {
     return Preferences.getBoolean(key, false);
   }
 
+  /** Gets a BooleanSupplier value from Preferences for the given component. */
   private static BooleanSupplier booleanSupplierFactory(
       PreferenceInjector injector,
       RecordComponent component,
@@ -227,6 +238,7 @@ public class PreferenceInjector {
     return () -> Preferences.getBoolean(key, false);
   }
 
+  /** Gets an int value from Preferences for the given component. */
   private static int intFactory(
       PreferenceInjector injector, RecordComponent component, String key, Integer defaultValue) {
     if (defaultValue != null) {
@@ -235,6 +247,7 @@ public class PreferenceInjector {
     return Preferences.getInt(key, 0);
   }
 
+  /** Gets a IntSupplier value from Preferences for the given component. */
   private static IntSupplier intSupplierFactory(
       PreferenceInjector injector,
       RecordComponent component,
@@ -247,6 +260,7 @@ public class PreferenceInjector {
     return () -> Preferences.getInt(key, 0);
   }
 
+  /** Gets a long value from Preferences for the given component. */
   private static long longFactory(
       PreferenceInjector injector, RecordComponent component, String key, Long defaultValue) {
     if (defaultValue != null) {
@@ -255,6 +269,7 @@ public class PreferenceInjector {
     return Preferences.getLong(key, 0);
   }
 
+  /** Gets a LongSupplier value from Preferences for the given component. */
   private static LongSupplier longSupplierFactory(
       PreferenceInjector injector,
       RecordComponent component,
@@ -267,6 +282,7 @@ public class PreferenceInjector {
     return () -> Preferences.getLong(key, 0);
   }
 
+  /** Gets a double value from Preferences for the given component. */
   private static double doubleFactory(
       PreferenceInjector injector, RecordComponent component, String key, Double defaultValue) {
     if (defaultValue != null) {
@@ -275,6 +291,7 @@ public class PreferenceInjector {
     return Preferences.getDouble(key, 0);
   }
 
+  /** Gets a DoubleSupplier value from Preferences for the given component. */
   private static DoubleSupplier doubleSupplierFactory(
       PreferenceInjector injector,
       RecordComponent component,
@@ -287,6 +304,7 @@ public class PreferenceInjector {
     return () -> Preferences.getDouble(key, 0);
   }
 
+  /** Gets a String value from Preferences for the given component. */
   private static String stringFactory(
       PreferenceInjector injector, RecordComponent component, String key, String defaultValue) {
     if (defaultValue != null) {
@@ -295,6 +313,10 @@ public class PreferenceInjector {
     return Preferences.getString(key, "");
   }
 
+  /**
+   * Gets a Supplier value from Preferences for the given component. Supports String, long, int,
+   * boolean and float values.
+   */
   private static Supplier<?> supplierFactory(
       PreferenceInjector injector,
       RecordComponent component,
