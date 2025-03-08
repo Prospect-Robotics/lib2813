@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.Preferences;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.*;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,6 +22,7 @@ import org.junit.runners.Parameterized.Parameters;
 /** Tests for {@link PreferencesInjector}. */
 @RunWith(Enclosed.class)
 public final class PreferencesInjectorTest {
+  private static final double EPSILON = 0.001;
 
   @RunWith(Parameterized.class)
   public static class BooleanPreferencesTest extends PreferencesInjectorTestCase {
@@ -302,6 +302,96 @@ public final class PreferencesInjectorTest {
       assertThat(newRecordWithPreferences.longSupplier.getAsLong()).isEqualTo(302);
       assertThat(recordWithPreferences.supplierLong().get()).isEqualTo(Long.valueOf(303));
       assertThat(newRecordWithPreferences.supplierLong().get()).isEqualTo(Long.valueOf(303));
+      assertHasNoChangesSince(preferenceValues);
+    }
+  }
+
+  public static class DoublePreferencesTest extends PreferencesInjectorTestCase {
+    final String doubleValueKey = keyForFieldName(RecordWithDoubles.class, "doubleValue");
+    final String doubleSupplierKey = keyForFieldName(RecordWithDoubles.class, "doubleSupplier");
+    final String supplierDoubleKey = keyForFieldName(RecordWithDoubles.class, "supplierDouble");
+
+    /** Test record for testing classes that contain double fields. */
+    record RecordWithDoubles(
+        double doubleValue, DoubleSupplier doubleSupplier, Supplier<Double> supplierDouble) {
+
+      RecordWithDoubles(
+          double doubleValue, double doubleSupplierValue, double supplierDoubleValue) {
+        this(doubleValue, () -> doubleSupplierValue, () -> supplierDoubleValue);
+      }
+    }
+
+    @Test
+    public void withoutExistingPreferences() {
+      // Arrange
+      var recordWithDefaults = new RecordWithDoubles(3.14159, 2.71828, 6.28318);
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.doubleValue()).isWithin(EPSILON).of(3.14159);
+      assertThat(recordWithPreferences.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(2.71828);
+      assertThat(recordWithPreferences.supplierDouble().get()).isWithin(EPSILON).of(6.28318);
+
+      // Assert: Default values set
+      assertThat(preferenceKeys())
+          .containsExactly(doubleValueKey, doubleSupplierKey, supplierDoubleKey);
+      assertThat(Preferences.getDouble(doubleValueKey, -1)).isWithin(EPSILON).of(3.14159);
+      assertThat(Preferences.getDouble(doubleSupplierKey, -1)).isWithin(EPSILON).of(2.71828);
+      assertThat(Preferences.getDouble(supplierDoubleKey, -1)).isWithin(EPSILON).of(6.28318);
+
+      // Arrange: Update preferences
+      Preferences.setDouble(doubleValueKey, 1.23);
+      Preferences.setDouble(doubleSupplierKey, 4.56);
+      Preferences.setDouble(supplierDoubleKey, 7.89);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.doubleValue()).isWithin(EPSILON).of(1.23);
+      assertThat(recordWithPreferences.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(4.56);
+      assertThat(newRecordWithPreferences.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(4.56);
+      assertThat(recordWithPreferences.supplierDouble().get()).isWithin(EPSILON).of(7.89);
+      assertThat(newRecordWithPreferences.supplierDouble().get()).isWithin(EPSILON).of(7.89);
+      assertHasNoChangesSince(preferenceValues);
+    }
+
+    @Test
+    public void withExistingPreferences() {
+      // Arrange
+      Preferences.setDouble(doubleValueKey, 3.1415990);
+      Preferences.setDouble(doubleSupplierKey, 2.71828);
+      Preferences.setDouble(supplierDoubleKey, 6.28318);
+      var preferenceValues = preferenceValues();
+      var recordWithDefaults = new RecordWithDoubles(-1, -2, -3);
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(Preferences.getDouble(doubleValueKey, -1)).isWithin(EPSILON).of(3.14159);
+      assertThat(Preferences.getDouble(doubleSupplierKey, -1)).isWithin(EPSILON).of(2.71828);
+      assertThat(Preferences.getDouble(supplierDoubleKey, -1)).isWithin(EPSILON).of(6.28318);
+      assertHasNoChangesSince(preferenceValues);
+
+      // Arrange: Update preferences
+      Preferences.setDouble(doubleValueKey, 3.21);
+      Preferences.setDouble(doubleSupplierKey, 6.54);
+      Preferences.setDouble(supplierDoubleKey, 9.87);
+      preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.doubleValue()).isWithin(EPSILON).of(3.21);
+      assertThat(recordWithPreferences.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(6.54);
+      assertThat(newRecordWithPreferences.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(6.54);
+      assertThat(recordWithPreferences.supplierDouble().get()).isWithin(EPSILON).of(9.87);
+      assertThat(newRecordWithPreferences.supplierDouble().get()).isWithin(EPSILON).of(9.87);
       assertHasNoChangesSince(preferenceValues);
     }
   }
