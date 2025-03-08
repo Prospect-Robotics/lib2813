@@ -9,10 +9,8 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
-import java.util.function.Function;
-import java.util.function.LongSupplier;
-import java.util.function.Supplier;
+import java.util.function.*;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -130,6 +128,93 @@ public final class PreferencesInjectorTest {
       assertThat(recordWithPreferences.booleanSupplier().getAsBoolean()).isEqualTo(configuredValue);
       assertThat(newRecordWithPreferences.supplierBoolean().get()).isEqualTo(configuredValue);
       assertThat(recordWithPreferences.supplierBoolean().get()).isEqualTo(configuredValue);
+      assertHasNoChangesSince(preferenceValues);
+    }
+  }
+
+  public static class IntPreferencesTest extends PreferencesInjectorTestCase {
+    final String intValueKey = keyForFieldName(RecordWithInts.class, "intValue");
+    final String intSupplierKey = keyForFieldName(RecordWithInts.class, "intSupplier");
+    final String supplierIntKey = keyForFieldName(RecordWithInts.class, "supplierInt");
+
+    /** Test record for testing classes that contain int fields. */
+    record RecordWithInts(int intValue, IntSupplier intSupplier, Supplier<Integer> supplierInt) {
+
+      RecordWithInts(int intValue, int intSupplierValue, int supplierIntValue) {
+        this(intValue, () -> intSupplierValue, () -> supplierIntValue);
+      }
+    }
+
+    @Test
+    public void withoutExistingPreferences() {
+      // Arrange
+      var recordWithDefaults = new RecordWithInts(1, 2, 3);
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.intValue()).isEqualTo(1);
+      assertThat(recordWithPreferences.intSupplier.getAsInt()).isEqualTo(2);
+      assertThat(recordWithPreferences.supplierInt().get()).isEqualTo(Integer.valueOf(3));
+
+      // Assert: Default values set
+      assertThat(preferenceKeys()).containsExactly(intValueKey, intSupplierKey, supplierIntKey);
+      assertThat(Preferences.getInt(intValueKey, -1)).isEqualTo(1);
+      assertThat(Preferences.getInt(intSupplierKey, -1)).isEqualTo(2);
+      assertThat(Preferences.getInt(supplierIntKey, -1)).isEqualTo(3);
+
+      // Arrange: Update preferences
+      Preferences.setInt(intValueKey, 101);
+      Preferences.setInt(intSupplierKey, 102);
+      Preferences.setInt(supplierIntKey, 103);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.intValue()).isEqualTo(101);
+      assertThat(recordWithPreferences.intSupplier.getAsInt()).isEqualTo(102);
+      assertThat(newRecordWithPreferences.intSupplier.getAsInt()).isEqualTo(102);
+      assertThat(recordWithPreferences.supplierInt().get()).isEqualTo(Integer.valueOf(103));
+      assertThat(newRecordWithPreferences.supplierInt().get()).isEqualTo(Integer.valueOf(103));
+      assertHasNoChangesSince(preferenceValues);
+    }
+
+    @Test
+    public void withExistingPreferences() {
+      // Arrange
+      Preferences.setInt(intValueKey, 201);
+      Preferences.setInt(intSupplierKey, 202);
+      Preferences.setInt(supplierIntKey, 203);
+      var preferenceValues = preferenceValues();
+      var recordWithDefaults = new RecordWithInts(-1, -2, -3);
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.intValue()).isEqualTo(201);
+      assertThat(recordWithPreferences.intSupplier.getAsInt()).isEqualTo(202);
+      assertThat(recordWithPreferences.supplierInt().get()).isEqualTo(Integer.valueOf(203));
+      assertHasNoChangesSince(preferenceValues);
+
+      // Arrange: Update preferences
+      Preferences.setInt(intValueKey, 301);
+      Preferences.setInt(intSupplierKey, 302);
+      Preferences.setInt(supplierIntKey, 303);
+      preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.intValue()).isEqualTo(301);
+      assertThat(recordWithPreferences.intSupplier.getAsInt()).isEqualTo(302);
+      assertThat(newRecordWithPreferences.intSupplier.getAsInt()).isEqualTo(302);
+      assertThat(recordWithPreferences.supplierInt().get()).isEqualTo(Integer.valueOf(303));
+      assertThat(newRecordWithPreferences.supplierInt().get()).isEqualTo(Integer.valueOf(303));
       assertHasNoChangesSince(preferenceValues);
     }
   }
