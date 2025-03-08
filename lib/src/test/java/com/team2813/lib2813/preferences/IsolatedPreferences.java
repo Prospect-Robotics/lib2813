@@ -13,7 +13,7 @@ public final class IsolatedPreferences extends ExternalResource {
   private NetworkTableInstance tempInstance;
 
   /** Gets the {@link NetworkTable} that contains the preference values. */
-  public NetworkTable getTable() {
+  public NetworkTable getPreferencesTable() {
     return tempInstance.getTable("Preferences");
   }
 

@@ -326,7 +326,7 @@ public final class PreferenceInjectorTest {
     }
 
     protected final Map<String, Object> preferenceValues() {
-      NetworkTable table = isolatedPreferences.getTable();
+      NetworkTable table = isolatedPreferences.getPreferencesTable();
       return preferenceKeys().stream()
           .collect(toMap(Function.identity(), key -> table.getEntry(key).getValue().getValue()));
     }
