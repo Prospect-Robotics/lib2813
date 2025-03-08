@@ -136,7 +136,7 @@ abstract class LimelightTestCase {
 		Limelight limelight = createLimelight();
 		assertTrue(limelight.hasTarget());
 		
-		Set<Integer> tags = limelight.getVisibleTags();
+		Set<Integer> tags = limelight.getLocationalData().getVisibleTags();
 		assertEquals(Set.of(20), tags);
 	}
 	
@@ -150,8 +150,9 @@ abstract class LimelightTestCase {
 		try (var stream = getClass().getResourceAsStream("frc2025r2.fmap")) {
 			limelight.setFieldMap(stream, updateLimelight);
 		}
-		
-		List<Pose3d> apriltags = limelight.getLocatedAprilTags();
+
+		Set<Integer> visibleTags = limelight.getLocationalData().getVisibleTags();
+		List<Pose3d> apriltags = limelight.getLocatedAprilTags(visibleTags);
 		assertEquals(1, apriltags.size());
 	}
 

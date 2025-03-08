@@ -20,21 +20,22 @@ public interface Limelight {
 		return RestLimelight.getDefaultLimelight();
 	}
 
+	/**
+	 * @deprecated use {@link LocationalData#getTimestamp()}
+	 */
+	@Deprecated
 	OptionalDouble getTimestamp();
 
+	/**
+	 * Returns {@code true} if the limelight has identified a target.
+	 *
+	 * @deprecated use {@link LocationalData#hasTarget()}
+	 */
+	@Deprecated
 	boolean hasTarget();
 
-	/**
-	 * Gets an object for getting locational data
-	 * @return an object for getting locational data
-	 */
+	/** Gets an object for getting locational data. */
 	LocationalData getLocationalData();
-	
-	/**
-	 * Gets the set of all visible tags
-	 * @return The visible tags
-	 */
-	Set<Integer> getVisibleTags();
 	
 	void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException;
 	
@@ -54,12 +55,14 @@ public interface Limelight {
 	}
 	
 	/**
-	 * Gets the locations of the viewed AprilTags.
-	 * This will always return an empty set if the field map was not set with {@link #setFieldMap(InputStream, boolean)}
-	 * @return The located AprilTags
+	 * Gets the locations of the given AprilTags.
 	 */
-	List<Pose3d> getLocatedAprilTags();
+	List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags);
 
+	/**
+	 * @deprecated use {@link LocationalData#getCaptureLatency()}
+	 */
+	@Deprecated
 	OptionalDouble getCaptureLatency();
 
 	@Deprecated

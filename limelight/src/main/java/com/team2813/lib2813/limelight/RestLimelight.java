@@ -18,6 +18,7 @@ import java.util.function.Function;
 import static com.team2813.lib2813.limelight.JSONHelper.*;
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
 import static com.team2813.lib2813.limelight.Optionals.unboxLong;
+import static java.util.Collections.unmodifiableSet;
 
 class RestLimelight implements Limelight {
 	private static final Map<String, RestLimelight> limelights = new HashMap<>();
@@ -31,11 +32,7 @@ class RestLimelight implements Limelight {
 
 	boolean started = false;
 
-	// specific types of data;
-	private final LocationalData data;
-
 	RestLimelight(String address) {
-		data = new RestLocationalData();
 		var limelightClient = new LimelightClient(address);
 		collectionThread = new DataCollection(limelightClient);
 		aprilTagMapPoseHelper = new AprilTagMapPoseHelper(limelightClient);
@@ -62,18 +59,18 @@ class RestLimelight implements Limelight {
 	 * @return The targeting latency
 	 */
 	public OptionalDouble getTargetingLatency() {
-		return unboxDouble(getJsonDump().flatMap(getRoot()).flatMap(getDouble("tl")));
+		return getLocationalData().getTargetingLatency();
 	}
 
 	public OptionalDouble getCaptureLatency() {
-		return unboxDouble(getJsonDump().flatMap(getRoot()).flatMap(getDouble("cl")));
+		return getLocationalData().getCaptureLatency();
 	}
 
 	@Override
 	public OptionalDouble getTimestamp() {
-		return unboxDouble(getJsonDump().flatMap(getRoot()).flatMap(getDouble("ts")));
+		return getLocationalData().getTimestamp();
 	}
-	
+
 	/**
 	 * Sets the field map for the limelight. Additionally, this may also upload the field map to the Limelight if desired.
 	 * This will likely be a slow operation, and should not be regularly called.
@@ -84,22 +81,22 @@ class RestLimelight implements Limelight {
 	public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
 		aprilTagMapPoseHelper.setFieldMap(stream, updateLimelight);
 	}
-	
+
 	@Override
-	public List<Pose3d> getLocatedAprilTags() {
-		return aprilTagMapPoseHelper.getVisibleTagPoses(getVisibleTags());
+	public List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags) {
+		return aprilTagMapPoseHelper.getVisibleTagPoses(visibleTags);
 	}
-	
+
 	private static <T> Function<T, Boolean> not(Function<? super T, Boolean> fnc) {
 		return (t) -> !fnc.apply(t);
-	} 
+	}
 
 	public boolean hasTarget() {
-		return getJsonDump().flatMap(getRoot()).flatMap(getArr("Fiducial")).map(not(JSONArray::isEmpty)).orElse(false);
+		return getLocationalData().hasTarget();
 	}
 
 	public LocationalData getLocationalData() {
-		return data;
+		return getJsonDump().flatMap(getRoot()).map(RestLocationalData::fromJsonDump).orElse(StubLocationalData.INSTANCE);
 	}
 
 	private void clean() {
@@ -142,22 +139,22 @@ class RestLimelight implements Limelight {
 		}
 		limelights.clear();
 	}
-	
-	@Override
-	public Set<Integer> getVisibleTags() {
-		return getJsonDump().flatMap(getRoot()).flatMap(getArr("Fiducial")).map((arr) -> {
-			Set<Integer> ints = new HashSet<>();
-			for (int i = 0; i < arr.length(); i++) {
-				JSONObject obj = arr.optJSONObject(i);
-				if (obj != null && obj.has("fID")) {
-					ints.add(obj.getInt("fID"));
-				}
-			}
-			return ints;
-		}).orElseGet(Set::of);
-	}
-	
-	private class RestLocationalData implements LocationalData {
+
+	private static class RestLocationalData implements LocationalData {
+		private final JSONObject root;
+
+		static LocationalData fromJsonDump(JSONObject root) {
+			return new RestLocationalData(root);
+		}
+
+		RestLocationalData(JSONObject root) {
+			this.root = root;
+		}
+
+		@Override
+		public boolean hasTarget() {
+			return getArr(root, "Fiducial").map(not(JSONArray::isEmpty)).orElse(false);
+		}
 
 		private boolean invalidArray(JSONArray arr) {
 			boolean simple = arr.length() != 6 || !hasTarget();
@@ -187,21 +184,23 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
+		public OptionalDouble getTimestamp() {
+			return unboxDouble(getDouble(root, "ts"));
+		}
+
+		@Override
 		public OptionalDouble getCaptureLatency() {
-			return RestLimelight.this.getCaptureLatency();
+			return unboxDouble(getDouble(root, "cl"));
 		}
 
 		@Override
 		public OptionalDouble getTargetingLatency() {
-			return RestLimelight.this.getTargetingLatency();
+			return unboxDouble(getDouble(root, "tl"));
 		}
 
-		/**
-		 * Gets the position of the robot with the center of the field as the origin
-		 * @return The position of the robot
-		 */
+		@Override
 		public Optional<Pose3d> getBotpose() {
-			return getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose")).flatMap(this::parseArr);
+			return getArr(root, "botpose").flatMap(this::parseArr);
 		}
 
 		/**
@@ -210,7 +209,7 @@ class RestLimelight implements Limelight {
 		 */
 		@Override
 		public Optional<Pose3d> getBotposeBlue() {
-			return getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose_wpiblue")).flatMap(this::parseArr);
+			return getArr(root, "botpose_wpiblue").flatMap(this::parseArr);
 		}
 
 		/**
@@ -219,14 +218,28 @@ class RestLimelight implements Limelight {
 		 */
 		@Override
 		public Optional<Pose3d> getBotposeRed() {
-			return getJsonDump().flatMap(getRoot()).flatMap(getArr("botpose_wpired")).flatMap(this::parseArr);
+			return getArr(root, "botpose_wpired").flatMap(this::parseArr);
 		}
 
 		/**
 		 * Gets the id of the targeted tag.
 		 */
-		public OptionalLong getTagID() {
-			return unboxLong(getJsonDump().flatMap(getRoot()).flatMap(getLong("pID")));
+		OptionalLong getTagID() {
+			return unboxLong(getLong(root, "pID"));
+		}
+
+		@Override
+		public Set<Integer> getVisibleTags() {
+			return getArr(root, "Fiducial").map(arr -> {
+				Set<Integer> ints = new HashSet<>();
+				for (int i = 0; i < arr.length(); i++) {
+					JSONObject obj = arr.optJSONObject(i);
+					if (obj != null && obj.has("fID")) {
+						ints.add(obj.getInt("fID"));
+					}
+				}
+				return unmodifiableSet(ints);
+			}).orElseGet(Set::of);
 		}
 	}
 }

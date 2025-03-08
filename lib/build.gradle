@@ -9,7 +9,7 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
-    id "edu.wpi.first.GradleRIO" version "2025.1.1"
+    id 'edu.wpi.first.GradleRIO' version '2025.1.1'
     id 'maven-publish'
     // Spotless code formatter.
     id 'com.diffplug.spotless' version '6.25.0'
@@ -25,14 +25,14 @@ tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
 }
 
-version = "1.2.0"
+version = '1.2.0'
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
     maven {
         // WPI
-        url "https://frcmaven.wpi.edu/artifactory/release/"
+        url 'https://frcmaven.wpi.edu/artifactory/release/'
     }
 }
 
@@ -68,14 +68,14 @@ tasks.named('jar') {
 
 javadoc {
     options.tags = [
-        "apiNote:a:Api Note:",
-        "implSpec:a:Implementation Requirements:"
+        'apiNote:a:Api Note:',
+        'implSpec:a:Implementation Requirements:'
     ]
 }
 
 task sourceJar(type: Jar) {
     from sourceSets.main.allJava
-    archiveClassifier = "sources"
+    archiveClassifier = 'sources'
 }
 
 spotless {
@@ -107,23 +107,23 @@ spotless {
 publishing {
     publications {
         lib2813(MavenPublication) {
-            groupId = "com.team2813.lib2813"
-            artifactId = "lib2813"
+            groupId = 'com.team2813.lib2813'
+            artifactId = 'lib2813'
             from components.java
             artifact sourceJar
             pom {
-                name = "2813 Library"
-                description = "Frequently reused code written by team 2813"
+                name = '2813 Library'
+                description = 'Frequently reused code written by team 2813'
                 developers {
                     developer {
-                        id = "mango"
-                        name = "kyle"
-                        email = "mangoiscute95@gmail.com"
+                        id = 'mango'
+                        name = 'kyle'
+                        email = 'mangoiscute95@gmail.com'
                     }
                 }
                 organization {
-                    name = "2813 Gear Heads"
-                    url = "https://team2813.com"
+                    name = '2813 Gear Heads'
+                    url = 'https://team2813.com'
                 }
             }
         }
