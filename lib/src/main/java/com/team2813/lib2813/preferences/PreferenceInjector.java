@@ -7,8 +7,47 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.*;
 
+/**
+ * Initializes the fields of a Record Class from values stored in {@link Preferences}.
+ *
+ * <p>Example use:
+ *
+ * <pre>
+ * public final class Drive {
+ *
+ *   public record DriveConfiguration(
+ *       boolean addLimelightMeasurement, long robotWeight,
+ *       DoubleSupplier powerMultiplier) {
+ *
+ *     public static DriveConfiguration fromPreferences() {
+ *       DriveConfiguration defaultConfig = new DriveConfiguration(
+ *           true, 137, () -> 3.14);
+ *       return PreferenceInjector.DEFAULT_INSTANCE.injectPreferences(defaultConfig);
+ *     }
+ *   }
+ * }
+ * </pre>
+ *
+ * <p>In the above example, values will be stored in NetworkTables under the "Preferences" table for
+ * each of the components of the {@code DriveConfiguration} record. The keys would be:
+ *
+ * <ul>
+ *   <li>Drive.DriveConfiguration.addLimelightMeasurement
+ *   <li>Drive.DriveConfiguration.robotWeight
+ *   <li>Drive.DriveConfiguration.powerMultiplier
+ * </ul>
+ *
+ * <p>The default values of for these Preference values will be the values provided to {@link
+ * PreferenceInjector#injectPreferences(Record)}. The values can be updated in the SmartDashboard
+ * and/or Shuffleboard UI; updated values will be stored in the flash storage for the robot.
+ */
 public class PreferenceInjector {
+  /**
+   * Injector instance that removes "com.team2813." from class names when creating prefence key
+   * names.
+   */
   public static final PreferenceInjector DEFAULT_INSTANCE = new PreferenceInjector("com.team2813.");
+
   private final String removePrefix;
   private final int removePrefixLen;
 
@@ -16,13 +55,25 @@ public class PreferenceInjector {
   boolean throwExceptions = false;
   Consumer<String> errorReporter = DataLogManager::log;
 
+  /**
+   * Creates an instance of the injector.
+   *
+   * <p>Takes in a prefix string, which is used when converting class names to Preference keys. When
+   * a record class is passed to the injector, the code generates the Preference keys by
+   * concatenating the canonical name of the class with the name of the record component (aka
+   * "record field"). This can result in long keys; to avoid this, callers can pass in a prefix into
+   * this constructor, and if the generated keys start with that prefix, the prefix will be removed
+   * when generating the key.
+   *
+   * @param removePrefix String to remove (if present) from the start of generated keys.
+   */
   public PreferenceInjector(String removePrefix) {
     this.removePrefix = removePrefix;
     this.removePrefixLen = removePrefix.length();
   }
 
   /**
-   * Creates an instance of the given record class with all fields populated from preferences.
+   * Creates an instance of the given record class with all fields populated from Preferences.
    *
    * <p>To be stored in preferences, the type of the record components can be any of the following:
    *
@@ -102,13 +153,11 @@ public class PreferenceInjector {
 
       if (factory == null) {
         params[i] = defaultValue;
+      } else if (getDefaultValue && defaultValue == null) {
+        warn("Cannot store '%s' in Preferences; default value is null", name);
+        params[i] = null;
       } else {
-        if (getDefaultValue && defaultValue == null) {
-          warn("Cannot store '%s' in Preferences; default value is null", name);
-          params[i] = null;
-        } else {
-          params[i] = factory.create(this, component, key, defaultValue);
-        }
+        params[i] = factory.create(this, component, key, defaultValue);
       }
       i++;
     }

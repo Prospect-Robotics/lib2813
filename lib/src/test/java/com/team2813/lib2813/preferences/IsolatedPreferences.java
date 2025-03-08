@@ -5,6 +5,10 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Preferences;
 import org.junit.rules.ExternalResource;
 
+/**
+ * A JUnit rule that ensures that changes to preferences done by a test are not leaked out to other
+ * tests.
+ */
 public final class IsolatedPreferences extends ExternalResource {
   private NetworkTableInstance tempInstance;
 
