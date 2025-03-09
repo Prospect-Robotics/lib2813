@@ -4,8 +4,8 @@ import com.team2813.lib2813.util.InputValidation;
 import java.util.Optional;
 
 public final class DeviceInformation {
-  private int id;
-  private Optional<String> canbus;
+  private final int id;
+  private final Optional<String> canbus;
 
   /**
    * Creates a DeviceInformation for a device on the RoboRIO can loop

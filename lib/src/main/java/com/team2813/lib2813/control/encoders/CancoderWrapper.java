@@ -9,8 +9,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 public class CancoderWrapper implements Encoder {
-  private CANcoder cancoder;
-  private DeviceInformation info;
+  private final CANcoder cancoder;
+  private final DeviceInformation info;
 
   public CancoderWrapper(int id, String canbus) {
     cancoder = new CANcoder(id, canbus);

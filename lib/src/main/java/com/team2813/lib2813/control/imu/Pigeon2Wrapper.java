@@ -5,11 +5,10 @@ import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.util.ConfigUtils;
 
 public class Pigeon2Wrapper {
-
-  private Pigeon2 pigeon;
+  private final Pigeon2 pigeon;
+  private final DeviceInformation info;
 
   private double currentHeading = 0;
-  private DeviceInformation info;
 
   /**
    * Constructor
