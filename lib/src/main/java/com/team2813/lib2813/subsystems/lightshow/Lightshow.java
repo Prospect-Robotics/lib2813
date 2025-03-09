@@ -37,8 +37,8 @@ public abstract class Lightshow extends SubsystemBase {
         }
       };
 
-  protected Set<State> states = new HashSet<>();
-  protected Optional<? extends State> defaultState;
+  protected final Set<State> states = new HashSet<>();
+  protected Optional<? extends State> defaultState = Optional.empty();
 
   /**
    * Creates a new Lightshow subsystem using an enum. Uses the given {@code enumClass} to get a list
