@@ -29,6 +29,7 @@ dependencies {
 	api "org.json:json:20240205"
 
 	testImplementation 'junit:junit:4.13.2'
+	testImplementation 'com.google.truth:truth:1.4.4'
 	implementation 'com.google.code.gson:gson:2.12.1'
 
 	nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
