@@ -1,13 +1,24 @@
 package com.team2813.lib2813.limelight;
 
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
+import static com.team2813.lib2813.limelight.Pose3dSubject.pose3ds;
+import static org.junit.Assert.assertEquals;
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import org.json.JSONObject;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
@@ -17,7 +28,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.team2813.lib2813.limelight.Pose2dSubject.pose2ds;
-import static org.junit.Assert.assertEquals;
 import static com.team2813.lib2813.limelight.Pose3dSubject.pose3ds;
 
 abstract class LimelightTestCase {
@@ -104,7 +114,7 @@ abstract class LimelightTestCase {
 		Optional<Pose3d> actualPose = locationalData.getBotpose();
 		assertThat(actualPose).isPresent();
 		Rotation3d rotation = new Rotation3d(Math.toRadians(6.82), Math.toRadians(-25.66), Math.toRadians(-173.14));
-		Pose3d expectedPose = new Pose3d(7.35, 0.71, 0.91, rotation);
+		Pose3d expectedPose = new Pose3d(7.35, 0.708, 0.91, rotation);
 		assertAbout(pose3ds()).that(actualPose.get()).isWithin( 0.005).of(expectedPose);
 
 		assertThat(locationalData.getBotPoseEstimate()).isPresent();
@@ -166,7 +176,7 @@ abstract class LimelightTestCase {
 	}
 	
 	@Test
-	public final void botposeBlueTest() throws Exception {
+	public final void getBotposeBlue() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
@@ -182,7 +192,7 @@ abstract class LimelightTestCase {
 	}
 	
 	@Test
-	public final void botposeRedTest() throws Exception {
+	public final void getBotposeRed() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
@@ -199,7 +209,7 @@ abstract class LimelightTestCase {
 	}
 
 	@Test
-	public final void visibleTagsTest() throws Exception {
+	public final void getVisibleTags() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
@@ -209,15 +219,28 @@ abstract class LimelightTestCase {
 	}
 
 	@Test
-	public final void visibleTagLocationTest() throws Exception {
+	public final void getVisibleAprilTagPoses() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
+		assertHasTarget(limelight);
+		uploadFieldMap(limelight);
 
-		boolean updateLimelight = false;
-		try (var stream = getClass().getResourceAsStream("frc2025r2.fmap")) {
-			limelight.setFieldMap(stream, updateLimelight);
-		}
+		Map<Integer, Pose3d> tagMap = limelight.getLocationalData().getVisibleAprilTagPoses();
+		assertEquals(Set.of(20), tagMap.keySet());
+		Pose3d pose = tagMap.get(20);
+		assertAbout(pose3ds())
+			.that(pose).translation()
+			.isWithin( 0.005)
+			.of(new Translation3d(-3.87, 0.72, 0.31));
+	}
+
+	@Test
+	public final void visibleTagLocation() throws Exception {
+		JSONObject obj = readJSON("BotposeBlueRedTest.json");
+		setJson(obj);
+		Limelight limelight = createLimelight();
+		uploadFieldMap(limelight);
 
 		Set<Integer> visibleTags = limelight.getLocationalData().getVisibleTags();
 		List<Pose3d> aprilTags = limelight.getLocatedAprilTags(visibleTags);
@@ -232,6 +255,13 @@ abstract class LimelightTestCase {
 	protected abstract Limelight createLimelight();
 
 	protected abstract void setJson(JSONObject json);
+
+	private void uploadFieldMap(Limelight limelight) throws IOException {
+		boolean updateLimelight = false;
+		try (var stream = getClass().getResourceAsStream("frc2025r2.fmap")) {
+			limelight.setFieldMap(stream, updateLimelight);
+		}
+	}
 
 	private JSONObject readJSON(String fileName) throws IOException {
 		try (InputStream is = getClass().getResourceAsStream(fileName)) {

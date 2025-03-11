@@ -57,7 +57,10 @@ public interface Limelight {
 	
 	/**
 	 * Gets the locations of the given AprilTags.
+	 *
+	 * @deprecated use {@link LocationalData#getVisibleAprilTagPoses()}
 	 */
+	@Deprecated
 	List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags);
 
 	/**

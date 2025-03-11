@@ -18,7 +18,7 @@ import java.util.function.Function;
 import static com.team2813.lib2813.limelight.JSONHelper.*;
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
 import static com.team2813.lib2813.limelight.Optionals.unboxLong;
-import static java.util.Collections.unmodifiableSet;
+import static java.util.Collections.*;
 
 class RestLimelight implements Limelight {
 	private static final Map<String, RestLimelight> limelights = new HashMap<>();
@@ -88,7 +88,8 @@ class RestLimelight implements Limelight {
 	}
 
 	public LocationalData getLocationalData() {
-		return collectionThread.getMostRecent().map(RestLocationalData::fromResult).orElse(StubLocationalData.VALID);
+		Optional<LocationalData> locationalData = collectionThread.getMostRecent().map(RestLocationalData::new);
+		return locationalData.orElse(StubLocationalData.VALID);
 	}
 
 	private void clean() {
@@ -132,18 +133,13 @@ class RestLimelight implements Limelight {
 		limelights.clear();
 	}
 
-	private static class RestLocationalData implements LocationalData {
+	private class RestLocationalData implements LocationalData {
 		private final JSONObject root;
 		private final double responseTimestamp;
 
-		static LocationalData fromResult(DataCollection.Result result) {
-			JSONObject root = getRoot(result.json());
-			return new RestLocationalData(root, result.responseTimestamp());
-		}
-
-		private RestLocationalData(JSONObject root, double responseTimestamp) {
-			this.root = root;
-			this.responseTimestamp = responseTimestamp;
+		RestLocationalData(DataCollection.Result result) {
+			this.root = getRoot(result.json());
+			this.responseTimestamp = result.responseTimestamp();
 		}
 
 		@Override
@@ -264,6 +260,21 @@ class RestLimelight implements Limelight {
 				}
 				return unmodifiableSet(ints);
 			}).orElseGet(Set::of);
+		}
+
+		@Override
+		public Map<Integer, Pose3d> getVisibleAprilTagPoses() {
+			return getArr(root, "Fiducial").map(arr -> {
+				Map<Integer, Pose3d> map = new HashMap<>();
+				for (int i = 0; i < arr.length(); i++) {
+					JSONObject obj = arr.optJSONObject(i);
+					if (obj != null && obj.has("fID")) {
+						int id = obj.getInt("fID");
+						aprilTagMapPoseHelper.getTagPose(id).ifPresent(pose -> map.put(id, pose));
+					}
+				}
+				return unmodifiableMap(map);
+			}).orElse(emptyMap());
 		}
 	}
 }
