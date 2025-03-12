@@ -192,10 +192,10 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
-		public double getFpgaTimestamp() {
+		public LimelightTimestamp getTimestamp() {
 			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
 			double latencyMillis = getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
-			return responseFpgaTimestamp - (latencyMillis / 1000);
+			return new LimelightTimestamp(responseFpgaTimestamp - (latencyMillis / 1000), LimelightTimestamp.Source.FPGA);
 		}
 
 		/**

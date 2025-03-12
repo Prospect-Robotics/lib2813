@@ -67,13 +67,16 @@ public interface LocationalData {
 	/**
 	 * Gets the estimated time of the vision measurement.
 	 *
-	 * <p>This value needs to be passed to {@code com.ctre.phoenix6.Utils.fpgaToCurrentTime()},
-	 * and then the resulting value can then be passed to
+	 * <p>The source of this timestamp may differ based on the implementation of
+	 * this method. Callers should check {@link LimelightTimestamp#source() the source}
+	 * of the timestamp, and if it is {@link LimelightTimestamp.Source#FPGA} call
+	 * {@code com.ctre.phoenix6.Utils.fpgaToCurrentTime()} on the {@code seconds()}
+	 * value before passing the timestamp value to
 	 * {@code com.ctre.phoenix6.swerve.SwerveDrivetrain.addVisionMeasurement()}.
 	 *
 	 * @return Number of seconds, since the FPGA started, for the measurement.
 	 */
-	double getFpgaTimestamp();
+	LimelightTimestamp getTimestamp();
 
 	/**
 	 * Gets the set of all visible tags

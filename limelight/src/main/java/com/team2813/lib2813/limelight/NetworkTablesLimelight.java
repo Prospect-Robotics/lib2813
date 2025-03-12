@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
+import com.team2813.lib2813.limelight.LimelightHelpers.PoseEstimate;
 import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.Timer;
@@ -41,11 +42,7 @@ class NetworkTablesLimelight implements Limelight {
 
   @Override
   public LocationalData getLocationalData() {
-    Optional<LimelightHelpers.LimelightResults> results = getResults();
-    if (results.isEmpty()) {
-      return StubLocationalData.INSTANCE;
-    }
-    return new NTLocationalData(results.get());
+    return getResults().orElse(StubLocationalData.INSTANCE);
   }
 
   @Override
@@ -58,10 +55,11 @@ class NetworkTablesLimelight implements Limelight {
     return getLocationalData().getCaptureLatency();
   }
 
-  private Optional<LimelightResults> getResults() {
+  private Optional<LocationalData> getResults() {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
     if (results.error == null) {
-      return Optional.of(results);
+      var bluePoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
+      return Optional.of(new NTLocationalData(results, Optional.ofNullable(bluePoseEstimate)));
     }
     return Optional.empty();
   }
@@ -69,9 +67,11 @@ class NetworkTablesLimelight implements Limelight {
   private static class NTLocationalData implements LocationalData {
     private final double fpgaTimestamp = Timer.getFPGATimestamp();
     private final LimelightResults results;
+    private final Optional<PoseEstimate> bluePoseEstimate;
 
-    NTLocationalData(LimelightHelpers.LimelightResults results) {
+    NTLocationalData(LimelightHelpers.LimelightResults results, Optional<PoseEstimate> bluePoseEstimate) {
       this.results = results;
+      this.bluePoseEstimate = bluePoseEstimate;
     }
 
     @Override
@@ -86,7 +86,8 @@ class NetworkTablesLimelight implements Limelight {
     
     @Override
     public Optional<Pose3d> getBotposeBlue() {
-      return toPose3D(results.botpose_wpiblue);
+      return bluePoseEstimate.map(estimate -> new Pose3d(estimate.pose))
+              .or(() -> toPose3D(results.botpose_wpiblue));
     }
 
     @Override
@@ -105,9 +106,15 @@ class NetworkTablesLimelight implements Limelight {
     }
 
     @Override
-    public double getFpgaTimestamp() {
+    public LimelightTimestamp getTimestamp() {
+      // For details, see
+      // https://github.com/CrossTheRoadElec/Phoenix6-Examples/blob/main/java/SwerveWithPathPlanner/src/main/java/frc/robot/Robot.java
+      if (bluePoseEstimate.isPresent()) {
+        // The timestamp below already has the latency removed.
+        return new LimelightTimestamp(bluePoseEstimate.get().timestampSeconds, LimelightTimestamp.Source.PHOENIX6);
+      }
       double latencyMillis = results.latency_capture + results.latency_pipeline + results.latency_jsonParse;
-      return fpgaTimestamp - (latencyMillis / 1000);
+      return new LimelightTimestamp(fpgaTimestamp - (latencyMillis / 1000), LimelightTimestamp.Source.PHOENIX6);
     }
 
     @Override

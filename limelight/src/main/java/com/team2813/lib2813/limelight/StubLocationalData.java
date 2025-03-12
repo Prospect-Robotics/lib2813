@@ -41,9 +41,9 @@ final class StubLocationalData implements LocationalData {
   }
 
   @Override
-  public double getFpgaTimestamp() {
-    return 0;
-  }
+  public LimelightTimestamp getTimestamp() {
+    return new LimelightTimestamp(0, LimelightTimestamp.Source.FPGA);
+    }
 
   @Override
   public Set<Integer> getVisibleTags() {
