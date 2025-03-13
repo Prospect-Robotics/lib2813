@@ -13,8 +13,9 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 
-import edu.wpi.first.wpilibj.Timer;
 import org.json.JSONObject;
+
+import static com.ctre.phoenix6.Utils.getCurrentTimeSeconds;
 
 class DataCollection implements Runnable {
 	private static final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(20))
@@ -30,7 +31,7 @@ class DataCollection implements Runnable {
 		}
 	}
 
-	record Result(JSONObject json, double responseFpgaTimestamp) {}
+	record Result(JSONObject json, double responseTimestamp) {}
 
 	private volatile Optional<Result> lastResult;
 
@@ -38,10 +39,10 @@ class DataCollection implements Runnable {
 		@Override
 		public BodySubscriber<Result> apply(ResponseInfo responseInfo) {
 			// Get the timestamp before we parse the JSON.
-			double responseFpgaTimestamp = Timer.getFPGATimestamp();
+			double responseTimestamp = getCurrentTimeSeconds();
 
 			return BodySubscribers.mapping(BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo), body -> {
-				return new Result(new JSONObject(body), responseFpgaTimestamp);
+				return new Result(new JSONObject(body), responseTimestamp);
 			});
 		}
 	}
