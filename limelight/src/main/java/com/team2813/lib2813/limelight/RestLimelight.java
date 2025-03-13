@@ -182,13 +182,6 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
-		public double getTimestamp() {
-			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
-			double latencyMillis = getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
-			return responseTimestamp - (latencyMillis / 1000);
-		}
-
-		@Override
 		public OptionalDouble getCaptureLatency() {
 			return unboxDouble(getDouble(root, "cl"));
 		}
@@ -215,6 +208,15 @@ class RestLimelight implements Limelight {
 			return getArr(root, "botpose_wpiblue").flatMap(this::parseArr);
 		}
 
+		@Override
+		public Optional<BotPoseEstimate> getBotPoseEstimateBlue() {
+			Optional<JSONArray> arr = getArr(root, "botpose_orb_wpiblue");
+			Optional<Pose3d> pose = arr.flatMap(this::parseArr);
+			return getArr(root, "botpose_orb_wpiblue")
+					.flatMap(this::parseArr)
+					.map(this::toBotPoseEstimate);
+		}
+
 		/**
 		 * Gets the position of the robot with the red driverstation as the origin
 		 * @return The position of the robot
@@ -222,6 +224,20 @@ class RestLimelight implements Limelight {
 		@Override
 		public Optional<Pose3d> getBotposeRed() {
 			return getArr(root, "botpose_wpired").flatMap(this::parseArr);
+		}
+
+		@Override
+		public Optional<BotPoseEstimate> getBotPoseEstimateRed() {
+			return getArr(root, "botpose_orb_wpired")
+					.flatMap(this::parseArr)
+					.map(this::toBotPoseEstimate);
+		}
+
+		private BotPoseEstimate toBotPoseEstimate(Pose3d pose) {
+			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
+			double latencyMillis = getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
+			double timestampSeconds = responseTimestamp - (latencyMillis / 1000);
+			return new BotPoseEstimate(pose.toPose2d(), timestampSeconds);
 		}
 
 		/**
