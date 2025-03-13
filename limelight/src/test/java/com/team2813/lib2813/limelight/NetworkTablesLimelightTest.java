@@ -6,13 +6,24 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
 
+import java.util.List;
+
 public class NetworkTablesLimelightTest extends LimelightTestCase {
   private static final String TABLE_NAME = "limelight";
-  private static long fakeTimestampMicros = 15 * 1_000_000; // 15 seconds
+  private static final long ONE_HALF_MS_IN_MICROS = 500;
+  private static final long ONE_SECOND_IN_MICROS = 1_000_000;
+  private static long fakeTimestampMicros = 15 * ONE_SECOND_IN_MICROS;
+  private static final List<String> BOT_POSE_ESTIMATE_ENTRIES = List.of("botpose_orb_wpired", "botpose_orb_wpiblue");
 
   @After
   public void resetNetworkTables() {
     getJsonNTEntry().setString("");
+
+    fakeTimestampMicros += ONE_HALF_MS_IN_MICROS;
+    for (String entryName : BOT_POSE_ESTIMATE_ENTRIES) {
+      clearBotPoseEstimate(entryName, fakeTimestampMicros);
+    }
+    fakeTimestampMicros += ONE_HALF_MS_IN_MICROS;
   }
 
   @Override
@@ -27,21 +38,26 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
 
     // Copy "botpose_orb_wpired" and "botpose_orb_wpiblue" data to Network tables.
     double latencyMillis = resultsJson.getDouble("cl") + resultsJson.getDouble("tl");
-    setBotPoseEstimate(resultsJson, "red", latencyMillis);
-    setBotPoseEstimate(resultsJson, "blue", latencyMillis);
+    for (String entryName : BOT_POSE_ESTIMATE_ENTRIES) {
+      setBotPoseEstimate(resultsJson, entryName, latencyMillis);
+    }
   }
 
   private static NetworkTableEntry getJsonNTEntry() {
     return LimelightHelpers.getLimelightNTTableEntry(TABLE_NAME, "json");
   }
 
-  private static void setBotPoseEstimate(JSONObject resultsJson, String color, double latencyMillis) {
-    String entryName = "botpose_orb_wpi" + color;
+  private static void setBotPoseEstimate(JSONObject resultsJson, String entryName, double latencyMillis) {
     double[] estimate_array = getBotPoseEstimateArray(resultsJson, entryName, latencyMillis);
     DoubleArrayEntry tableEntry =
         LimelightHelpers.getLimelightDoubleArrayEntry(TABLE_NAME, entryName);
     tableEntry.set(estimate_array, fakeTimestampMicros);
-    fakeTimestampMicros += 1000; // 1ms
+  }
+
+  private static void clearBotPoseEstimate(String entryName, long timestampMicros) {
+    DoubleArrayEntry tableEntry =
+            LimelightHelpers.getLimelightDoubleArrayEntry(TABLE_NAME, entryName);
+    tableEntry.set(new double[0], timestampMicros);
   }
 
   private static double[] getBotPoseEstimateArray(JSONObject resultsJson, String entryName, double latencyMillis) {
