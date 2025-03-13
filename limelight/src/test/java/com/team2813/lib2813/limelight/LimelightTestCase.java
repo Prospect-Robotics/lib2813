@@ -35,7 +35,7 @@ abstract class LimelightTestCase {
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
 		double expectedTargetingLatencyMs = 38.95;
 		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
-		double measurementTime = locationalData.getTimestamp().milliseconds(); // Depends on parsing time; actual time varies
+		double measurementTime = locationalData.getTimestamp() * 1000; // Depends on parsing time; actual time varies
 		assertTrue(measurementTime * 1000 > expectedCaptureLatencyMs + expectedTargetingLatencyMs);
 	}
 
@@ -52,7 +52,7 @@ abstract class LimelightTestCase {
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
 		double expectedTargetingLatencyMs = 54.64;
 		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
-		double measurementTime = locationalData.getTimestamp().milliseconds(); // Depends on parsing time; actual time varies
+		double measurementTime = locationalData.getTimestamp() * 1000; // Depends on parsing time; actual time varies
 		assertTrue(measurementTime > expectedCaptureLatencyMs + expectedTargetingLatencyMs);
 	}
 
@@ -71,7 +71,7 @@ abstract class LimelightTestCase {
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
 		double expectedTargetingLatencyMs = 66.61;
 		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
-		double measurementTime = locationalData.getTimestamp().milliseconds(); // Depends on parsing time; actual time varies
+		double measurementTime = locationalData.getTimestamp() * 1000; // Depends on parsing time; actual time varies
 		assertTrue(measurementTime > expectedCaptureLatencyMs + expectedTargetingLatencyMs);
 		Rotation3d rotation = new Rotation3d(Math.toRadians(6.817779398227925), Math.toRadians(-25.663211825857257), Math.toRadians(-173.13543891950323));
 		Pose3d expectedPose = new Pose3d(7.3505718968031255, 0.7083545864687876, 0.9059300968047116, rotation);
@@ -93,7 +93,7 @@ abstract class LimelightTestCase {
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
 		double expectedTargetingLatencyMs = 59.20;
 		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
-		double measurementTime = locationalData.getTimestamp().milliseconds(); // Depends on parsing time; actual time varies
+		double measurementTime = locationalData.getTimestamp() * 1000; // Depends on parsing time; actual time varies
 		assertTrue(measurementTime > expectedCaptureLatencyMs + expectedTargetingLatencyMs);
 		Rotation3d rotation = new Rotation3d(Math.toRadians(-5.176760596073282), Math.toRadians(-24.321885146945643), Math.toRadians(-164.63614172918574));
 		Pose3d expectedPose = new Pose3d(7.46915459715645, 0.8066093109325925, 1.0062389106931178, rotation);

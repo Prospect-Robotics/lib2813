@@ -11,8 +11,9 @@ import java.util.OptionalDouble;
 import com.team2813.lib2813.limelight.LimelightHelpers.PoseEstimate;
 import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.wpilibj.Timer;
 import org.json.JSONObject;
+
+import static com.ctre.phoenix6.Utils.getCurrentTimeSeconds;
 
 class NetworkTablesLimelight implements Limelight {
   private static final double[] ZEROS = new double[6];
@@ -65,7 +66,7 @@ class NetworkTablesLimelight implements Limelight {
   }
 
   private static class NTLocationalData implements LocationalData {
-    private final double fpgaTimestamp = Timer.getFPGATimestamp();
+    private final double timestamp = getCurrentTimeSeconds();
     private final LimelightResults results;
     private final Optional<PoseEstimate> bluePoseEstimate;
 
@@ -106,15 +107,17 @@ class NetworkTablesLimelight implements Limelight {
     }
 
     @Override
-    public LimelightTimestamp getTimestamp() {
-      // For details, see
-      // https://github.com/CrossTheRoadElec/Phoenix6-Examples/blob/main/java/SwerveWithPathPlanner/src/main/java/frc/robot/Robot.java
-      if (bluePoseEstimate.isPresent()) {
-        // The timestamp below already has the latency removed.
-        return new LimelightTimestamp(bluePoseEstimate.get().timestampSeconds, LimelightTimestamp.Source.PHOENIX6);
-      }
-      double latencyMillis = results.latency_capture + results.latency_pipeline + results.latency_jsonParse;
-      return new LimelightTimestamp(fpgaTimestamp - (latencyMillis / 1000), LimelightTimestamp.Source.PHOENIX6);
+    public double getTimestamp() {
+      // The timestamp in "bluePoseEstimate" already has the latency removed.
+      return bluePoseEstimate
+          .map(estimate -> estimate.timestampSeconds)
+          .orElseGet(
+              () -> {
+                // timestamp does not include latency.
+                double latencyMillis =
+                    results.latency_capture + results.latency_pipeline + results.latency_jsonParse;
+                return timestamp - (latencyMillis / 1000);
+              });
     }
 
     @Override

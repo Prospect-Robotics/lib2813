@@ -137,16 +137,16 @@ class RestLimelight implements Limelight {
 
 	private static class RestLocationalData implements LocationalData {
 		private final JSONObject root;
-		private final double responseFpgaTimestamp;
+		private final double responseTimestamp;
 
 		static LocationalData fromResult(DataCollection.Result result) {
 			JSONObject root = getRoot(result.json());
-			return new RestLocationalData(root, result.responseFpgaTimestamp());
+			return new RestLocationalData(root, result.responseTimestamp());
 		}
 
-		private RestLocationalData(JSONObject root, double responseFpgaTimestamp) {
+		private RestLocationalData(JSONObject root, double responseTimestamp) {
 			this.root = root;
-			this.responseFpgaTimestamp = responseFpgaTimestamp;
+			this.responseTimestamp = responseTimestamp;
 		}
 
 		@Override
@@ -182,6 +182,13 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
+		public double getTimestamp() {
+			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
+			double latencyMillis = getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
+			return responseTimestamp - (latencyMillis / 1000);
+		}
+
+		@Override
 		public OptionalDouble getCaptureLatency() {
 			return unboxDouble(getDouble(root, "cl"));
 		}
@@ -189,13 +196,6 @@ class RestLimelight implements Limelight {
 		@Override
 		public OptionalDouble getTargetingLatency() {
 			return unboxDouble(getDouble(root, "tl"));
-		}
-
-		@Override
-		public LimelightTimestamp getTimestamp() {
-			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
-			double latencyMillis = getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
-			return new LimelightTimestamp(responseFpgaTimestamp - (latencyMillis / 1000), LimelightTimestamp.Source.FPGA);
 		}
 
 		/**

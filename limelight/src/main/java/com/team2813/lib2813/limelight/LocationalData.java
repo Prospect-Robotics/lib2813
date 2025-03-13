@@ -54,6 +54,16 @@ public interface LocationalData {
 	@Deprecated
 	OptionalDouble getTargetingLatency();
 
+	/**
+	 * Gets the estimated time of the vision measurement.
+	 *
+	 * <p>This value can be passed to
+	 * {@code com.ctre.phoenix6.swerve.SwerveDrivetrain.addVisionMeasurement()}.
+	 *
+	 * @return Timestamp, in seconds since the drivetrain started
+	 */
+	double getTimestamp();
+
 	@Deprecated
 	default OptionalDouble lastMSDelay(){
 		OptionalDouble a = getCaptureLatency();
@@ -63,20 +73,6 @@ public interface LocationalData {
 		}
 		return OptionalDouble.empty();
 	}
-
-	/**
-	 * Gets the estimated time of the vision measurement.
-	 *
-	 * <p>The source of this timestamp may differ based on the implementation of
-	 * this method. Callers should check {@link LimelightTimestamp#source() the source}
-	 * of the timestamp, and if it is {@link LimelightTimestamp.Source#FPGA} call
-	 * {@code com.ctre.phoenix6.Utils.fpgaToCurrentTime()} on the {@code seconds()}
-	 * value before passing the timestamp value to
-	 * {@code com.ctre.phoenix6.swerve.SwerveDrivetrain.addVisionMeasurement()}.
-	 *
-	 * @return Number of seconds, since the FPGA started, for the measurement.
-	 */
-	LimelightTimestamp getTimestamp();
 
 	/**
 	 * Gets the set of all visible tags
