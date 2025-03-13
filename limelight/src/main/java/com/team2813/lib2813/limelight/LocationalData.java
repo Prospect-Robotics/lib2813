@@ -28,10 +28,22 @@ public interface LocationalData {
 	Optional<Pose3d> getBotposeBlue();
 
 	/**
+	 * Gets the estimated position of the robot with the blue driverstation as the origin,
+	 * using the MegaTag2 localizer.
+	 */
+	Optional<BotPoseEstimate> getBotPoseEstimateBlue();
+
+	/**
 	 * Gets the position of the robot with the red driverstation as the origin
 	 * @return The position of the robot
 	 */
 	Optional<Pose3d> getBotposeRed();
+
+	/**
+	 * Gets the estimated position of the robot with the red driverstation as the origin,
+	 * using the MegaTag2 localizer.
+	 */
+	Optional<BotPoseEstimate> getBotPoseEstimateRed();
 
 	/**
 	 * Capture latency in milliseconds.
@@ -39,7 +51,7 @@ public interface LocationalData {
 	 * <p>Per the Limelight docs, this is the time between the end of the exposure of the middle row
 	 * to the beginning of the tracking loop.
 	 *
-	 * @deprecated Use {@link #getFpgaTimestamp()}
+	 * @deprecated Use {@link #getBotPoseEstimateBlue()} or {@link #getBotPoseEstimateRed()}
 	 */
 	@Deprecated
 	OptionalDouble getCaptureLatency();
@@ -49,20 +61,10 @@ public interface LocationalData {
 	 *
 	 * <p>Per the Limelight docs, this is the time consumed by the tracking loop this frame.
 	 *
-	 * @deprecated Use {@link #getFpgaTimestamp()}
+	 * @deprecated Use {@link #getBotPoseEstimateBlue()} or {@link #getBotPoseEstimateRed()}
 	 */
 	@Deprecated
 	OptionalDouble getTargetingLatency();
-
-	/**
-	 * Gets the estimated time of the vision measurement.
-	 *
-	 * <p>This value can be passed to
-	 * {@code com.ctre.phoenix6.swerve.SwerveDrivetrain.addVisionMeasurement()}.
-	 *
-	 * @return Timestamp, in seconds since the drivetrain started
-	 */
-	double getTimestamp();
 
 	@Deprecated
 	default OptionalDouble lastMSDelay(){

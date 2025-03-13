@@ -13,8 +13,6 @@ import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
 import edu.wpi.first.math.geometry.Pose3d;
 import org.json.JSONObject;
 
-import static com.ctre.phoenix6.Utils.getCurrentTimeSeconds;
-
 class NetworkTablesLimelight implements Limelight {
   private static final double[] ZEROS = new double[6];
   private final String limelightName;
@@ -59,19 +57,28 @@ class NetworkTablesLimelight implements Limelight {
   private Optional<LocationalData> getResults() {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
     if (results.error == null) {
-      var bluePoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
-      return Optional.of(new NTLocationalData(results, Optional.ofNullable(bluePoseEstimate)));
+      var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(limelightName));
+      var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName));
+      return Optional.of(new NTLocationalData(results, redPoseEstimate, bluePoseEstimate));
     }
     return Optional.empty();
   }
 
-  private static class NTLocationalData implements LocationalData {
-    private final double timestamp = getCurrentTimeSeconds();
-    private final LimelightResults results;
-    private final Optional<PoseEstimate> bluePoseEstimate;
+  private static Optional<BotPoseEstimate> toBotPoseEstimate(PoseEstimate estimate) {
+    if (estimate == null || estimate.tagCount == 0) {
+      return Optional.empty();
+    }
+    return Optional.of(new BotPoseEstimate(estimate.pose, estimate.timestampSeconds));
+  }
 
-    NTLocationalData(LimelightHelpers.LimelightResults results, Optional<PoseEstimate> bluePoseEstimate) {
+  private static class NTLocationalData implements LocationalData {
+    private final LimelightResults results;
+    private final Optional<BotPoseEstimate> redPoseEstimate;
+    private final Optional<BotPoseEstimate> bluePoseEstimate;
+
+    NTLocationalData(LimelightHelpers.LimelightResults results, Optional<BotPoseEstimate> redPoseEstimate, Optional<BotPoseEstimate> bluePoseEstimate) {
       this.results = results;
+      this.redPoseEstimate = redPoseEstimate;
       this.bluePoseEstimate = bluePoseEstimate;
     }
 
@@ -87,13 +94,22 @@ class NetworkTablesLimelight implements Limelight {
     
     @Override
     public Optional<Pose3d> getBotposeBlue() {
-      return bluePoseEstimate.map(estimate -> new Pose3d(estimate.pose))
-              .or(() -> toPose3D(results.botpose_wpiblue));
+      return toPose3D(results.botpose_wpiblue);
+    }
+
+    @Override
+    public Optional<BotPoseEstimate> getBotPoseEstimateBlue() {
+      return bluePoseEstimate;
     }
 
     @Override
     public Optional<Pose3d> getBotposeRed() {
       return toPose3D(results.botpose_wpired);
+    }
+
+    @Override
+    public Optional<BotPoseEstimate> getBotPoseEstimateRed() {
+      return redPoseEstimate;
     }
 
     @Override
@@ -104,20 +120,6 @@ class NetworkTablesLimelight implements Limelight {
     @Override
     public OptionalDouble getTargetingLatency() {
       return OptionalDouble.of(results.latency_pipeline);
-    }
-
-    @Override
-    public double getTimestamp() {
-      // The timestamp in "bluePoseEstimate" already has the latency removed.
-      return bluePoseEstimate
-          .map(estimate -> estimate.timestampSeconds)
-          .orElseGet(
-              () -> {
-                // timestamp does not include latency.
-                double latencyMillis =
-                    results.latency_capture + results.latency_pipeline + results.latency_jsonParse;
-                return timestamp - (latencyMillis / 1000);
-              });
     }
 
     @Override
