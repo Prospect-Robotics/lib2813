@@ -17,7 +17,6 @@ import java.util.function.Function;
 
 import static com.team2813.lib2813.limelight.JSONHelper.*;
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
-import static com.team2813.lib2813.limelight.Optionals.unboxLong;
 import static java.util.Collections.unmodifiableSet;
 
 class RestLimelight implements Limelight {
@@ -52,14 +51,6 @@ class RestLimelight implements Limelight {
 	@Override
 	public Optional<JSONObject> getJsonDump() {
 		return collectionThread.getMostRecent();
-	}
-
-	/**
-	 * Gets the targeting latency from the limelight
-	 * @return The targeting latency
-	 */
-	public OptionalDouble getTargetingLatency() {
-		return getLocationalData().getTargetingLatency();
 	}
 
 	public OptionalDouble getCaptureLatency() {
@@ -219,13 +210,6 @@ class RestLimelight implements Limelight {
 		@Override
 		public Optional<Pose3d> getBotposeRed() {
 			return getArr(root, "botpose_wpired").flatMap(this::parseArr);
-		}
-
-		/**
-		 * Gets the id of the targeted tag.
-		 */
-		OptionalLong getTagID() {
-			return unboxLong(getLong(root, "pID"));
 		}
 
 		@Override
