@@ -10,6 +10,7 @@ import java.util.OptionalDouble;
 
 import com.team2813.lib2813.limelight.LimelightHelpers.PoseEstimate;
 import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import org.json.JSONObject;
 
@@ -57,15 +58,19 @@ class NetworkTablesLimelight implements Limelight {
   private Optional<LocationalData> getResults() {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
     if (results.error == null) {
-      var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(limelightName));
-      var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName));
+      // Prefer MegaTag2 (introduced in 2024). If it isn't there, try falling back to
+      // the previous algorithm.
+      var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(limelightName))
+              .or(() -> toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName)));
+      var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName))
+              .or(() -> toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName)));
       return Optional.of(new NTLocationalData(results, redPoseEstimate, bluePoseEstimate));
     }
     return Optional.empty();
   }
 
   private static Optional<BotPoseEstimate> toBotPoseEstimate(PoseEstimate estimate) {
-    if (estimate == null || estimate.tagCount == 0) {
+    if (estimate == null || estimate.tagCount == 0 || Pose2d.kZero.equals(estimate.pose)) {
       return Optional.empty();
     }
     return Optional.of(new BotPoseEstimate(estimate.pose, estimate.timestampSeconds));

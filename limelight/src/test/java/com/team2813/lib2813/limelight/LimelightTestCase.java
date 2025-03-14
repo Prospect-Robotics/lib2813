@@ -79,14 +79,14 @@ abstract class LimelightTestCase {
 		var blueEstimate = locationalData.getBotPoseEstimateBlue();
 		assertTrue(blueEstimate.isPresent());
 		assertTrue(blueEstimate.get().timestampSeconds() > 0);
-		expectedPose = new Pose3d(15.621446896803125, 4.715204586468787, 0.9059300968047116, rotation);
+		expectedPose = new Pose3d(15.621446896803125, 4.515204586468787, 0.9059300968047116, rotation);
 		assertEquals(blueEstimate.get().pose(), expectedPose.toPose2d());
 
 		var redEstimate = locationalData.getBotPoseEstimateRed();
 		assertTrue(redEstimate.isPresent());
 		assertEquals(blueEstimate.get().timestampSeconds(), redEstimate.get().timestampSeconds(), 0.005);
 		rotation = new Rotation3d(Math.toRadians(6.817779398227925), Math.toRadians(-25.663211825857257), Math.toRadians(6.8644090410054215));
-		expectedPose = new Pose3d(0.9203012235144277, 3.2985149189332175, 0.9059300968047116, rotation);
+		expectedPose = new Pose3d(0.9203012235144277, 3.0985149189332175, 0.9059300968047116, rotation);
 		assertEquals(redEstimate.get().pose(), expectedPose.toPose2d());
 	}
 

@@ -210,9 +210,10 @@ class RestLimelight implements Limelight {
 
 		@Override
 		public Optional<BotPoseEstimate> getBotPoseEstimateBlue() {
-			Optional<JSONArray> arr = getArr(root, "botpose_orb_wpiblue");
-			Optional<Pose3d> pose = arr.flatMap(this::parseArr);
+			// Prefer MegaTag2 (introduced in 2024). If it isn't there, try falling back to
+			// the previous algorithm.
 			return getArr(root, "botpose_orb_wpiblue")
+					.or(() -> getArr(root, "botpose_wpiblue"))
 					.flatMap(this::parseArr)
 					.map(this::toBotPoseEstimate);
 		}
@@ -229,6 +230,7 @@ class RestLimelight implements Limelight {
 		@Override
 		public Optional<BotPoseEstimate> getBotPoseEstimateRed() {
 			return getArr(root, "botpose_orb_wpired")
+					.or(() -> getArr(root, "botpose_wpired"))
 					.flatMap(this::parseArr)
 					.map(this::toBotPoseEstimate);
 		}
