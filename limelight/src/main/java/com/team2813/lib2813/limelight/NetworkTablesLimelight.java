@@ -12,6 +12,8 @@ import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
 import edu.wpi.first.math.geometry.Pose3d;
 import org.json.JSONObject;
 
+import static java.util.Collections.unmodifiableMap;
+
 class NetworkTablesLimelight implements Limelight {
   private static final double[] ZEROS = new double[6];
   private final String limelightName;
@@ -70,7 +72,7 @@ class NetworkTablesLimelight implements Limelight {
     return Optional.empty();
   }
 
-  private static class NTLocationalData implements LocationalData {
+  private class NTLocationalData implements LocationalData {
     private final LimelightResults results;
 
     NTLocationalData(LimelightHelpers.LimelightResults results) {
@@ -115,6 +117,16 @@ class NetworkTablesLimelight implements Limelight {
     @Override
     public Set<Integer> getVisibleTags() {
       return Arrays.stream(results.targets_Fiducials).map(fiducial -> (int) fiducial.fiducialID).collect(Collectors.toUnmodifiableSet());
+    }
+
+    @Override
+    public Map<Integer, Pose3d> getVisibleAprilTagPoses() {
+      Map<Integer, Pose3d> map = new HashMap<>();
+      for (var fiducial: results.targets_Fiducials) {
+        int id = (int) fiducial.fiducialID;
+        aprilTagMapPoseHelper.getTagPose(id).ifPresent(pose -> map.put(id, pose));
+      }
+      return unmodifiableMap(map);
     }
 
     private static Optional<Pose3d> toPose3D(double[] inData) {
