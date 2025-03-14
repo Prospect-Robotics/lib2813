@@ -84,6 +84,7 @@ public class PreferencesInjector {
    *   <li>{@code long} or {@code LongSupplier} or {@code Supplier<Long>}
    *   <li>{@code double} or {@code DoubleSupplier} or {@code Supplier<Double>}
    *   <li>{@code String} or {@code Supplier<String>}
+   *   <li>{@code Record} following the above rules
    * </ul>
    *
    * <p>The values for the components for the passed-in instance will be used as the default value
@@ -95,79 +96,86 @@ public class PreferencesInjector {
    */
   public final <T extends java.lang.Record> T injectPreferences(T configWithDefaults) {
     @SuppressWarnings("unchecked")
-    Class<? extends T> clazz = (Class<? extends T>) configWithDefaults.getClass();
+    Class<? extends T> recordClass = (Class<? extends T>) configWithDefaults.getClass();
+    String prefix = createKey(recordClass);
 
     try {
-      return injectPreferences(clazz, configWithDefaults);
+      return injectPreferences(prefix, recordClass, configWithDefaults);
     } catch (ReflectiveOperationException e) {
       if (throwExceptions) {
         throw new RuntimeException(e); // For self-tests.
       }
       DriverStation.reportWarning(
-          String.format("Could not inject preferences into %s: %s", clazz.getSimpleName(), e),
+          String.format("Could not inject preferences into %s: %s", recordClass.getSimpleName(), e),
           e.getStackTrace());
       return configWithDefaults;
     }
   }
 
   /**
-   * Creates a preference key for the given record component.
+   * Creates a preference key for the given record class.
    *
    * <p>This method is protected and non-final so subclasses can change the default behavior.
    */
-  protected String createKey(RecordComponent component) {
-    Class<?> recordClass = component.getDeclaringRecord();
+  protected String createKey(Class<? extends Record> recordClass) {
     String recordName = recordClass.getCanonicalName();
     if (recordName == null) {
       recordName = recordClass.getName();
     }
-    String componentName = component.getName();
     if (recordName.startsWith(this.removePrefix)) {
-      recordName = recordName.substring(this.removePrefixLen);
-      if (recordName.isEmpty()) {
-        return componentName;
+      String adjustedName = recordName.substring(this.removePrefixLen);
+      if (!adjustedName.isEmpty()) {
+        recordName = adjustedName;
       }
     }
-    return recordName + "." + componentName;
+    return recordName;
   }
 
-  private <T extends java.lang.Record> T injectPreferences(
-      Class<? extends T> clazz, T configWithDefaults) throws ReflectiveOperationException {
+  private <T> T injectPreferences(String prefix, Class<? extends T> clazz, T configWithDefaults)
+      throws ReflectiveOperationException {
     var components = clazz.getRecordComponents();
     Object[] params = new Object[components.length];
     Class<?>[] types = new Class[components.length];
     int i = 0;
     for (RecordComponent component : components) {
       String name = component.getName();
+      String key = prefix + "." + name;
       Class<?> type = component.getType();
       types[i] = type;
 
-      Object defaultValue = null;
-      String key = null;
-      boolean getDefaultValue;
-
-      PreferenceFactory factory = TYPE_TO_FACTORY.get(type);
-      if (factory == null) {
-        warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
-        getDefaultValue = true;
+      boolean needComponentValue;
+      PreferenceFactory factory = null;
+      boolean isRecordField = Record.class.isAssignableFrom(type);
+      if (isRecordField) {
+        needComponentValue = true;
       } else {
-        key = createKey(component);
-        getDefaultValue = !Preferences.containsKey(key);
+        factory = TYPE_TO_FACTORY.get(type);
+        if (factory == null) {
+          // Cannot get value from Preferences; copy over the value from the input record.
+          needComponentValue = true;
+        } else {
+          needComponentValue = !Preferences.containsKey(key);
+        }
       }
-      if (getDefaultValue) {
+
+      Object componentValue = null;
+      if (needComponentValue) {
         Field defaultValueField = clazz.getDeclaredField(name);
         defaultValueField.setAccessible(true);
-        defaultValue = defaultValueField.get(configWithDefaults);
+        componentValue = defaultValueField.get(configWithDefaults);
       }
 
-      if (factory == null) {
-        params[i] = defaultValue;
-      } else if (getDefaultValue && defaultValue == null) {
+      if (isRecordField) {
+        params[i] = injectPreferences(key, type, componentValue);
+      } else if (factory == null) {
+        warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
+        params[i] = componentValue;
+      } else if (needComponentValue && componentValue == null) {
         warn("Cannot store '%s' in Preferences; default value is null", name);
         params[i] = null;
       } else {
         // Fetch the value from Preferences
-        params[i] = factory.create(this, component, key, defaultValue);
+        params[i] = factory.create(this, component, key, componentValue);
       }
       i++;
     }
