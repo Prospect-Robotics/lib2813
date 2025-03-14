@@ -15,6 +15,9 @@ public interface LocationalData {
 	/** Returns {@code true} if the limelight has identified a target. */
 	boolean hasTarget();
 
+	/** Returns {@code true} if the limelight has provided a valid response. */
+	boolean isValid();
+
 	/**
 	 * Gets the position of the robot with the center of the field as the origin.
 	 * @return The position of the robot
