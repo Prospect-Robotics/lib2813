@@ -1,8 +1,6 @@
 package com.team2813.lib2813.limelight;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.units.Units;
 
 
@@ -21,7 +19,7 @@ public class AprilTagPoseHelper {
           { 365.20, 241.64, 73.54, 0, 30 }, // ID 4
           { 365.20, 75.39, 73.54, 0, 30 }, // ID 5
           { 530.49, 130.17, 12.13, 300, 0 }, // ID 6
-          { 456.87, 158.50, 12.13, 0, 0 }, // ID 7
+          { 546.87, 158.50, 12.13, 0, 0 }, // ID 7
           { 530.49, 186.83, 12.13, 60, 0 }, // ID 8
           { 497.77, 186.83, 12.13, 120, 0}, // ID 9
           { 481.39, 158.50, 12.13, 180, 0 }, // ID 10
@@ -49,7 +47,13 @@ public class AprilTagPoseHelper {
     if (id < 1 || id > 22) {
       throw new IllegalArgumentException(String.format("id needs to be on the interval [1,22], but was %d!", id));
     }
-    return getTagLocation(aprilTagLocations2025[id - 1]);
+    return getTagLocation(aprilTagLocations2025[id - 1])
+        .relativeTo(
+            new Pose3d(
+                Units.Meters.of(8.7736),
+                Units.Meters.of(4.0257),
+                Units.Meters.of(0),
+                new Rotation3d()));
   }
   
   /**

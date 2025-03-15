@@ -1,5 +1,6 @@
 package com.team2813.lib2813.limelight;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -24,8 +25,7 @@ public class AprilTagLocationTest {
   public final FakeLimelight fakeLimelight = new FakeLimelight();
   @Parameterized.Parameters(name = "ID {0}")
   public static Collection<?> data() {
-    int[] values =  IntStream.rangeClosed(1, 22).toArray();
-    return List.of(values);
+    return IntStream.rangeClosed(1, 22).boxed().toList();
   }
   
   @Parameterized.Parameter
@@ -49,11 +49,13 @@ public class AprilTagLocationTest {
     return helper;
   }
   
+  private static double DEGREE_1_RADIANS = Units.Degrees.of(1).in(Units.Radians);
+  
   private void assertAlmostEquals(Pose3d expected, Pose3d actual) {
     String message = String.format("Expected \"%s\", but was, \"%s\"", expected, actual);
     double totalDiff = expected.getTranslation().minus(actual.getTranslation()).getDistance(new Translation3d(0, 0, 0));
     assertTrue(message, Math.abs(totalDiff) < 0.01);
     Rotation3d rotDiff = expected.getRotation().minus(actual.getRotation());
-    assertTrue(message, Math.abs(rotDiff.getMeasureAngle().in(Units.Degrees)) < 1);
+    assertTrue(message, Math.abs(MathUtil.angleModulus(rotDiff.getMeasureAngle().in(Units.Radians))) < DEGREE_1_RADIANS);
   }
 }
