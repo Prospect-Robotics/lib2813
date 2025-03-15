@@ -21,6 +21,13 @@ public interface Limelight {
 	}
 
 	/**
+	 * @deprecated use methods in {@link LocationalData} that return a
+	 *   {@link BotPoseEstimate}.
+	 */
+	@Deprecated
+	OptionalDouble getTimestamp();
+
+	/**
 	 * Returns {@code true} if the limelight has identified a target.
 	 *
 	 * @deprecated use {@link LocationalData#hasTarget()}

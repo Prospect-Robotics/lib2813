@@ -56,6 +56,16 @@ final class StubLocationalData implements LocationalData {
   }
 
   @Override
+  public OptionalDouble getTimestamp() {
+    return OptionalDouble.empty();
+  }
+
+  @Override
+  public OptionalDouble lastMSDelay() {
+    return OptionalDouble.empty();
+  }
+
+  @Override
   public Set<Integer> getVisibleTags() {
     return Set.of();
   }

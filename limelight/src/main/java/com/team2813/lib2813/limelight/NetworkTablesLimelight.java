@@ -25,6 +25,11 @@ class NetworkTablesLimelight implements Limelight {
   }
 
   @Override
+  public OptionalDouble getTimestamp() {
+    return getLocationalData().getTimestamp();
+  }
+
+  @Override
   public boolean hasTarget() {
     return getLocationalData().hasTarget();
   }
@@ -129,6 +134,11 @@ class NetworkTablesLimelight implements Limelight {
     @Override
     public OptionalDouble getTargetingLatency() {
       return OptionalDouble.of(results.latency_pipeline);
+    }
+
+    @Override
+    public OptionalDouble getTimestamp() {
+      return OptionalDouble.of(results.timestamp_LIMELIGHT_publish);
     }
 
     @Override

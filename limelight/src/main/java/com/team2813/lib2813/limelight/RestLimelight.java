@@ -66,6 +66,11 @@ class RestLimelight implements Limelight {
 		return getLocationalData().getCaptureLatency();
 	}
 
+	@Override
+	public OptionalDouble getTimestamp() {
+		return getLocationalData().getTimestamp();
+	}
+
 	/**
 	 * Sets the field map for the limelight. Additionally, this may also upload the field map to the Limelight if desired.
 	 * This will likely be a slow operation, and should not be regularly called.
@@ -182,6 +187,11 @@ class RestLimelight implements Limelight {
 		}
 
 		@Override
+		public OptionalDouble getTimestamp() {
+			return unboxDouble(getDouble(root, "ts"));
+		}
+
+		@Override
 		public OptionalDouble getCaptureLatency() {
 			return unboxDouble(getDouble(root, "cl"));
 		}
@@ -195,7 +205,6 @@ class RestLimelight implements Limelight {
 		public Optional<Pose3d> getBotpose() {
 			return getArr(root, "botpose").flatMap(this::parseArr);
 		}
-
 
 		@Override
 		public Optional<BotPoseEstimate> getBotPoseEstimate() {

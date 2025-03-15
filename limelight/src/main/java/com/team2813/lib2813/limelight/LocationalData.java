@@ -69,6 +69,12 @@ public interface LocationalData {
 	@Deprecated
 	OptionalDouble getTargetingLatency();
 
+	/**
+	 * @deprecated use methods that return a {@link BotPoseEstimate}.
+	 */
+	@Deprecated
+	OptionalDouble getTimestamp();
+
 	@Deprecated
 	default OptionalDouble lastMSDelay(){
 		OptionalDouble a = getCaptureLatency();
