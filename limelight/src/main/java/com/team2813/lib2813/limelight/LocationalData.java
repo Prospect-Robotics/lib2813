@@ -28,8 +28,7 @@ public interface LocationalData {
 	Optional<Pose3d> getBotposeBlue();
 
 	/**
-	 * Gets the estimated position of the robot with the blue driverstation as the origin,
-	 * using the MegaTag2 localizer.
+	 * Gets the estimated position of the robot with the blue driverstation as the origin.
 	 */
 	Optional<BotPoseEstimate> getBotPoseEstimateBlue();
 
@@ -40,8 +39,7 @@ public interface LocationalData {
 	Optional<Pose3d> getBotposeRed();
 
 	/**
-	 * Gets the estimated position of the robot with the red driverstation as the origin,
-	 * using the MegaTag2 localizer.
+	 * Gets the estimated position of the robot with the red driverstation as the origin.
 	 */
 	Optional<BotPoseEstimate> getBotPoseEstimateRed();
 

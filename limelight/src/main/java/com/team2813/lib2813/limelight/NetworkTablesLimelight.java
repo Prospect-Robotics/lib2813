@@ -58,12 +58,8 @@ class NetworkTablesLimelight implements Limelight {
   private Optional<LocationalData> getResults() {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
     if (results.error == null) {
-      // Prefer MegaTag2 (introduced in 2024). If it isn't there, try falling back to
-      // the previous algorithm.
-      var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(limelightName))
-              .or(() -> toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName)));
-      var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName))
-              .or(() -> toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName)));
+      var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName));
+      var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName));
       return Optional.of(new NTLocationalData(results, redPoseEstimate, bluePoseEstimate));
     }
     return Optional.empty();
