@@ -15,6 +15,8 @@ import java.util.concurrent.Executors;
 
 import org.json.JSONObject;
 
+import static com.ctre.phoenix6.Utils.getCurrentTimeSeconds;
+
 class DataCollection implements Runnable {
 	private static final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(20))
 			.executor(Executors.newFixedThreadPool(2)).build();
@@ -29,21 +31,27 @@ class DataCollection implements Runnable {
 		}
 	}
 
-	private volatile Optional<JSONObject> lastResult;
+	record Result(JSONObject json, double responseTimestamp) {}
 
-	private static class JSONHandler implements BodyHandler<JSONObject> {
+	private volatile Optional<Result> lastResult;
+
+	private static class JSONHandler implements BodyHandler<Result> {
 		@Override
-		public BodySubscriber<JSONObject> apply(ResponseInfo responseInfo) {
-			return BodySubscribers.mapping(BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo),
-					JSONObject::new);
+		public BodySubscriber<Result> apply(ResponseInfo responseInfo) {
+			// Get the timestamp before we parse the JSON.
+			double responseTimestamp = getCurrentTimeSeconds();
+
+			return BodySubscribers.mapping(BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo), body -> {
+				return new Result(new JSONObject(body), responseTimestamp);
+			});
 		}
 	}
 
 	private static final JSONHandler handler = new JSONHandler();
 
-	private void updateJSON(HttpResponse<JSONObject> obj) {
-		JSONObject json = obj.body();
-		lastResult = Optional.of(json);
+	private void updateJSON(HttpResponse<Result> obj) {
+		Result result = obj.body();
+		lastResult = Optional.of(result);
 	}
 
 	@Override
@@ -59,7 +67,7 @@ class DataCollection implements Runnable {
 		}
 	}
 
-	public Optional<JSONObject> getMostRecent() {
+	public Optional<Result> getMostRecent() {
 		return lastResult;
 	}
 }
