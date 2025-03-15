@@ -14,6 +14,7 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
   private static final long ONE_SECOND_IN_MICROS = 1_000_000;
   private static long fakeTimestampMicros = 15 * ONE_SECOND_IN_MICROS;
   private static final List<String> BOT_POSE_ESTIMATE_ENTRIES = List.of(
+          "botpose",
           "botpose_wpired", "botpose_orb_wpired",
           "botpose_wpiblue", "botpose_orb_wpiblue");
 

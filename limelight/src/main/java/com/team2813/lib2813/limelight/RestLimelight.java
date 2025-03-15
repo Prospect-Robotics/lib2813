@@ -191,18 +191,19 @@ class RestLimelight implements Limelight {
 			return unboxDouble(getDouble(root, "tl"));
 		}
 
-		/**
-		 * Gets the position of the robot with the center of the field as the origin
-		 * @return The position of the robot
-		 */
+		@Override
 		public Optional<Pose3d> getBotpose() {
 			return getArr(root, "botpose").flatMap(this::parseArr);
 		}
 
-		/**
-		 * Gets the position of the robot with the blue driverstation as the origin
-		 * @return The position of the robot
-		 */
+
+		@Override
+		public Optional<BotPoseEstimate> getBotPoseEstimate() {
+			return getArr(root, "botpose")
+					.flatMap(this::parseArr)
+					.map(this::toBotPoseEstimate);
+		}
+
 		@Override
 		public Optional<Pose3d> getBotposeBlue() {
 			return getArr(root, "botpose_wpiblue").flatMap(this::parseArr);

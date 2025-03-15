@@ -1299,6 +1299,10 @@ class LimelightHelpers {
 
     }
 
+    public static PoseEstimate getBotPoseEstimate(String limelightName) {
+        return getBotPoseEstimate(limelightName, "botpose", false);
+    }
+
     /**
      * Gets the Pose2d and timestamp for use with WPILib pose estimator (addVisionMeasurement) when you are on the RED
      * alliance

@@ -21,6 +21,11 @@ final class StubLocationalData implements LocationalData {
   }
 
   @Override
+  public Optional<BotPoseEstimate> getBotPoseEstimate() {
+    return Optional.empty();
+  }
+
+  @Override
   public Optional<Pose3d> getBotposeBlue() {
     return Optional.empty();
   }

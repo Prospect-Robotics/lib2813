@@ -58,9 +58,10 @@ class NetworkTablesLimelight implements Limelight {
   private Optional<LocationalData> getResults() {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
     if (results.error == null) {
+      var poseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate(limelightName));
       var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName));
       var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName));
-      return Optional.of(new NTLocationalData(results, redPoseEstimate, bluePoseEstimate));
+      return Optional.of(new NTLocationalData(results, poseEstimate, redPoseEstimate, bluePoseEstimate));
     }
     return Optional.empty();
   }
@@ -74,11 +75,13 @@ class NetworkTablesLimelight implements Limelight {
 
   private static class NTLocationalData implements LocationalData {
     private final LimelightResults results;
+    private final Optional<BotPoseEstimate> poseEstimate;
     private final Optional<BotPoseEstimate> redPoseEstimate;
     private final Optional<BotPoseEstimate> bluePoseEstimate;
 
-    NTLocationalData(LimelightHelpers.LimelightResults results, Optional<BotPoseEstimate> redPoseEstimate, Optional<BotPoseEstimate> bluePoseEstimate) {
+    NTLocationalData(LimelightHelpers.LimelightResults results, Optional<BotPoseEstimate> poseEstimate, Optional<BotPoseEstimate> redPoseEstimate, Optional<BotPoseEstimate> bluePoseEstimate) {
       this.results = results;
+      this.poseEstimate = poseEstimate;
       this.redPoseEstimate = redPoseEstimate;
       this.bluePoseEstimate = bluePoseEstimate;
     }
@@ -91,6 +94,11 @@ class NetworkTablesLimelight implements Limelight {
     @Override
     public Optional<Pose3d> getBotpose() {
       return toPose3D(results.botpose);
+    }
+
+    @Override
+    public Optional<BotPoseEstimate> getBotPoseEstimate() {
+      return poseEstimate;
     }
     
     @Override

@@ -22,6 +22,11 @@ public interface LocationalData {
 	Optional<Pose3d> getBotpose();
 
 	/**
+	 * Gets the estimated position of the robot with the center of the field as the origin.
+	 */
+	Optional<BotPoseEstimate> getBotPoseEstimate();
+
+	/**
 	 * Gets the position of the robot with the blue driverstation as the origin
 	 * @return The position of the robot
 	 */
