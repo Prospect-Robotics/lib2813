@@ -30,9 +30,13 @@ abstract class LimelightTestCase {
 		LocationalData locationalData = limelight.getLocationalData();
 		assertFalse(locationalData.getBotpose().isPresent());
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-		assertAlmostEqual(37.40, actualCaptureLatency, 0.005);
+		double expectedCaptureLatencyMs = 37.40;
+		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-		assertAlmostEqual(38.95, actualTargetingLatency, 0.005);
+		double expectedTargetingLatencyMs = 38.95;
+		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+		assertFalse(locationalData.getBotPoseEstimateBlue().isPresent());
+		assertFalse(locationalData.getBotPoseEstimateRed().isPresent());
 	}
 
 	@Test
@@ -43,9 +47,13 @@ abstract class LimelightTestCase {
 		LocationalData locationalData = limelight.getLocationalData();
 		assertFalse(locationalData.getBotpose().isPresent());
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-		assertAlmostEqual(37.40, actualCaptureLatency, 0.005);
+		double expectedCaptureLatencyMs = 37.40;
+		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-		assertAlmostEqual(54.64, actualTargetingLatency, 0.005);
+		double expectedTargetingLatencyMs = 54.64;
+		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+		assertFalse(locationalData.getBotPoseEstimateBlue().isPresent());
+		assertFalse(locationalData.getBotPoseEstimateRed().isPresent());
 	}
 
 	@Test
@@ -58,13 +66,34 @@ abstract class LimelightTestCase {
 		Optional<Pose3d> actualPose = locationalData.getBotpose();
 		assertTrue(actualPose.isPresent());
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-		assertAlmostEqual(37.40, actualCaptureLatency, 0.005);
+		double expectedCaptureLatencyMs = 37.40;
+		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-		assertAlmostEqual(66.61, actualTargetingLatency, 0.005);
+		double expectedTargetingLatencyMs = 66.61;
+		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+
 		Rotation3d rotation = new Rotation3d(Math.toRadians(6.817779398227925), Math.toRadians(-25.663211825857257), Math.toRadians(-173.13543891950323));
 		Pose3d expectedPose = new Pose3d(7.3505718968031255, 0.7083545864687876, 0.9059300968047116, rotation);
 		assertEquals(expectedPose, actualPose.orElse(null));
-		assertAlmostEqual(3664865.25, limelight.getTimestamp(), 0.005);
+
+		var poseEstimate = locationalData.getBotPoseEstimate();
+		assertTrue(poseEstimate.isPresent());
+		assertTrue(poseEstimate.get().timestampSeconds() > 0);
+		expectedPose = new Pose3d(7.3505718968031255, 0.7083545864687876, 0.9059300968047116, rotation);
+		assertEquals(poseEstimate.get().pose(), expectedPose.toPose2d());
+
+		var blueEstimate = locationalData.getBotPoseEstimateBlue();
+		assertTrue(blueEstimate.isPresent());
+		assertTrue(blueEstimate.get().timestampSeconds() > 0);
+		expectedPose = new Pose3d(15.621446896803125, 4.515204586468787, 0.9059300968047116, rotation);
+		assertEquals(blueEstimate.get().pose(), expectedPose.toPose2d());
+
+		var redEstimate = locationalData.getBotPoseEstimateRed();
+		assertTrue(redEstimate.isPresent());
+		assertEquals(blueEstimate.get().timestampSeconds(), redEstimate.get().timestampSeconds(), 0.005);
+		rotation = new Rotation3d(Math.toRadians(6.817779398227925), Math.toRadians(-25.663211825857257), Math.toRadians(6.8644090410054215));
+		expectedPose = new Pose3d(0.9203012235144277, 3.0985149189332175, 0.9059300968047116, rotation);
+		assertEquals(redEstimate.get().pose(), expectedPose.toPose2d());
 	}
 
 	@Test
@@ -77,14 +106,31 @@ abstract class LimelightTestCase {
 		Optional<Pose3d> actualPose = locationalData.getBotpose();
 		assertTrue(actualPose.isPresent());
 		OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-		assertAlmostEqual(37.40, actualCaptureLatency, 0.005);
+		double expectedCaptureLatencyMs = 37.40;
+		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-		assertAlmostEqual(59.20, actualTargetingLatency, 0.005);
+		double expectedTargetingLatencyMs = 59.20;
+		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+
 		Rotation3d rotation = new Rotation3d(Math.toRadians(-5.176760596073282), Math.toRadians(-24.321885146945643), Math.toRadians(-164.63614172918574));
 		Pose3d expectedPose = new Pose3d(7.46915459715645, 0.8066093109325925, 1.0062389106931178, rotation);
 		assertEquals(expectedPose, actualPose.orElse(null));
-		assertTrue(limelight.getTimestamp().isPresent());
-		assertEquals(941200.41, limelight.getTimestamp().getAsDouble(), 0.005);
+
+		var poseEstimate = locationalData.getBotPoseEstimate();
+		assertTrue(poseEstimate.isPresent());
+
+		var blueEstimate = locationalData.getBotPoseEstimateBlue();
+		assertTrue(blueEstimate.isPresent());
+		assertTrue(blueEstimate.get().timestampSeconds() > 0);
+		expectedPose = new Pose3d(15.74002959715645, 4.8134593109325925, 1.00623891069311787116, rotation);
+		assertEquals(blueEstimate.get().pose(), expectedPose.toPose2d());
+
+		var redEstimate = locationalData.getBotPoseEstimateRed();
+		assertTrue(redEstimate.isPresent());
+		rotation = new Rotation3d(Math.toRadians(-5.176760596073282), Math.toRadians(-24.321885146945643), Math.toRadians(15.363706231322912));
+		expectedPose = new Pose3d(0.8017182624333765, 3.200260509139247, 1.0062389106931178, rotation);
+		assertEquals(redEstimate.get().pose(), expectedPose.toPose2d());
+		assertEquals(blueEstimate.get().timestampSeconds(), redEstimate.get().timestampSeconds(), 0.005);
 	}
 	
 	@Test
@@ -128,24 +174,24 @@ abstract class LimelightTestCase {
 		double angleDiff = rotationDiff.getAngle();
 		assertAlmostEqual(0, OptionalDouble.of(angleDiff), Math.PI / 12.0);
 	}
-	
+
 	@Test
 	public final void visibleTagTest() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
 		assertTrue(limelight.hasTarget());
-		
+
 		Set<Integer> tags = limelight.getLocationalData().getVisibleTags();
 		assertEquals(Set.of(20), tags);
 	}
-	
+
 	@Test
 	public final void visibleTagLocationTest() throws Exception {
 		JSONObject obj = readJSON("BotposeBlueRedTest.json");
 		setJson(obj);
 		Limelight limelight = createLimelight();
-		
+
 		boolean updateLimelight = false;
 		try (var stream = getClass().getResourceAsStream("frc2025r2.fmap")) {
 			limelight.setFieldMap(stream, updateLimelight);

@@ -21,7 +21,8 @@ public interface Limelight {
 	}
 
 	/**
-	 * @deprecated use {@link LocationalData#getTimestamp()}
+	 * @deprecated use methods in {@link LocationalData} that return a
+	 *   {@link BotPoseEstimate}.
 	 */
 	@Deprecated
 	OptionalDouble getTimestamp();
