@@ -47,13 +47,7 @@ public class AprilTagPoseHelper {
     if (id < 1 || id > 22) {
       throw new IllegalArgumentException(String.format("id needs to be on the interval [1,22], but was %d!", id));
     }
-    return getTagLocation(aprilTagLocations2025[id - 1])
-        .relativeTo(
-            new Pose3d(
-                Units.Meters.of(8.7736),
-                Units.Meters.of(4.0257),
-                Units.Meters.of(0),
-                new Rotation3d()));
+    return getTagLocation(aprilTagLocations2025[id - 1]);
   }
   
   /**
