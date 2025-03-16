@@ -9,7 +9,7 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
-    id 'edu.wpi.first.GradleRIO' version '2025.1.1'
+    id 'edu.wpi.first.GradleRIO' version '2025.3.1'
     id 'maven-publish'
     // Spotless code formatter.
     id 'com.diffplug.spotless' version '6.25.0'
