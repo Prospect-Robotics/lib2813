@@ -8,17 +8,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 class JSONHelper {
-	static Function<JSONObject, Optional<Boolean>> getBooleanFromInt(String key) {
-		return (j) -> {
-			if (!j.has(key)) {
-				return Optional.empty();
-			}
-			try {
-				return Optional.of(j.getInt(key) == 1);
-			} catch (JSONException e) {
-				return Optional.empty();
-			}
-		};
+	static Optional<Boolean> getBooleanFromInt(JSONObject obj, String key) {
+		if (!obj.has(key)) {
+			return Optional.empty();
+		}
+		try {
+			return Optional.of(obj.getInt(key) == 1);
+		} catch (JSONException e) {
+			return Optional.empty();
+		}
 	}
 
 	static Function<JSONObject, Optional<JSONObject>> getJSONObject(String key) {
@@ -36,6 +34,8 @@ class JSONHelper {
 
 	static JSONObject getRoot(JSONObject json) {
 		if (json.has("Results")) {
+			// This JSON was provided by an older version of the limelight code,
+			// which had a "Results" root node.
 			return json.getJSONObject("Results");
 		} else {
 			return json;

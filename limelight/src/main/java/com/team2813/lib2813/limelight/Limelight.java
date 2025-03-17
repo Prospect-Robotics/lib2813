@@ -66,6 +66,12 @@ public interface Limelight {
 	@Deprecated
 	OptionalDouble getCaptureLatency();
 
+	/**
+	 * Gets the most recent JSON from the Limelight.
+	 * Does not work for all implementations.
+	 *
+	 * @deprecated use {@link LocationalData#isValid()}.
+	 */
 	@Deprecated
 	Optional<JSONObject> getJsonDump();
 }

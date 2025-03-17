@@ -40,9 +40,11 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
     getJsonNTEntry().setString(resultsJson.toString());
 
     // Copy "botpose_orb_wpired" and "botpose_orb_wpiblue" data to Network tables.
-    double latencyMillis = resultsJson.getDouble("cl") + resultsJson.getDouble("tl");
-    for (String entryName : BOT_POSE_ESTIMATE_ENTRIES) {
-      setBotPoseEstimate(resultsJson, entryName, latencyMillis);
+    if (resultsJson.has("cl") && resultsJson.has("tl")) {
+      double latencyMillis = resultsJson.getDouble("cl") + resultsJson.getDouble("tl");
+      for (String entryName : BOT_POSE_ESTIMATE_ENTRIES) {
+        setBotPoseEstimate(resultsJson, entryName, latencyMillis);
+      }
     }
   }
 
