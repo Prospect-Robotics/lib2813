@@ -471,6 +471,79 @@ public final class PreferencesInjectorTest {
     }
   }
 
+  public static class RecordPreferencesTest extends PreferencesInjectorTestCase {
+    final String recordValueKey = keyForFieldName(RecordWithRecords.class, "recordValue");
+    final String longValueKey = recordValueKey + ".longValue";
+    final String stringValueKey = recordValueKey + ".stringValue";
+
+    record RecordWithPrimitives(long longValue, String stringValue) {}
+
+    record RecordWithRecords(RecordWithPrimitives recordValue) {}
+
+    @Test
+    public void withoutExistingPreferences() {
+      // Arrange
+      var recordWithDefaults = new RecordWithRecords(new RecordWithPrimitives(42, "The Answer"));
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.recordValue.stringValue()).isEqualTo("The Answer");
+      assertThat(recordWithPreferences.recordValue.longValue()).isEqualTo(42);
+
+      // Assert: Default values set
+      assertThat(preferenceKeys()).containsExactly(stringValueKey, longValueKey);
+      assertThat(Preferences.getString(stringValueKey, "")).isEqualTo("The Answer");
+      assertThat(Preferences.getLong(longValueKey, -1)).isEqualTo(42);
+
+      // Arrange: Update preferences
+      Preferences.setString(stringValueKey, "Gear Heads");
+      Preferences.setLong(longValueKey, 2813);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.recordValue.longValue()).isEqualTo(2813);
+      assertThat(newRecordWithPreferences.recordValue.stringValue()).isEqualTo("Gear Heads");
+      ;
+      assertHasNoChangesSince(preferenceValues);
+    }
+
+    @Test
+    public void withExistingPreferences() {
+      // Arrange
+      Preferences.initString(stringValueKey, "Agent");
+      Preferences.initLong(longValueKey, 99);
+      var preferenceValues = preferenceValues();
+      var recordWithDefaults = new RecordWithRecords(new RecordWithPrimitives(-1, ""));
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.recordValue.stringValue()).isEqualTo("Agent");
+      assertThat(recordWithPreferences.recordValue.longValue()).isEqualTo(99);
+      assertHasNoChangesSince(preferenceValues);
+
+      // Arrange: Update preferences
+      Preferences.setString(stringValueKey, "Gear Heads");
+      Preferences.setLong(longValueKey, 2813);
+      preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.recordValue.longValue()).isEqualTo(2813);
+      assertThat(newRecordWithPreferences.recordValue.stringValue()).isEqualTo("Gear Heads");
+      ;
+      assertHasNoChangesSince(preferenceValues);
+    }
+  }
+
   /** Base class for all nested classes of {@link PreferencesInjectorTest}. */
   private abstract static class PreferencesInjectorTestCase {
     PreferencesInjector injector;
