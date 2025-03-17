@@ -34,6 +34,8 @@ class JSONHelper {
 
 	static JSONObject getRoot(JSONObject json) {
 		if (json.has("Results")) {
+			// This JSON was provided by an older version of the limelight code,
+			// which had a "Results" root node.
 			return json.getJSONObject("Results");
 		} else {
 			return json;
