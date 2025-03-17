@@ -54,14 +54,6 @@ class RestLimelight implements Limelight {
 		return collectionThread.getMostRecent().map(DataCollection.Result::json);
 	}
 
-	/**
-	 * Gets the targeting latency from the limelight
-	 * @return The targeting latency
-	 */
-	public OptionalDouble getTargetingLatency() {
-		return getLocationalData().getTargetingLatency();
-	}
-
 	public OptionalDouble getCaptureLatency() {
 		return getLocationalData().getCaptureLatency();
 	}
