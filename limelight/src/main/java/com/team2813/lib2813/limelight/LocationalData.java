@@ -1,5 +1,6 @@
 package com.team2813.lib2813.limelight;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
@@ -91,6 +92,13 @@ public interface LocationalData {
 	/**
 	 * Gets the set of all visible tags
 	 * @return The visible tags
+	 * @deprecated use {@link #getVisibleAprilTagPoses()}
 	 */
+	@Deprecated
 	Set<Integer> getVisibleTags();
+
+	/**
+	 * Gets the visible AprilTags as a map from ID to position.
+	 */
+	Map<Integer, Pose3d> getVisibleAprilTagPoses();
 }
