@@ -17,6 +17,7 @@ import com.team2813.lib2813.util.InvalidCanIdException;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -130,6 +131,11 @@ public class TalonFXWrapper implements PIDMotor {
   @Override
   public Angle getPositionMeasure() {
     return Units.Rotations.of(motor.getPosition().getValueAsDouble());
+  }
+
+  @Override
+  public Current getAppliedCurrent() {
+    return motor.getStatorCurrent().getValue();
   }
 
   @Override
