@@ -115,26 +115,26 @@ abstract class LimelightTestCase {
 		assertThat(actualPose).isPresent();
 		Rotation3d rotation = new Rotation3d(Math.toRadians(6.82), Math.toRadians(-25.66), Math.toRadians(-173.14));
 		Pose3d expectedPose = new Pose3d(7.35, 0.708, 0.91, rotation);
-		assertAbout(pose3ds()).that(actualPose.get()).isWithin( 0.005).of(expectedPose);
+		assertAbout(pose3ds()).that(actualPose.get()).isWithin(0.005).of(expectedPose);
 
 		assertThat(locationalData.getBotPoseEstimate()).isPresent();
 		var poseEstimate = locationalData.getBotPoseEstimate().get();
 		assertThat(poseEstimate.timestampSeconds()).isGreaterThan(0.0);
     	expectedPose = new Pose3d(7.35, 0.71, 0.0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertAbout(pose2ds()).that(poseEstimate.pose()).isWithin( 0.005).of(expectedPose);
+		assertAbout(pose2ds()).that(poseEstimate.pose()).isWithin(0.005).of(expectedPose);
 
 		assertThat(locationalData.getBotPoseEstimateBlue()).isPresent();
 		var blueEstimate = locationalData.getBotPoseEstimateBlue().get();
 		assertThat(blueEstimate.timestampSeconds()).isGreaterThan(0.0);
 		expectedPose = new Pose3d(15.62, 4.52, 0.0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertAbout(pose2ds()).that(blueEstimate.pose()).isWithin( 0.005).of(expectedPose);
+		assertAbout(pose2ds()).that(blueEstimate.pose()).isWithin(0.005).of(expectedPose);
 
 		assertThat(locationalData.getBotPoseEstimateRed()).isPresent();
 		var redEstimate = locationalData.getBotPoseEstimateRed().get();
 		assertThat(redEstimate.timestampSeconds()).isWithin(0.005).of(blueEstimate.timestampSeconds());
 		rotation = new Rotation3d(Math.toRadians(6.82), Math.toRadians(-25.66), Math.toRadians(6.86));
 		expectedPose = new Pose3d(0.92, 3.10, 0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertAbout(pose2ds()).that(redEstimate.pose()).isWithin( 0.005).of(expectedPose);
+		assertAbout(pose2ds()).that(redEstimate.pose()).isWithin(0.005).of(expectedPose);
 	}
 
 	@Test
@@ -188,7 +188,7 @@ abstract class LimelightTestCase {
 		Pose3d actualPose = botposeBlue.get();
 		Rotation3d expectedRotation = new Rotation3d(0, 0, Math.toRadians(-123.49));
 		Pose3d expectedPose = new Pose3d(4.72, 5.20, 0, expectedRotation);
-		assertAbout(pose3ds()).that(actualPose).isWithin( 0.005).of(expectedPose);
+		assertAbout(pose3ds()).that(actualPose).isWithin(0.005).of(expectedPose);
 	}
 	
 	@Test
@@ -205,7 +205,7 @@ abstract class LimelightTestCase {
 		
 		Rotation3d expectedRotation = new Rotation3d(0, 0, Math.toRadians(56.51));
 		Pose3d expectedPose = new Pose3d(11.83, 3.01, 0, expectedRotation);
-		assertAbout(pose3ds()).that(actualPose).isWithin( 0.005).of(expectedPose);
+		assertAbout(pose3ds()).that(actualPose).isWithin(0.005).of(expectedPose);
 	}
 
 	@Test
@@ -231,7 +231,7 @@ abstract class LimelightTestCase {
 		Pose3d pose = tagMap.get(20);
 		assertAbout(pose3ds())
 			.that(pose).translation()
-			.isWithin( 0.005)
+			.isWithin(0.005)
 			.of(new Translation3d(-3.87, 0.72, 0.31));
 	}
 
@@ -248,7 +248,7 @@ abstract class LimelightTestCase {
 		Pose3d pose = aprilTags.get(0);
 		assertAbout(pose3ds())
 				.that(pose).translation()
-				.isWithin( 0.005)
+				.isWithin(0.005)
 				.of(new Translation3d(-3.87, 0.72, 0.31));
 	}
 
