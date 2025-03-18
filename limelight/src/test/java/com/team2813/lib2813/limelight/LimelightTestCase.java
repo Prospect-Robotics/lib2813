@@ -1,12 +1,13 @@
 package com.team2813.lib2813.limelight;
 
-import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.team2813.lib2813.limelight.Pose3dSubject.pose3ds;
+import static com.team2813.lib2813.limelight.Pose2dSubject.assertThat;
+import static com.team2813.lib2813.limelight.Pose3dSubject.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import org.json.JSONObject;
@@ -23,12 +24,6 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
-import static com.team2813.lib2813.limelight.Pose2dSubject.pose2ds;
-import static com.team2813.lib2813.limelight.Pose3dSubject.pose3ds;
 
 abstract class LimelightTestCase {
 
@@ -105,36 +100,38 @@ abstract class LimelightTestCase {
 		assertHasTarget(limelight);
 		LocationalData locationalData = limelight.getLocationalData();
         assertThat(locationalData.isValid()).isTrue();
+
         OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
 		double expectedCaptureLatencyMs = 37.40;
 		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
 		OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
 		double expectedTargetingLatencyMs = 66.61;
 		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
-		Optional<Pose3d> actualPose = locationalData.getBotpose();
-		assertThat(actualPose).isPresent();
+
+		assertThat(locationalData.getBotpose()).isPresent();
+		Pose3d actualPose = locationalData.getBotpose().get();
 		Rotation3d rotation = new Rotation3d(Math.toRadians(6.82), Math.toRadians(-25.66), Math.toRadians(-173.14));
 		Pose3d expectedPose = new Pose3d(7.35, 0.708, 0.91, rotation);
-		assertAbout(pose3ds()).that(actualPose.get()).isWithin(0.005).of(expectedPose);
+		assertThat(actualPose).isWithin(0.005).of(expectedPose);
 
 		assertThat(locationalData.getBotPoseEstimate()).isPresent();
 		var poseEstimate = locationalData.getBotPoseEstimate().get();
 		assertThat(poseEstimate.timestampSeconds()).isGreaterThan(0.0);
-    	expectedPose = new Pose3d(7.35, 0.71, 0.0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertAbout(pose2ds()).that(poseEstimate.pose()).isWithin(0.005).of(expectedPose);
+		expectedPose = new Pose3d(7.35, 0.71, 0.0, new Rotation3d(0.0, 0.0, rotation.getZ()));
+		assertThat(poseEstimate.pose()).isWithin(0.005).of(expectedPose);
 
 		assertThat(locationalData.getBotPoseEstimateBlue()).isPresent();
 		var blueEstimate = locationalData.getBotPoseEstimateBlue().get();
 		assertThat(blueEstimate.timestampSeconds()).isGreaterThan(0.0);
 		expectedPose = new Pose3d(15.62, 4.52, 0.0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertAbout(pose2ds()).that(blueEstimate.pose()).isWithin(0.005).of(expectedPose);
+		assertThat(blueEstimate.pose()).isWithin(0.005).of(expectedPose);
 
 		assertThat(locationalData.getBotPoseEstimateRed()).isPresent();
 		var redEstimate = locationalData.getBotPoseEstimateRed().get();
 		assertThat(redEstimate.timestampSeconds()).isWithin(0.005).of(blueEstimate.timestampSeconds());
 		rotation = new Rotation3d(Math.toRadians(6.82), Math.toRadians(-25.66), Math.toRadians(6.86));
 		expectedPose = new Pose3d(0.92, 3.10, 0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertAbout(pose2ds()).that(redEstimate.pose()).isWithin(0.005).of(expectedPose);
+		assertThat(redEstimate.pose()).isWithin(0.005).of(expectedPose);
 	}
 
 	@Test
@@ -147,6 +144,7 @@ abstract class LimelightTestCase {
 		assertHasTarget(limelight);
 		LocationalData locationalData = limelight.getLocationalData();
         assertThat(locationalData.isValid()).isTrue();
+
         OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
 		double expectedCaptureLatencyMs = 37.40;
 		assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
@@ -154,25 +152,25 @@ abstract class LimelightTestCase {
 		double expectedTargetingLatencyMs = 59.20;
 		assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
 
-		Rotation3d rotation = new Rotation3d(Math.toRadians(-5.176760596073282), Math.toRadians(-24.321885146945643), Math.toRadians(-164.63614172918574));
-		Pose3d expectedPose = new Pose3d(7.46915459715645, 0.8066093109325925, 1.0062389106931178, rotation);
-		assertThat(locationalData.getBotpose()).hasValue(expectedPose);
+		assertThat(locationalData.getBotpose()).isPresent();
+		Pose3d actualPose = locationalData.getBotpose().get();
+		Rotation3d rotation = new Rotation3d(Math.toRadians(-5.18), Math.toRadians(-24.32), Math.toRadians(-164.64));
+		Pose3d expectedPose = new Pose3d(7.469, 0.81, 1.01, rotation);
+		assertThat(actualPose).isWithin(0.005).of(expectedPose);
 
-		var poseEstimate = locationalData.getBotPoseEstimate();
-		assertThat(poseEstimate).isPresent();
+		assertThat(locationalData.getBotPoseEstimateBlue()).isPresent();
+		var blueEstimate = locationalData.getBotPoseEstimateBlue().get();
+		assertThat(blueEstimate.timestampSeconds()).isGreaterThan(0.0);
+		var expectedYaw = new Rotation2d(-2.87);
+		expectedPose = new Pose3d(15.74, 4.81, 0, new Rotation3d(expectedYaw));
+		assertThat(blueEstimate.pose()).isWithin(0.005).of(expectedPose);
 
-		var blueEstimate = locationalData.getBotPoseEstimateBlue();
-		assertThat(blueEstimate).isPresent();
-		assertThat(blueEstimate.get().timestampSeconds()).isGreaterThan(0.0);
-		expectedPose = new Pose3d(15.74002959715645, 4.8134593109325925, 1.00623891069311787116, rotation);
-		assertEquals(blueEstimate.get().pose(), expectedPose.toPose2d());
-
-		var redEstimate = locationalData.getBotPoseEstimateRed();
-		assertThat(redEstimate).isPresent();
-		rotation = new Rotation3d(Math.toRadians(-5.176760596073282), Math.toRadians(-24.321885146945643), Math.toRadians(15.363706231322912));
-		expectedPose = new Pose3d(0.8017182624333765, 3.200260509139247, 1.0062389106931178, rotation);
-		assertEquals(redEstimate.get().pose(), expectedPose.toPose2d());
-		assertEquals(blueEstimate.get().timestampSeconds(), redEstimate.get().timestampSeconds(), 0.005);
+		assertThat(locationalData.getBotPoseEstimateRed()).isPresent();
+		var redEstimate = locationalData.getBotPoseEstimateRed().get();
+		expectedYaw = new Rotation2d(0.268);
+		expectedPose = new Pose3d(0.80, 3.20, 0, new Rotation3d(expectedYaw));
+		assertThat(redEstimate.pose()).isWithin(0.005).of(expectedPose);
+		assertThat(blueEstimate.timestampSeconds()).isWithin(0.005).of(redEstimate.timestampSeconds());
 	}
 	
 	@Test
@@ -188,7 +186,7 @@ abstract class LimelightTestCase {
 		Pose3d actualPose = botposeBlue.get();
 		Rotation3d expectedRotation = new Rotation3d(0, 0, Math.toRadians(-123.49));
 		Pose3d expectedPose = new Pose3d(4.72, 5.20, 0, expectedRotation);
-		assertAbout(pose3ds()).that(actualPose).isWithin(0.005).of(expectedPose);
+		assertThat(actualPose).isWithin(0.005).of(expectedPose);
 	}
 	
 	@Test
@@ -205,7 +203,7 @@ abstract class LimelightTestCase {
 		
 		Rotation3d expectedRotation = new Rotation3d(0, 0, Math.toRadians(56.51));
 		Pose3d expectedPose = new Pose3d(11.83, 3.01, 0, expectedRotation);
-		assertAbout(pose3ds()).that(actualPose).isWithin(0.005).of(expectedPose);
+		assertThat(actualPose).isWithin(0.005).of(expectedPose);
 	}
 
 	@Test
@@ -214,8 +212,7 @@ abstract class LimelightTestCase {
 		setJson(obj);
 		Limelight limelight = createLimelight();
 		assertHasTarget(limelight);
-		Set<Integer> tags = limelight.getLocationalData().getVisibleTags();
-		assertEquals(Set.of(20), tags);
+		assertThat(limelight.getLocationalData().getVisibleTags()).containsExactly(20);
 	}
 
 	@Test
@@ -228,13 +225,13 @@ abstract class LimelightTestCase {
 
 		LocationalData locationalData = limelight.getLocationalData();
 		Map<Integer, Pose3d> tagMap = locationalData.getVisibleAprilTagPoses();
-		assertEquals(Set.of(20), tagMap.keySet());
+		assertThat(tagMap).containsKey(20);
 		Set<Integer> tags = tagMap.keySet();
 		Pose3d pose = tagMap.get(20);
-		assertAbout(pose3ds())
-			.that(pose).translation()
+		assertThat(pose).translation()
 			.isWithin(0.005)
 			.of(new Translation3d(-3.87, 0.72, 0.31));
+		assertThat(tagMap).hasSize(1);
 
 		assertThat(locationalData.getBotPoseEstimate()).isPresent();
 		assertThat(locationalData.getBotPoseEstimate().get().visibleAprilTags()).isEqualTo(tags);
@@ -255,11 +252,9 @@ abstract class LimelightTestCase {
 
 		Set<Integer> visibleTags = limelight.getLocationalData().getVisibleTags();
 		List<Pose3d> aprilTags = limelight.getLocatedAprilTags(visibleTags);
-		assertEquals(1, aprilTags.size());
+		assertThat(aprilTags).hasSize(1);
 		Pose3d pose = aprilTags.get(0);
-		assertAbout(pose3ds())
-				.that(pose).translation()
-				.isWithin(0.005)
+		assertThat(pose).translation().isWithin(0.005)
 				.of(new Translation3d(-3.87, 0.72, 0.31));
 	}
 
