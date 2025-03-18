@@ -35,9 +35,9 @@ public final class Rotation3dSubject extends Subject {
     return new TolerantComparison<Rotation3d>() {
       @Override
       public void of(Rotation3d expected) {
-        x().isWithin(tolerance).of(expected.getX());
-        y().isWithin(tolerance).of(expected.getY());
-        z().isWithin(tolerance).of(expected.getZ());
+        x().isWithin(tolerance).of(expected.getX()); // roll, in radians
+        y().isWithin(tolerance).of(expected.getY()); // pitch, in radians
+        z().isWithin(tolerance).of(expected.getZ()); // yaw, in radians
       }
     };
   }
@@ -50,14 +50,26 @@ public final class Rotation3dSubject extends Subject {
 
   // Chained subjects methods below this point
 
+  /**
+   * Returns a subject that can be used to make assertions about the
+   * counterclockwise rotation angle around the X axis (roll) in radians.
+   */
   public DoubleSubject x() {
     return check("getX()").that(nonNullActual().getX());
   }
 
+  /**
+   * Returns a subject that can be used to make assertions about the
+   * counterclockwise rotation angle around the Y axis (pitch) in radians.
+   */
   public DoubleSubject y() {
     return check("getY()").that(nonNullActual().getY());
   }
 
+  /**
+   * Returns a subject that can be used to make assertions about the
+   * counterclockwise rotation angle around the Z axis (yaw) in radians.
+   */
   public DoubleSubject z() {
     return check("getZ()").that(nonNullActual().getZ());
   }
