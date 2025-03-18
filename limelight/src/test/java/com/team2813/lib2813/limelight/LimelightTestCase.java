@@ -2,10 +2,13 @@ package com.team2813.lib2813.limelight;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+
 import static com.team2813.lib2813.limelight.truth.Pose2dSubject.assertThat;
 import static com.team2813.lib2813.limelight.truth.Pose3dSubject.assertThat;
+import static com.team2813.lib2813.limelight.truth.Translation3dSubject.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -117,21 +120,19 @@ abstract class LimelightTestCase {
 		assertThat(locationalData.getBotPoseEstimate()).isPresent();
 		var poseEstimate = locationalData.getBotPoseEstimate().get();
 		assertThat(poseEstimate.timestampSeconds()).isGreaterThan(0.0);
-		expectedPose = new Pose3d(7.35, 0.71, 0.0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertThat(poseEstimate.pose()).isWithin(0.005).of(expectedPose);
+		assertThat(poseEstimate.pose()).isWithin(0.005).of(expectedPose.toPose2d());
 
 		assertThat(locationalData.getBotPoseEstimateBlue()).isPresent();
 		var blueEstimate = locationalData.getBotPoseEstimateBlue().get();
 		assertThat(blueEstimate.timestampSeconds()).isGreaterThan(0.0);
-		expectedPose = new Pose3d(15.62, 4.52, 0.0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertThat(blueEstimate.pose()).isWithin(0.005).of(expectedPose);
+		var expectedPoseEstimate = new Pose2d(15.62, 4.52, rotation.toRotation2d());
+		assertThat(blueEstimate.pose()).isWithin(0.005).of(expectedPoseEstimate);
 
 		assertThat(locationalData.getBotPoseEstimateRed()).isPresent();
 		var redEstimate = locationalData.getBotPoseEstimateRed().get();
 		assertThat(redEstimate.timestampSeconds()).isWithin(0.005).of(blueEstimate.timestampSeconds());
-		rotation = new Rotation3d(Math.toRadians(6.82), Math.toRadians(-25.66), Math.toRadians(6.86));
-		expectedPose = new Pose3d(0.92, 3.10, 0, new Rotation3d(0.0, 0.0, rotation.getZ()));
-		assertThat(redEstimate.pose()).isWithin(0.005).of(expectedPose);
+		expectedPoseEstimate = new Pose2d(0.92, 3.10, new Rotation2d(Math.toRadians(6.86)));
+		assertThat(redEstimate.pose()).isWithin(0.005).of(expectedPoseEstimate);
 	}
 
 	@Test
@@ -161,15 +162,13 @@ abstract class LimelightTestCase {
 		assertThat(locationalData.getBotPoseEstimateBlue()).isPresent();
 		var blueEstimate = locationalData.getBotPoseEstimateBlue().get();
 		assertThat(blueEstimate.timestampSeconds()).isGreaterThan(0.0);
-		var expectedYaw = new Rotation2d(-2.87);
-		expectedPose = new Pose3d(15.74, 4.81, 0, new Rotation3d(expectedYaw));
-		assertThat(blueEstimate.pose()).isWithin(0.005).of(expectedPose);
+		var expectedPoseEstimate = new Pose2d(15.74, 4.81, rotation.toRotation2d());
+		assertThat(blueEstimate.pose()).isWithin(0.005).of(expectedPoseEstimate);
 
 		assertThat(locationalData.getBotPoseEstimateRed()).isPresent();
 		var redEstimate = locationalData.getBotPoseEstimateRed().get();
-		expectedYaw = new Rotation2d(0.268);
-		expectedPose = new Pose3d(0.80, 3.20, 0, new Rotation3d(expectedYaw));
-		assertThat(redEstimate.pose()).isWithin(0.005).of(expectedPose);
+		expectedPoseEstimate = new Pose2d(0.80, 3.20, new Rotation2d(Math.toRadians(15.36)));
+		assertThat(redEstimate.pose()).isWithin(0.005).of(expectedPoseEstimate);
 		assertThat(blueEstimate.timestampSeconds()).isWithin(0.005).of(redEstimate.timestampSeconds());
 	}
 	
@@ -228,7 +227,7 @@ abstract class LimelightTestCase {
 		assertThat(tagMap).containsKey(20);
 		Set<Integer> tags = tagMap.keySet();
 		Pose3d pose = tagMap.get(20);
-		assertThat(pose).translation()
+		assertThat(pose.getTranslation())
 			.isWithin(0.005)
 			.of(new Translation3d(-3.87, 0.72, 0.31));
 		assertThat(tagMap).hasSize(1);
@@ -254,7 +253,7 @@ abstract class LimelightTestCase {
 		List<Pose3d> aprilTags = limelight.getLocatedAprilTags(visibleTags);
 		assertThat(aprilTags).hasSize(1);
 		Pose3d pose = aprilTags.get(0);
-		assertThat(pose).translation().isWithin(0.005)
+		assertThat(pose.getTranslation()).isWithin(0.005)
 				.of(new Translation3d(-3.87, 0.72, 0.31));
 	}
 
