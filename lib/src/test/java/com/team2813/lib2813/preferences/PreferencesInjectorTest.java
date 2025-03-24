@@ -6,10 +6,12 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.*;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -508,7 +510,7 @@ public final class PreferencesInjectorTest {
       // Assert: Preferences injected
       assertThat(newRecordWithPreferences.recordValue.longValue()).isEqualTo(2813);
       assertThat(newRecordWithPreferences.recordValue.stringValue()).isEqualTo("Gear Heads");
-      ;
+
       assertHasNoChangesSince(preferenceValues);
     }
 
@@ -539,7 +541,7 @@ public final class PreferencesInjectorTest {
       // Assert: Preferences injected
       assertThat(newRecordWithPreferences.recordValue.longValue()).isEqualTo(2813);
       assertThat(newRecordWithPreferences.recordValue.stringValue()).isEqualTo("Gear Heads");
-      ;
+
       assertHasNoChangesSince(preferenceValues);
     }
   }
@@ -555,11 +557,17 @@ public final class PreferencesInjectorTest {
     public void createInjector() {
       String removePrefix = getClass().getCanonicalName() + ".";
       injector = new PreferencesInjector(removePrefix);
-      injector.throwExceptions = true;
-      injector.errorReporter =
+      PersistedConfiguration.throwExceptions = true;
+      PersistedConfiguration.errorReporter =
           message ->
               errorCollector.addError(
                   new AssertionError("Unexpected warning: \"" + message + "\""));
+    }
+
+    @After
+    public void resetTestGlobals() {
+      PersistedConfiguration.throwExceptions = false;
+      PersistedConfiguration.errorReporter = DataLogManager::log;
     }
 
     protected static String keyForFieldName(Class<? extends Record> recordClass, String fieldName) {
