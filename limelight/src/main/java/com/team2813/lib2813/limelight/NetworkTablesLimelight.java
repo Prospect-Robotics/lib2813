@@ -61,19 +61,29 @@ class NetworkTablesLimelight implements Limelight {
   public LocationalData getLocationalData() {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
     if (results.error == null && results.valid) {
-      var poseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate(limelightName));
-      var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName));
-      var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName));
-      return new NTLocationalData(results, poseEstimate, redPoseEstimate, bluePoseEstimate);
+      Map<Integer, Pose3d> aprilTags = getVisibleAprilTagPoses(results);
+      var poseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate(limelightName), aprilTags);
+      var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName), aprilTags);
+      var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName), aprilTags);
+      return new NTLocationalData(results, poseEstimate, redPoseEstimate, bluePoseEstimate, aprilTags);
     }
     return StubLocationalData.INVALID;
   }
 
-  private static Optional<BotPoseEstimate> toBotPoseEstimate(PoseEstimate estimate) {
+  private Map<Integer, Pose3d> getVisibleAprilTagPoses(LimelightResults results) {
+    Map<Integer, Pose3d> map = new HashMap<>();
+    for (var fiducial: results.targets_Fiducials) {
+      int id = (int) fiducial.fiducialID;
+      aprilTagMapPoseHelper.getTagPose(id).ifPresent(pose -> map.put(id, pose));
+    }
+    return unmodifiableMap(map);
+  }
+
+  private static Optional<BotPoseEstimate> toBotPoseEstimate(PoseEstimate estimate, Map<Integer, Pose3d> visibleAprilTagPoses) {
     if (estimate == null || estimate.tagCount == 0 || Pose2d.kZero.equals(estimate.pose)) {
       return Optional.empty();
     }
-    return Optional.of(new BotPoseEstimate(estimate.pose, estimate.timestampSeconds));
+    return Optional.of(new BotPoseEstimate(estimate.pose, estimate.timestampSeconds, visibleAprilTagPoses));
   }
 
   private class NTLocationalData implements LocationalData {
@@ -81,12 +91,14 @@ class NetworkTablesLimelight implements Limelight {
     private final Optional<BotPoseEstimate> poseEstimate;
     private final Optional<BotPoseEstimate> redPoseEstimate;
     private final Optional<BotPoseEstimate> bluePoseEstimate;
+    private final Map<Integer, Pose3d> aprilTags;
 
-    NTLocationalData(LimelightHelpers.LimelightResults results, Optional<BotPoseEstimate> poseEstimate, Optional<BotPoseEstimate> redPoseEstimate, Optional<BotPoseEstimate> bluePoseEstimate) {
+    NTLocationalData(LimelightResults results, Optional<BotPoseEstimate> poseEstimate, Optional<BotPoseEstimate> redPoseEstimate, Optional<BotPoseEstimate> bluePoseEstimate, Map<Integer, Pose3d> aprilTags) {
       this.results = results;
       this.poseEstimate = poseEstimate;
       this.redPoseEstimate = redPoseEstimate;
       this.bluePoseEstimate = bluePoseEstimate;
+      this.aprilTags = aprilTags;
     }
 
     @Override
@@ -151,12 +163,7 @@ class NetworkTablesLimelight implements Limelight {
 
     @Override
     public Map<Integer, Pose3d> getVisibleAprilTagPoses() {
-      Map<Integer, Pose3d> map = new HashMap<>();
-      for (var fiducial: results.targets_Fiducials) {
-        int id = (int) fiducial.fiducialID;
-        aprilTagMapPoseHelper.getTagPose(id).ifPresent(pose -> map.put(id, pose));
-      }
-      return unmodifiableMap(map);
+      return aprilTags;
     }
 
     private static Optional<Pose3d> toPose3D(double[] inData) {

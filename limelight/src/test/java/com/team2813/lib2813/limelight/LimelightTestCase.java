@@ -226,13 +226,23 @@ abstract class LimelightTestCase {
 		assertHasTarget(limelight);
 		uploadFieldMap(limelight);
 
-		Map<Integer, Pose3d> tagMap = limelight.getLocationalData().getVisibleAprilTagPoses();
+		LocationalData locationalData = limelight.getLocationalData();
+		Map<Integer, Pose3d> tagMap = locationalData.getVisibleAprilTagPoses();
 		assertEquals(Set.of(20), tagMap.keySet());
 		Pose3d pose = tagMap.get(20);
 		assertAbout(pose3ds())
 			.that(pose).translation()
 			.isWithin(0.005)
 			.of(new Translation3d(-3.87, 0.72, 0.31));
+
+		assertThat(locationalData.getBotPoseEstimate()).isPresent();
+		assertThat(locationalData.getBotPoseEstimate().get().visibleAprilTagPoses()).isEqualTo(tagMap);
+
+		assertThat(locationalData.getBotPoseEstimateBlue()).isPresent();
+		assertThat(locationalData.getBotPoseEstimateBlue().get().visibleAprilTagPoses()).isEqualTo(tagMap);
+
+		assertThat(locationalData.getBotPoseEstimateRed()).isPresent();
+		assertThat(locationalData.getBotPoseEstimateRed().get().visibleAprilTagPoses()).isEqualTo(tagMap);
 	}
 
 	@Test
