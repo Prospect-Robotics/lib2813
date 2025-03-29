@@ -62,12 +62,25 @@ class NetworkTablesLimelight implements Limelight {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
     if (results.error == null && results.valid) {
       Map<Integer, Pose3d> aprilTags = getVisibleAprilTagPoses(results);
-      var poseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate(limelightName), aprilTags);
-      var redPoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName), aprilTags);
-      var bluePoseEstimate = toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName), aprilTags);
-      return new NTLocationalData(results, poseEstimate, redPoseEstimate, bluePoseEstimate, aprilTags);
+      var poseEstimate =
+          toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate(limelightName), aprilTags.keySet());
+      var redPoseEstimate =
+          toBotPoseEstimate(
+              LimelightHelpers.getBotPoseEstimate_wpiRed(limelightName), aprilTags.keySet());
+      var bluePoseEstimate =
+          toBotPoseEstimate(
+              LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName), aprilTags.keySet());
+      return new NTLocationalData(
+          results, poseEstimate, redPoseEstimate, bluePoseEstimate, aprilTags);
     }
     return StubLocationalData.INVALID;
+  }
+
+  private static Optional<BotPoseEstimate> toBotPoseEstimate(PoseEstimate estimate, Set<Integer> visibleAprilTags) {
+    if (estimate == null || estimate.tagCount == 0 || Pose2d.kZero.equals(estimate.pose)) {
+      return Optional.empty();
+    }
+    return Optional.of(new BotPoseEstimate(estimate.pose, estimate.timestampSeconds, visibleAprilTags));
   }
 
   private Map<Integer, Pose3d> getVisibleAprilTagPoses(LimelightResults results) {
@@ -79,13 +92,6 @@ class NetworkTablesLimelight implements Limelight {
     return unmodifiableMap(map);
   }
 
-  private static Optional<BotPoseEstimate> toBotPoseEstimate(PoseEstimate estimate, Map<Integer, Pose3d> visibleAprilTagPoses) {
-    if (estimate == null || estimate.tagCount == 0 || Pose2d.kZero.equals(estimate.pose)) {
-      return Optional.empty();
-    }
-    return Optional.of(new BotPoseEstimate(estimate.pose, estimate.timestampSeconds, visibleAprilTagPoses));
-  }
-
   private class NTLocationalData implements LocationalData {
     private final LimelightResults results;
     private final Optional<BotPoseEstimate> poseEstimate;
@@ -93,7 +99,9 @@ class NetworkTablesLimelight implements Limelight {
     private final Optional<BotPoseEstimate> bluePoseEstimate;
     private final Map<Integer, Pose3d> aprilTags;
 
-    NTLocationalData(LimelightResults results, Optional<BotPoseEstimate> poseEstimate, Optional<BotPoseEstimate> redPoseEstimate, Optional<BotPoseEstimate> bluePoseEstimate, Map<Integer, Pose3d> aprilTags) {
+    NTLocationalData(
+            LimelightResults results, Optional<BotPoseEstimate> poseEstimate, Optional<BotPoseEstimate> redPoseEstimate,
+            Optional<BotPoseEstimate> bluePoseEstimate, Map<Integer, Pose3d> aprilTags) {
       this.results = results;
       this.poseEstimate = poseEstimate;
       this.redPoseEstimate = redPoseEstimate;
