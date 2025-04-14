@@ -238,7 +238,7 @@ class RestLimelight implements Limelight {
 			// See https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry
 			double latencyMillis = getCaptureLatency().orElse(0.0) + getTargetingLatency().orElse(0.0);
 			double timestampSeconds = responseTimestamp - (latencyMillis / 1000);
-			return new BotPoseEstimate(pose.toPose2d(), timestampSeconds);
+			return new BotPoseEstimate(pose.toPose2d(), timestampSeconds, getVisibleAprilTagPoses().keySet());
 		}
 
 		/**
