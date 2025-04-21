@@ -12,15 +12,16 @@ public class InputValidation {
    * Check if a given value is between the bounds
    *
    * @param <T> the type to compare
+   * @param <X> The type of the exception
    * @param lower an object that {@code actual} should be comparatively less than or equal to
    * @param upper an object that {@code actual} should be comparatively greater than or equal to
    * @param actual the actual value
    * @param throwable a function that takes the actual value and returns an unchecked exception
-   * @throws RuntimeException when actual is not between lower and upper, based on natural ordering.
+   * @throws X when actual is not between lower and upper, based on natural ordering.
    *     The exception thrown is provided by {@code throwable}
    */
-  static <T extends Comparable<T>> void checkBounds(
-      T lower, T upper, T actual, Function<? super T, ? extends RuntimeException> throwable) {
+  static <T extends Comparable<T>, X extends Throwable> void checkBounds(
+      T lower, T upper, T actual, Function<? super T, ? extends X> throwable) throws X {
     assert lower.compareTo(upper) <= 0;
     if (!(lower.compareTo(actual) <= 0 && actual.compareTo(upper) <= 0)) {
       throw throwable.apply(actual);
@@ -30,15 +31,16 @@ public class InputValidation {
   /**
    * Check if the given value is in the bounds
    *
+   * @param <X> The type of the exception
    * @param lower the lower bound
    * @param upper the upper bound
    * @param actual the actual value
    * @param throwable a function that takes the actual value and returns an unchecked exception
-   * @throws RuntimeException when the actual is not in between the bounds. exception is provided by
+   * @throws X when the actual is not in between the bounds. exception is provided by
    *     {@code throwable}
    */
-  static void checkBounds(
-      int lower, int upper, int actual, IntFunction<? extends RuntimeException> throwable) {
+  static <X extends Throwable> void checkBounds(
+      int lower, int upper, int actual, IntFunction<? extends X> throwable) throws X {
     assert lower <= upper;
     if (!(lower <= actual && actual <= upper)) {
       throw throwable.apply(actual);
