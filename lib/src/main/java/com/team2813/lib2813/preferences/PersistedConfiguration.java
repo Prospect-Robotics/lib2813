@@ -16,7 +16,46 @@ import java.util.function.*;
 /**
  * Initializes the fields of a Record Class from values stored in {@link Preferences}.
  *
+ * <p>The Preference values can be updated in the SmartDashboard and/or Shuffleboard UI; updated
+ * values will be stored in the flash storage for the robot.
+ *
  * <p>Example use:
+ *
+ * {@snippet :
+ * public final class Drive {
+ *
+ *   public record DriveConfiguration(
+ *       boolean addVisionMeasurements, long robotWeight,
+ *       DoubleSupplier powerMultiplier) {
+ *
+ *     public static DriveConfiguration fromPreferences() {
+ *       return PersistedConfiguration.fromPreferences("Drive", DriveConfiguration.class);
+ *     }
+ *   }
+ * }
+ * }
+ *
+ * <p>In the above example, {@code fromPreferences()} would return a record instance with the values
+ * populated the "Preferences" NetworkTables table. The keys would be:
+ *
+ * <ul>
+ *   <li>{@code "Drive/addVisionMeasurements"}
+ *   <li>{@code "Drive/robotWeight"}
+ *   <li>{@code "Drive/powerMultiplier"}
+ * </ul>
+ *
+ * <p>If no value is stored in Preferences for a key, the default value returned (and initialized in
+ * Preferences) would be the default value for the type of the record component. In the above
+ * example, if none of the above preference keys existed, preferences will be created with the
+ * following values:
+ *
+ * <ul>
+ *   <li>{@code "Drive/addVisionMeasurements"}: {@code false}
+ *   <li>{@code "Drive/robotWeight"}: 0
+ *   <li>{@code "Drive/powerMultiplier"}: 0.0
+ * </ul>
+ *
+ * <p>The caller could specify different default values by passing an instance of the record class:
  *
  * {@snippet :
  * public final class Drive {
@@ -35,24 +74,12 @@ import java.util.function.*;
  * }
  *
  * <p>In the above example, {@code fromPreferences()} would return a record instance with the values
- * populated the "Preferences" NetworkTables table. The keys would be:
+ * populated the "Preferences" NetworkTables table. The keys and default values would be:
  *
  * <ul>
- *   <li>{@code "Drive.DriveConfiguration.addLimelightMeasurement"}
- *   <li>{@code "Drive.DriveConfiguration.robotWeight"}
- *   <li>{@code "Drive.DriveConfiguration.powerMultiplier"}
- * </ul>
- *
- * <p>The default values of for these Preference values will be the values provided to {@link
- * PersistedConfiguration#fromPreferences(String, Record)}. The values can be updated in the
- * SmartDashboard and/or Shuffleboard UI; updated values will be stored in the flash storage for the
- * robot. In the above example, if none of the above preference keys existed, preferences will be
- * created with the following values:
- *
- * <ul>
- *   <li>{@code "Drive.DriveConfiguration.addLimelightMeasurement"}: {@code true}
- *   <li>{@code "Drive.DriveConfiguration.robotWeight"}: 1337
- *   <li>{@code "Drive.DriveConfiguration.powerMultiplier"}: 3.14
+ *   <li>{@code "Drive/addVisionMeasurements"} (default value: {@code true})
+ *   <li>{@code "Drive/robotWeight"} (default value: {@code 1337})
+ *   <li>{@code "Drive/powerMultiplier"} (default value: {@code 3.14})
  * </ul>
  *
  * <p>For record classes with many component values of the same type, it is strongly recommended
@@ -64,6 +91,8 @@ import java.util.function.*;
  * constructor to create record instances, so any parameter validation should be done in a custom
  * constructor; see <a href="https://www.baeldung.com/java-records-custom-constructor">Custom
  * Constructor in Java Records</a> for details.
+ *
+ * @since 1.3.0
  */
 public final class PersistedConfiguration {
   // The below package-scope fields are for the self-tests.
@@ -99,11 +128,41 @@ public final class PersistedConfiguration {
     return fromPreferences(preferenceName, configWithDefaults, PATH_SEPARATOR);
   }
 
+  /**
+   * Creates a record class instance of the provided type, with fields populated from Preferences.
+   *
+   * <p>To be stored in preferences, the type of the record components can be any of the following:
+   *
+   * <ul>
+   *   <li>{@code boolean} or {@code BooleanSupplier} or {@code Supplier<Boolean>}
+   *   <li>{@code int} or {@code IntSupplier} or {@code Supplier<Integer>}
+   *   <li>{@code long} or {@code LongSupplier} or {@code Supplier<Long>}
+   *   <li>{@code double} or {@code DoubleSupplier} or {@code Supplier<Double>}
+   *   <li>{@code String} or {@code Supplier<String>}
+   *   <li>{@code Record} following the above rules
+   * </ul>
+   *
+   * <p>The default values for the preferences will be Java defaults (for example, zero for
+   * integers).
+   *
+   * @param preferenceName Preference subtable to use to get the values.
+   * @param recordClass Type of the record instance to populate from preferences.
+   * @throws IllegalArgumentException If {@code preferenceName} is empty or contains a {@code '/'}.
+   * @throws IllegalStateException If {@code preferenceName} was used for a different record class.
+   */
+  public static <T extends Record> T fromPreferences(String preferenceName, Class<T> recordClass) {
+    return fromPreferences(preferenceName, recordClass, null, PATH_SEPARATOR);
+  }
+
   static <T extends Record> T fromPreferences(
       String preferenceName, T configWithDefaults, char pathSeparator) {
     @SuppressWarnings("unchecked")
     Class<T> recordClass = (Class<T>) configWithDefaults.getClass();
+    return fromPreferences(preferenceName, recordClass, configWithDefaults, pathSeparator);
+  }
 
+  private static <T extends Record> T fromPreferences(
+      String preferenceName, Class<T> recordClass, T configWithDefaults, char pathSeparator) {
     NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
     validatePreferenceName(preferenceName);
     verifyNotRegisteredToAnotherClass(ntInstance, preferenceName, recordClass);
@@ -196,7 +255,9 @@ public final class PersistedConfiguration {
         params[i] = componentValue;
       } else {
         // Fetch the value from Preferences
-        params[i] = factory.create(component, key, componentValue);
+        params[i] =
+            factory.create(
+                component, key, componentValue, /* initializePreference= */ needComponentValue);
       }
       i++;
     }
@@ -207,12 +268,13 @@ public final class PersistedConfiguration {
 
   @FunctionalInterface
   private interface PreferenceFactory {
-    Object create(RecordComponent component, String key, Object defaultValue);
+    Object create(
+        RecordComponent component, String key, Object defaultValue, boolean initializePreference);
   }
 
   @FunctionalInterface
   private interface GenericPreferenceFactory<T> {
-    T create(RecordComponent component, String key, T defaultValue);
+    T create(RecordComponent component, String key, T defaultValue, boolean initializePreference);
   }
 
   private static final Map<Type, PreferenceFactory> TYPE_TO_FACTORY = new HashMap<>();
@@ -220,7 +282,8 @@ public final class PersistedConfiguration {
   @SuppressWarnings("unchecked")
   private static <T> void register(Class<T> type, GenericPreferenceFactory<T> simpleFactory) {
     PreferenceFactory factory =
-        (component, key, defaultValue) -> simpleFactory.create(component, key, (T) defaultValue);
+        (component, key, defaultValue, initializePreference) ->
+            simpleFactory.create(component, key, (T) defaultValue, initializePreference);
     TYPE_TO_FACTORY.put(type, factory);
   }
 
@@ -248,8 +311,11 @@ public final class PersistedConfiguration {
 
   /** Gets a boolean value from Preferences for the given component. */
   private static boolean booleanFactory(
-      RecordComponent component, String key, Boolean defaultValue) {
-    if (defaultValue != null) {
+      RecordComponent component, String key, Boolean defaultValue, boolean initialize) {
+    if (initialize) {
+      if (defaultValue == null) {
+        defaultValue = Boolean.FALSE;
+      }
       Preferences.initBoolean(key, defaultValue);
     }
     return Preferences.getBoolean(key, false);
@@ -257,17 +323,27 @@ public final class PersistedConfiguration {
 
   /** Gets a BooleanSupplier value from Preferences for the given component. */
   private static BooleanSupplier booleanSupplierFactory(
-      RecordComponent component, String key, BooleanSupplier defaultValueSupplier) {
-    if (defaultValueSupplier != null) {
-      boolean defaultValue = defaultValueSupplier.getAsBoolean();
+      RecordComponent component,
+      String key,
+      BooleanSupplier defaultValueSupplier,
+      boolean initialize) {
+    if (initialize) {
+      boolean defaultValue = false;
+      if (defaultValueSupplier != null) {
+        defaultValue = defaultValueSupplier.getAsBoolean();
+      }
       Preferences.initBoolean(key, defaultValue);
     }
     return () -> Preferences.getBoolean(key, false);
   }
 
   /** Gets an int value from Preferences for the given component. */
-  private static int intFactory(RecordComponent component, String key, Integer defaultValue) {
-    if (defaultValue != null) {
+  private static int intFactory(
+      RecordComponent component, String key, Integer defaultValue, boolean initialize) {
+    if (initialize) {
+      if (defaultValue == null) {
+        defaultValue = 0;
+      }
       Preferences.initInt(key, defaultValue);
     }
     return Preferences.getInt(key, 0);
@@ -275,17 +351,21 @@ public final class PersistedConfiguration {
 
   /** Gets a IntSupplier value from Preferences for the given component. */
   private static IntSupplier intSupplierFactory(
-      RecordComponent component, String key, IntSupplier defaultValueSupplier) {
-    if (defaultValueSupplier != null) {
-      int defaultValue = defaultValueSupplier.getAsInt();
+      RecordComponent component, String key, IntSupplier defaultValueSupplier, boolean initialize) {
+    if (initialize) {
+      int defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsInt() : 0;
       Preferences.initInt(key, defaultValue);
     }
     return () -> Preferences.getInt(key, 0);
   }
 
   /** Gets a long value from Preferences for the given component. */
-  private static long longFactory(RecordComponent component, String key, Long defaultValue) {
-    if (defaultValue != null) {
+  private static long longFactory(
+      RecordComponent component, String key, Long defaultValue, boolean initialize) {
+    if (initialize) {
+      if (defaultValue == null) {
+        defaultValue = 0L;
+      }
       Preferences.initLong(key, defaultValue);
     }
     return Preferences.getLong(key, 0);
@@ -293,17 +373,24 @@ public final class PersistedConfiguration {
 
   /** Gets a LongSupplier value from Preferences for the given component. */
   private static LongSupplier longSupplierFactory(
-      RecordComponent component, String key, LongSupplier defaultValueSupplier) {
-    if (defaultValueSupplier != null) {
-      long defaultValue = defaultValueSupplier.getAsLong();
+      RecordComponent component,
+      String key,
+      LongSupplier defaultValueSupplier,
+      boolean initialize) {
+    if (initialize) {
+      long defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsLong() : 0;
       Preferences.initLong(key, defaultValue);
     }
     return () -> Preferences.getLong(key, 0);
   }
 
   /** Gets a double value from Preferences for the given component. */
-  private static double doubleFactory(RecordComponent component, String key, Double defaultValue) {
-    if (defaultValue != null) {
+  private static double doubleFactory(
+      RecordComponent component, String key, Double defaultValue, boolean initialize) {
+    if (initialize) {
+      if (defaultValue == null) {
+        defaultValue = 0.0;
+      }
       Preferences.initDouble(key, defaultValue);
     }
     return Preferences.getDouble(key, 0);
@@ -311,17 +398,24 @@ public final class PersistedConfiguration {
 
   /** Gets a DoubleSupplier value from Preferences for the given component. */
   private static DoubleSupplier doubleSupplierFactory(
-      RecordComponent component, String key, DoubleSupplier defaultValueSupplier) {
-    if (defaultValueSupplier != null) {
-      double defaultValue = defaultValueSupplier.getAsDouble();
+      RecordComponent component,
+      String key,
+      DoubleSupplier defaultValueSupplier,
+      boolean initialize) {
+    if (initialize) {
+      double defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsDouble() : 0;
       Preferences.initDouble(key, defaultValue);
     }
     return () -> Preferences.getDouble(key, 0);
   }
 
   /** Gets a String value from Preferences for the given component. */
-  private static String stringFactory(RecordComponent component, String key, String defaultValue) {
-    if (defaultValue != null) {
+  private static String stringFactory(
+      RecordComponent component, String key, String defaultValue, boolean initialize) {
+    if (initialize) {
+      if (defaultValue == null) {
+        defaultValue = "";
+      }
       Preferences.initString(key, defaultValue);
     }
     return Preferences.getString(key, "");
@@ -332,7 +426,7 @@ public final class PersistedConfiguration {
    * boolean and float values.
    */
   private static Supplier<?> supplierFactory(
-      RecordComponent component, String key, Supplier<?> defaultValueSupplier) {
+      RecordComponent component, String key, Supplier<?> defaultValueSupplier, boolean initialize) {
     Type supplierType =
         ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
     Type registeredType = SUPPLIER_TYPE_TO_REGISTERED_TYPE.get(supplierType);
@@ -344,21 +438,45 @@ public final class PersistedConfiguration {
     }
     PreferenceFactory factory = TYPE_TO_FACTORY.get(registeredType);
 
-    if (defaultValueSupplier != null) {
-      Object defaultValue = defaultValueSupplier.get();
-      if (defaultValue == null) {
-        warn("Cannot store '%s' in Preferences; default value is null", component.getName());
-        return defaultValueSupplier;
+    if (initialize) {
+      Object defaultValue = null;
+      if (defaultValueSupplier != null) {
+        defaultValue = defaultValueSupplier.get();
+        if (defaultValue == null) {
+          warn("Cannot store '%s' in Preferences; default value is null", component.getName());
+          return defaultValueSupplier;
+        }
       }
-      factory.create(component, key, defaultValue); // Call Preferences.init{String,Double,etc}()
+      factory.create(
+          component, key, defaultValue, true); // Call Preferences.init{String,Double,etc}()
     }
 
-    return () -> factory.create(component, key, null);
+    return () -> factory.create(component, key, null, false);
   }
 
   private static void warn(String format, Object... args) {
     String message = String.format("WARNING: " + format, args);
     errorReporter.accept(message);
+  }
+
+  private static <T> T createInstanceWithJavaDefaults(Class<T> clazz)
+      throws ReflectiveOperationException {
+    if (clazz.isPrimitive()) {
+      return clazz.cast(Array.get(Array.newInstance(clazz, 1), 0));
+    }
+    if (Record.class.isAssignableFrom(clazz)) {
+      var components = clazz.getRecordComponents();
+      Object[] params = new Object[components.length];
+      Class<?>[] types = new Class[components.length];
+      int i = 0;
+      for (RecordComponent component : components) {
+        Class<?> type = component.getType();
+        types[i] = type;
+        params[i] = createInstanceWithJavaDefaults(type);
+      }
+      return clazz.getDeclaredConstructor(types).newInstance(params);
+    }
+    throw new IllegalArgumentException("Unsupported type: " + clazz);
   }
 
   private PersistedConfiguration() {
