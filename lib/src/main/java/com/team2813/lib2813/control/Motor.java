@@ -26,7 +26,6 @@ public interface Motor {
    * Gets the current that is being applied onto the motor
    *
    * @return The current applied current
-   * @throws UnsupportedOperationException if this kind of motor does not support getting the
    *     current
    */
   Current getAppliedCurrent();
