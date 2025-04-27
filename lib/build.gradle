@@ -67,10 +67,11 @@ tasks.named('jar') {
     }
 }
 
-// Generates Javadocs for implementation libraries under /build/docs/javadoc
 javadoc {
     options.tags = [
+        // Converts `@apiNote` paragraph to "Note: " section in the generated javadoc
         'apiNote:a:Api Note:',
+        // Converts `@implSpec` paragraph to "Implementation Requirements: " section in the generated javadoc
         'implSpec:a:Implementation Requirements:'
     ]
 }

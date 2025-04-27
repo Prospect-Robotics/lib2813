@@ -3,6 +3,10 @@ package com.team2813.lib2813.util;
 import java.util.function.IntFunction;
 
 public class InputValidation {
+  private InputValidation() {
+    throw new AssertionError("non instantiable");
+  }
+
   /**
    * Check if the given value is in the bounds
    *
@@ -28,7 +32,6 @@ public class InputValidation {
    * @return the {@code id}
    * @throws InvalidCanIdException if the id is invalid
    */
-  @Deprecated // Not used anywhere in org:Prospect-Robotics
   public static int checkCanId(int id) {
     checkBounds(0, 62, id, InvalidCanIdException::new);
     return id;

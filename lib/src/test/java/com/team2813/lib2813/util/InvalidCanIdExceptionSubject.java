@@ -13,16 +13,16 @@ import com.google.common.truth.ThrowableSubject;
  * <p>Usage:
  *
  * <pre>{@code
- *   import static com.team2813.lib2813.util.InvalidCanIdExceptionSubject.assertThat;
- *   ...
- *     @Test
- *     public void someTest() {
- *       var exception =
- *           assertThrows(InvalidCanIdException.class, () -> throw new InvalidCanIdException(-7));
- *       assertThat(exception)
- *           .hasCanId(-7)          // Check provided by InvalidCanIdExceptionSubject
- *           .hasMessageThat()...   // Further checks provided by ThrowableSubject...
- *     }
+ * import static com.team2813.lib2813.util.InvalidCanIdExceptionSubject.assertThat;
+ * ...
+ *   @Test
+ *   public void someTest() {
+ *     var exception =
+ *         assertThrows(InvalidCanIdException.class, () -> throw new InvalidCanIdException(-7));
+ *     assertThat(exception)
+ *         .hasCanId(-7)          // Check provided by InvalidCanIdExceptionSubject
+ *         .hasMessageThat()...   // Further checks provided by ThrowableSubject...
+ *   }
  * }</pre>
  *
  * <p>See <a href="https://truth.dev/extension">Writing your own custom subject</a> to learn about
