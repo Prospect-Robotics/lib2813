@@ -7,7 +7,7 @@ public class InvalidCanIdException extends RuntimeException {
    *
    * @serial an integer that is not between 0 and 62
    */
-  private int canId;
+  private final int canId;
 
   public InvalidCanIdException(int canId) {
     super(
