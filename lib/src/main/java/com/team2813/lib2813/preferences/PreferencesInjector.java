@@ -1,11 +1,6 @@
 package com.team2813.lib2813.preferences;
 
-import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Preferences;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.function.*;
 
 /**
  * Initializes the fields of a Record Class from values stored in {@link Preferences}.
@@ -40,8 +35,13 @@ import java.util.function.*;
  * <p>The default values of for these Preference values will be the values provided to {@link
  * PreferencesInjector#injectPreferences(Record)}. The values can be updated in the SmartDashboard
  * and/or Shuffleboard UI; updated values will be stored in the flash storage for the robot.
+ *
+ * @deprecated Use {@link PersistedConfiguration}
  */
+@Deprecated(since = "1.3.0", forRemoval = true)
 public class PreferencesInjector {
+  private static final char PATH_SEPARATOR = '.';
+
   /**
    * Injector instance that removes "com.team2813." from class names when creating prefence key
    * names.
@@ -51,10 +51,6 @@ public class PreferencesInjector {
 
   private final String removePrefix;
   private final int removePrefixLen;
-
-  // The below package-scope fields are for the self-tests.
-  boolean throwExceptions = false;
-  Consumer<String> errorReporter = DataLogManager::log;
 
   /**
    * Creates an instance of the injector.
@@ -95,21 +91,8 @@ public class PreferencesInjector {
    *     values.
    */
   public final <T extends java.lang.Record> T injectPreferences(T configWithDefaults) {
-    @SuppressWarnings("unchecked")
-    Class<? extends T> recordClass = (Class<? extends T>) configWithDefaults.getClass();
-    String prefix = createKey(recordClass);
-
-    try {
-      return injectPreferences(prefix, recordClass, configWithDefaults);
-    } catch (ReflectiveOperationException e) {
-      if (throwExceptions) {
-        throw new RuntimeException(e); // For self-tests.
-      }
-      DriverStation.reportWarning(
-          String.format("Could not inject preferences into %s: %s", recordClass.getSimpleName(), e),
-          e.getStackTrace());
-      return configWithDefaults;
-    }
+    String prefix = createKey(configWithDefaults.getClass());
+    return PersistedConfiguration.fromPreferences(prefix, configWithDefaults, PATH_SEPARATOR);
   }
 
   /**
@@ -129,234 +112,5 @@ public class PreferencesInjector {
       }
     }
     return recordName;
-  }
-
-  private <T> T injectPreferences(String prefix, Class<? extends T> clazz, T configWithDefaults)
-      throws ReflectiveOperationException {
-    var components = clazz.getRecordComponents();
-    Object[] params = new Object[components.length];
-    Class<?>[] types = new Class[components.length];
-    int i = 0;
-    for (RecordComponent component : components) {
-      String name = component.getName();
-      String key = prefix + "." + name;
-      Class<?> type = component.getType();
-      types[i] = type;
-
-      boolean needComponentValue;
-      PreferenceFactory factory = null;
-      boolean isRecordField = Record.class.isAssignableFrom(type);
-      if (isRecordField) {
-        needComponentValue = true;
-      } else {
-        factory = TYPE_TO_FACTORY.get(type);
-        if (factory == null) {
-          // Cannot get value from Preferences; copy over the value from the input record.
-          needComponentValue = true;
-        } else {
-          needComponentValue = !Preferences.containsKey(key);
-        }
-      }
-
-      Object componentValue = null;
-      if (needComponentValue) {
-        Field defaultValueField = clazz.getDeclaredField(name);
-        defaultValueField.setAccessible(true);
-        componentValue = defaultValueField.get(configWithDefaults);
-      }
-
-      if (isRecordField) {
-        params[i] = injectPreferences(key, type, componentValue);
-      } else if (factory == null) {
-        warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
-        params[i] = componentValue;
-      } else if (needComponentValue && componentValue == null) {
-        warn("Cannot store '%s' in Preferences; default value is null", name);
-        params[i] = null;
-      } else {
-        // Fetch the value from Preferences
-        params[i] = factory.create(this, component, key, componentValue);
-      }
-      i++;
-    }
-    return clazz.getDeclaredConstructor(types).newInstance(params);
-  }
-
-  @FunctionalInterface
-  private interface PreferenceFactory {
-    Object create(
-        PreferencesInjector injector, RecordComponent component, String key, Object defaultValue);
-  }
-
-  @FunctionalInterface
-  private interface GenericPreferenceFactory<T> {
-    T create(PreferencesInjector injector, RecordComponent component, String key, T defaultValue);
-  }
-
-  private static final Map<Type, PreferenceFactory> TYPE_TO_FACTORY = new HashMap<>();
-
-  @SuppressWarnings("unchecked")
-  private static <T> void register(Class<T> type, GenericPreferenceFactory<T> simpleFactory) {
-    PreferenceFactory factory =
-        (injector, component, key, defaultValue) ->
-            simpleFactory.create(injector, component, key, (T) defaultValue);
-    TYPE_TO_FACTORY.put(type, factory);
-  }
-
-  static {
-    register(Boolean.TYPE, PreferencesInjector::booleanFactory);
-    register(BooleanSupplier.class, PreferencesInjector::booleanSupplierFactory);
-    register(Integer.TYPE, PreferencesInjector::intFactory);
-    register(IntSupplier.class, PreferencesInjector::intSupplierFactory);
-    register(Long.TYPE, PreferencesInjector::longFactory);
-    register(LongSupplier.class, PreferencesInjector::longSupplierFactory);
-    register(Double.TYPE, PreferencesInjector::doubleFactory);
-    register(DoubleSupplier.class, PreferencesInjector::doubleSupplierFactory);
-    register(String.class, PreferencesInjector::stringFactory);
-    register(Supplier.class, PreferencesInjector::supplierFactory);
-  }
-
-  /** Maps the generic types supported by Preferences to their primitive types. */
-  private static final Map<Type, Type> WRAPPER_TO_PRIMITIVE =
-      Map.of(
-          Boolean.class, Boolean.TYPE,
-          Integer.class, Integer.TYPE,
-          Long.class, Long.TYPE,
-          Double.class, Double.TYPE,
-          String.class, String.class);
-
-  /** Gets a boolean value from Preferences for the given component. */
-  private static boolean booleanFactory(
-      PreferencesInjector injector, RecordComponent component, String key, Boolean defaultValue) {
-    if (defaultValue != null) {
-      Preferences.initBoolean(key, defaultValue);
-    }
-    return Preferences.getBoolean(key, false);
-  }
-
-  /** Gets a BooleanSupplier value from Preferences for the given component. */
-  private static BooleanSupplier booleanSupplierFactory(
-      PreferencesInjector injector,
-      RecordComponent component,
-      String key,
-      BooleanSupplier defaultValueSupplier) {
-    if (defaultValueSupplier != null) {
-      boolean defaultValue = defaultValueSupplier.getAsBoolean();
-      Preferences.initBoolean(key, defaultValue);
-    }
-    return () -> Preferences.getBoolean(key, false);
-  }
-
-  /** Gets an int value from Preferences for the given component. */
-  private static int intFactory(
-      PreferencesInjector injector, RecordComponent component, String key, Integer defaultValue) {
-    if (defaultValue != null) {
-      Preferences.initInt(key, defaultValue);
-    }
-    return Preferences.getInt(key, 0);
-  }
-
-  /** Gets a IntSupplier value from Preferences for the given component. */
-  private static IntSupplier intSupplierFactory(
-      PreferencesInjector injector,
-      RecordComponent component,
-      String key,
-      IntSupplier defaultValueSupplier) {
-    if (defaultValueSupplier != null) {
-      int defaultValue = defaultValueSupplier.getAsInt();
-      Preferences.initInt(key, defaultValue);
-    }
-    return () -> Preferences.getInt(key, 0);
-  }
-
-  /** Gets a long value from Preferences for the given component. */
-  private static long longFactory(
-      PreferencesInjector injector, RecordComponent component, String key, Long defaultValue) {
-    if (defaultValue != null) {
-      Preferences.initLong(key, defaultValue);
-    }
-    return Preferences.getLong(key, 0);
-  }
-
-  /** Gets a LongSupplier value from Preferences for the given component. */
-  private static LongSupplier longSupplierFactory(
-      PreferencesInjector injector,
-      RecordComponent component,
-      String key,
-      LongSupplier defaultValueSupplier) {
-    if (defaultValueSupplier != null) {
-      long defaultValue = defaultValueSupplier.getAsLong();
-      Preferences.initLong(key, defaultValue);
-    }
-    return () -> Preferences.getLong(key, 0);
-  }
-
-  /** Gets a double value from Preferences for the given component. */
-  private static double doubleFactory(
-      PreferencesInjector injector, RecordComponent component, String key, Double defaultValue) {
-    if (defaultValue != null) {
-      Preferences.initDouble(key, defaultValue);
-    }
-    return Preferences.getDouble(key, 0);
-  }
-
-  /** Gets a DoubleSupplier value from Preferences for the given component. */
-  private static DoubleSupplier doubleSupplierFactory(
-      PreferencesInjector injector,
-      RecordComponent component,
-      String key,
-      DoubleSupplier defaultValueSupplier) {
-    if (defaultValueSupplier != null) {
-      double defaultValue = defaultValueSupplier.getAsDouble();
-      Preferences.initDouble(key, defaultValue);
-    }
-    return () -> Preferences.getDouble(key, 0);
-  }
-
-  /** Gets a String value from Preferences for the given component. */
-  private static String stringFactory(
-      PreferencesInjector injector, RecordComponent component, String key, String defaultValue) {
-    if (defaultValue != null) {
-      Preferences.initString(key, defaultValue);
-    }
-    return Preferences.getString(key, "");
-  }
-
-  /**
-   * Gets a Supplier value from Preferences for the given component. Supports String, long, int,
-   * boolean and float values.
-   */
-  private static Supplier<?> supplierFactory(
-      PreferencesInjector injector,
-      RecordComponent component,
-      String key,
-      Supplier<?> defaultValueSupplier) {
-    Type supplierType =
-        ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
-    Type supplierPrimativeType = WRAPPER_TO_PRIMITIVE.get(supplierType);
-    if (supplierPrimativeType == null) {
-      injector.warn(
-          "Cannot store '%s' in Preferences; type %s is unsupported",
-          component.getName(), component.getGenericType());
-      return defaultValueSupplier;
-    }
-    PreferenceFactory factory = TYPE_TO_FACTORY.get(supplierPrimativeType);
-
-    if (defaultValueSupplier != null) {
-      Object defaultValue = defaultValueSupplier.get();
-      if (defaultValue == null) {
-        injector.warn(
-            "Cannot store '%s' in Preferences; default value is null", component.getName());
-        return defaultValueSupplier;
-      }
-      factory.create(
-          injector, component, key, defaultValue); // Call Preferences.init{String,Double,etc}()
-    }
-    return () -> factory.create(injector, component, key, null);
-  }
-
-  private void warn(String format, Object... args) {
-    String message = String.format("WARNING: " + format, args);
-    errorReporter.accept(message);
   }
 }
