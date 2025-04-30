@@ -44,7 +44,7 @@ public final class PreferencesInjectorTest {
     }
 
     /** Test record for testing classes that contain boolean fields. */
-    record RecordWithBooleans(
+    private record RecordWithBooleans(
         boolean booleanValue, BooleanSupplier booleanSupplier, Supplier<Boolean> supplierBoolean) {
 
       public RecordWithBooleans(boolean defaultValue) {
@@ -140,7 +140,8 @@ public final class PreferencesInjectorTest {
     final String supplierIntKey = keyForFieldName(RecordWithInts.class, "supplierInt");
 
     /** Test record for testing classes that contain int fields. */
-    record RecordWithInts(int intValue, IntSupplier intSupplier, Supplier<Integer> supplierInt) {
+    private record RecordWithInts(
+        int intValue, IntSupplier intSupplier, Supplier<Integer> supplierInt) {
 
       RecordWithInts(int intValue, int intSupplierValue, int supplierIntValue) {
         this(intValue, () -> intSupplierValue, () -> supplierIntValue);
@@ -227,7 +228,8 @@ public final class PreferencesInjectorTest {
     final String supplierLongKey = keyForFieldName(RecordWithLongs.class, "supplierLong");
 
     /** Test record for testing classes that contain long fields. */
-    record RecordWithLongs(long longValue, LongSupplier longSupplier, Supplier<Long> supplierLong) {
+    private record RecordWithLongs(
+        long longValue, LongSupplier longSupplier, Supplier<Long> supplierLong) {
 
       RecordWithLongs(long longValue, long longSupplierValue, long supplierLongValue) {
         this(longValue, () -> longSupplierValue, () -> supplierLongValue);
@@ -314,7 +316,7 @@ public final class PreferencesInjectorTest {
     final String supplierDoubleKey = keyForFieldName(RecordWithDoubles.class, "supplierDouble");
 
     /** Test record for testing classes that contain double fields. */
-    record RecordWithDoubles(
+    private record RecordWithDoubles(
         double doubleValue, DoubleSupplier doubleSupplier, Supplier<Double> supplierDouble) {
 
       RecordWithDoubles(
@@ -402,7 +404,7 @@ public final class PreferencesInjectorTest {
     final String stringValueKey = keyForFieldName(RecordWithStrings.class, "stringValue");
     final String stringSupplierKey = keyForFieldName(RecordWithStrings.class, "stringSupplier");
 
-    record RecordWithStrings(String stringValue, Supplier<String> stringSupplier) {
+    private record RecordWithStrings(String stringValue, Supplier<String> stringSupplier) {
 
       RecordWithStrings(String stringValue, String stringSupplierValue) {
         this(stringValue, () -> stringSupplierValue);
@@ -478,9 +480,9 @@ public final class PreferencesInjectorTest {
     final String longValueKey = recordValueKey + ".longValue";
     final String stringValueKey = recordValueKey + ".stringValue";
 
-    record RecordWithPrimitives(long longValue, String stringValue) {}
+    private record RecordWithPrimitives(long longValue, String stringValue) {}
 
-    record RecordWithRecords(RecordWithPrimitives recordValue) {}
+    private record RecordWithRecords(RecordWithPrimitives recordValue) {}
 
     @Test
     public void withoutExistingPreferences() {
