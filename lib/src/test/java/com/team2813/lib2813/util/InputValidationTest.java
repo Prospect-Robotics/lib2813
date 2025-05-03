@@ -1,7 +1,6 @@
 package com.team2813.lib2813.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.team2813.lib2813.util.InvalidCanIdExceptionSubject.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
@@ -17,10 +16,8 @@ public class InputValidationTest {
         var exception =
             assertThrows(
                 InvalidCanIdException.class, () -> InputValidation.checkCanId(invalidCanId));
-        assertThat(exception)
-            .hasCanId(invalidCanId)
-            .hasMessageThat()
-            .contains("is not a valid can id");
+        assertThat(exception.getCanId()).isEqualTo(invalidCanId);
+        assertThat(exception).hasMessageThat().contains("is not a valid can id");
       }
     }
 

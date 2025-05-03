@@ -10,11 +10,11 @@ public class ControlUtilsTest {
   @Test
   public void deadbandValuesWithinDeadbandAreZeroed() {
     // Keep test values in ascending order.
-    assertThat(ControlUtils.deadband(-0.5, 0.5)).isWithin(1e-9).of(0.0);
-    assertThat(ControlUtils.deadband(-0.5, 0.5)).isWithin(1e-9).of(0.0);
-    assertThat(ControlUtils.deadband(-0.25, 0.5)).isWithin(1e-9).of(0.0);
-    assertThat(ControlUtils.deadband(0.0, 0.5)).isWithin(1e-9).of(0.0);
-    assertThat(ControlUtils.deadband(0.5, 0.5)).isWithin(1e-9).of(0.0);
+    assertThat(ControlUtils.deadband(-0.5, 0.5)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(-0.5, 0.5)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(-0.25, 0.5)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(0.0, 0.5)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(0.5, 0.5)).isEqualTo(0.0);
   }
 
   @Test
@@ -30,12 +30,12 @@ public class ControlUtilsTest {
   @Test
   public void deadbandZeroDeadbandHasNoEffect() {
     // Keep test values in ascending order.
-    assertThat(ControlUtils.deadband(-1.0, 0.0)).isWithin(1e-9).of(-1.0);
-    assertThat(ControlUtils.deadband(-0.5, 0.0)).isWithin(1e-9).of(-0.5);
-    assertThat(ControlUtils.deadband(-0.25, 0.0)).isWithin(1e-9).of(-0.25);
-    assertThat(ControlUtils.deadband(0.0, 0.0)).isWithin(1e-9).of(0.0);
-    assertThat(ControlUtils.deadband(0.5, 0.0)).isWithin(1e-9).of(0.5);
-    assertThat(ControlUtils.deadband(1.0, 0.0)).isWithin(1e-9).of(1.0);
+    assertThat(ControlUtils.deadband(-1.0, 0.0)).isEqualTo(-1.0);
+    assertThat(ControlUtils.deadband(-0.5, 0.0)).isEqualTo(-0.5);
+    assertThat(ControlUtils.deadband(-0.25, 0.0)).isEqualTo(-0.25);
+    assertThat(ControlUtils.deadband(0.0, 0.0)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(0.5, 0.0)).isEqualTo(0.5);
+    assertThat(ControlUtils.deadband(1.0, 0.0)).isEqualTo(1.0);
   }
 
   /**
