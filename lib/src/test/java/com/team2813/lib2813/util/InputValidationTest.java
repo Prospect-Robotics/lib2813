@@ -1,6 +1,7 @@
 package com.team2813.lib2813.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
@@ -13,7 +14,7 @@ public class InputValidationTest {
       // Can IDs can only valid in the range [0, 62].
       int invalidCanIds[] = {-50, -1, 63, 100};
       for (int invalidCanId : invalidCanIds) {
-        var exception =
+        InvalidCanIdException exception =
             assertThrows(
                 InvalidCanIdException.class, () -> InputValidation.checkCanId(invalidCanId));
         assertThat(exception.getCanId()).isEqualTo(invalidCanId);
@@ -26,7 +27,10 @@ public class InputValidationTest {
       // Can IDs can only valid in the range [0, 62].
       int validCanIds[] = {0, 1, 10, 62};
       for (int validCanId : validCanIds) {
-        assertThat(InputValidation.checkCanId(validCanId)).isEqualTo(validCanId);
+        int returnValue = InputValidation.checkCanId(validCanId);
+        assertWithMessage("%d should be considered a valid ID", validCanId)
+            .that(returnValue)
+            .isEqualTo(validCanId);
       }
     }
   }

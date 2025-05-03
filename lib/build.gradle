@@ -82,7 +82,7 @@ task testJavadoc(type: Javadoc) {
     source = sourceSets.test.allJava
     classpath = sourceSets.test.compileClasspath
     destinationDir = file("${buildDir}/docs/testjavadoc")
-    println (title == null? '<null>' : title)
+    println (title == null ? '<null>' : title)
 }
 
 task sourceJar(type: Jar) {
