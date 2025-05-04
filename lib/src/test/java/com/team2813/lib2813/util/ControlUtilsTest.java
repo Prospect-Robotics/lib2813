@@ -1,10 +1,8 @@
 package com.team2813.lib2813.util;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.function.ThrowingRunnable;
 
@@ -12,31 +10,32 @@ public class ControlUtilsTest {
   @Test
   public void deadbandValuesWithinDeadbandAreZeroed() {
     // Keep test values in ascending order.
-    assertEquals(0.0, ControlUtils.deadband(-0.5, 0.5), 1e-9);
-    assertEquals(0.0, ControlUtils.deadband(-0.25, 0.5), 1e-9);
-    assertEquals(0.0, ControlUtils.deadband(0.0, 0.5), 1e-9);
-    assertEquals(0.0, ControlUtils.deadband(0.5, 0.5), 1e-9);
+    assertThat(ControlUtils.deadband(-0.5, 0.5)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(-0.5, 0.5)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(-0.25, 0.5)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(0.0, 0.5)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(0.5, 0.5)).isEqualTo(0.0);
   }
 
   @Test
   public void deadbandValuesOutsideDeadbandAreAdjusted() {
     // Keep test values in ascending order.
-    assertEquals(-1.0, ControlUtils.deadband(-1.0, 0.5), 1e-9);
-    assertEquals(-0.5, ControlUtils.deadband(-0.75, 0.5), 1e-9);
-    assertEquals(0.2, ControlUtils.deadband(0.6, 0.5), 1e-9);
-    assertEquals(0.5, ControlUtils.deadband(0.75, 0.5), 1e-9);
-    assertEquals(1.0, ControlUtils.deadband(1.0, 0.5), 1e-9);
+    assertThat(ControlUtils.deadband(-1.0, 0.5)).isWithin(1e-9).of(-1.0);
+    assertThat(ControlUtils.deadband(-0.75, 0.5)).isWithin(1e-9).of(-0.5);
+    assertThat(ControlUtils.deadband(0.6, 0.5)).isWithin(1e-9).of(0.2);
+    assertThat(ControlUtils.deadband(0.75, 0.5)).isWithin(1e-9).of(0.5);
+    assertThat(ControlUtils.deadband(1.0, 0.5)).isWithin(1e-9).of(1.0);
   }
 
   @Test
   public void deadbandZeroDeadbandHasNoEffect() {
     // Keep test values in ascending order.
-    assertEquals(-1.0, ControlUtils.deadband(-1.0, 0.0), 1e-9);
-    assertEquals(-0.5, ControlUtils.deadband(-0.5, 0.0), 1e-9);
-    assertEquals(-0.25, ControlUtils.deadband(-0.25, 0.0), 1e-9);
-    assertEquals(0.0, ControlUtils.deadband(0.0, 0.0), 1e-9);
-    assertEquals(0.5, ControlUtils.deadband(0.5, 0.0), 1e-9);
-    assertEquals(1.0, ControlUtils.deadband(1.0, 0.0), 1e-9);
+    assertThat(ControlUtils.deadband(-1.0, 0.0)).isEqualTo(-1.0);
+    assertThat(ControlUtils.deadband(-0.5, 0.0)).isEqualTo(-0.5);
+    assertThat(ControlUtils.deadband(-0.25, 0.0)).isEqualTo(-0.25);
+    assertThat(ControlUtils.deadband(0.0, 0.0)).isEqualTo(0.0);
+    assertThat(ControlUtils.deadband(0.5, 0.0)).isEqualTo(0.5);
+    assertThat(ControlUtils.deadband(1.0, 0.0)).isEqualTo(1.0);
   }
 
   /**
@@ -49,7 +48,7 @@ public class ControlUtilsTest {
   private void assertIllegalArgumentExceptionIsThrownContainingMessage(
       ThrowingRunnable testExpression, String expectedMessage) {
     Exception exception = assertThrows(IllegalArgumentException.class, testExpression);
-    assertThat(exception.getMessage(), CoreMatchers.containsString(expectedMessage));
+    assertThat(exception).hasMessageThat().contains(expectedMessage);
   }
 
   @Test

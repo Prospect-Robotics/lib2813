@@ -7,12 +7,13 @@ public class InvalidCanIdException extends RuntimeException {
    *
    * @serial an integer that is not between 0 and 62
    */
-  private int canId;
+  private final int canId;
 
   public InvalidCanIdException(int canId) {
     super(
         String.format(
             "%d is not a valid can id (a valid can id is between 0 and 62, inclusive)", canId));
+    this.canId = canId;
     if (0 <= canId && canId <= 62) {
       throw new IllegalArgumentException(
           String.format("%s is a valid can id (it is between 0 and 62, inclusive)", canId));
