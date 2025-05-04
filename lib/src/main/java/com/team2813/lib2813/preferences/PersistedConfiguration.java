@@ -21,8 +21,7 @@ import java.util.function.*;
  *
  * <p>Example use:
  *
- * <pre>
- * {@code
+ * <pre>{@code
  * public final class Drive {
  *
  *   public record DriveConfiguration(
@@ -34,8 +33,7 @@ import java.util.function.*;
  *     }
  *   }
  * }
- * }
- * </pre>
+ * }</pre>
  *
  * <p>In the above example, {@code fromPreferences()} would return a record instance with the values
  * populated the "Preferences" NetworkTables table. The keys would be:
@@ -59,8 +57,7 @@ import java.util.function.*;
  *
  * <p>The caller could specify different default values by passing an instance of the record class:
  *
- * <pre>
- * {@code
+ * <pre>{@code
  * public final class Drive {
  *
  *   public record DriveConfiguration(
@@ -74,8 +71,7 @@ import java.util.function.*;
  *     }
  *   }
  * }
- * }
- * </pre>
+ * }</pre>
  *
  * <p>In the above example, {@code fromPreferences()} would return a record instance with the values
  * populated the "Preferences" NetworkTables table. The keys and default values would be:
