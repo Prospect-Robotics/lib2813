@@ -28,9 +28,7 @@ public class InputValidationTest {
       int validCanIds[] = {0, 1, 10, 62};
       for (int validCanId : validCanIds) {
         int returnValue = InputValidation.checkCanId(validCanId);
-        assertWithMessage("%d should be considered a valid ID", validCanId)
-            .that(returnValue)
-            .isEqualTo(validCanId);
+        assertWithMessage("Expected a valid CAN ID").that(returnValue).isEqualTo(validCanId);
       }
     }
   }
