@@ -22,7 +22,7 @@ import java.util.function.*;
  * <p>Example use:
  *
  * <pre>
- * {@code :
+ * {@code
  * public final class Drive {
  *
  *   public record DriveConfiguration(
@@ -53,14 +53,14 @@ import java.util.function.*;
  *
  * <ul>
  *   <li>{@code "Drive/addVisionMeasurements"}: {@code false}
- *   <li>{@code "Drive/robotWeight"}: 0
- *   <li>{@code "Drive/powerMultiplier"}: 0.0
+ *   <li>{@code "Drive/robotWeight"}: {@code 0}
+ *   <li>{@code "Drive/powerMultiplier"}: {@code 0.0}
  * </ul>
  *
  * <p>The caller could specify different default values by passing an instance of the record class:
  *
  * <pre>
- * {@code :
+ * {@code
  * public final class Drive {
  *
  *   public record DriveConfiguration(
