@@ -1,4 +1,4 @@
-package com.team2813.lib2813.limelight;
+package com.team2813.lib2813.limelight.truth;
 
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
@@ -15,7 +15,7 @@ import static com.google.common.truth.Truth.assertAbout;
  * <p>See <a href="https://truth.dev/extension">Writing your own custom subject</a>
  * to learn about creating custom Truth subjects.
  */
-final class Pose2dSubject extends Pose3dSubject {
+public final class Pose2dSubject extends Pose3dSubject {
 
     // User-defined entry point
     public static Pose3dSubject assertThat(@Nullable Pose2d pose) {

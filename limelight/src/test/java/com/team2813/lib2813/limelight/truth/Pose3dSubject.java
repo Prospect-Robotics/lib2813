@@ -1,4 +1,4 @@
-package com.team2813.lib2813.limelight;
+package com.team2813.lib2813.limelight.truth;
 
 import com.google.common.truth.DoubleSubject;
 import com.google.common.truth.FailureMetadata;
@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertAbout;
  * <p>See <a href="https://truth.dev/extension">Writing your own custom subject</a>
  * to learn about creating custom Truth subjects.
  */
-class Pose3dSubject extends Subject {
+public class Pose3dSubject extends Subject {
 
     // User-defined entry point
     public static Pose3dSubject assertThat(@Nullable Pose3d pose) {
@@ -69,7 +69,7 @@ class Pose3dSubject extends Subject {
     }
 
     /** Truth Subject for making assertions about {@link Translation3d} values. */
-    static class Translation3dSubject extends Subject {
+    public static class Translation3dSubject extends Subject {
 
         // User-defined entry point
         public static Translation3dSubject assertThat(@Nullable Translation3d translation) {
@@ -197,7 +197,7 @@ class Pose3dSubject extends Subject {
      * A partially specified check about an approximate relationship to a {@code double} subject using
      * a tolerance.
      */
-    interface TolerantComparison<T> {
+    public interface TolerantComparison<T> {
 
         /**
          * Fails if the subject was expected to be within the tolerance of the given value but was not.
