@@ -8,11 +8,11 @@ import org.junit.Test;
 
 public class InputValidationTest {
   // Tests for the `InputValidation.checkCanId(...)` method.
-  public static class checkCanIdTest {
+  public static class CheckCanIdTest {
     @Test
-    public void invalidCanIdTest() {
+    public void invalidCanId() {
       // Can IDs can only valid in the range [0, 62].
-      int invalidCanIds[] = {-50, -1, 63, 100};
+      int[] invalidCanIds = {-50, -1, 63, 100};
       for (int invalidCanId : invalidCanIds) {
         InvalidCanIdException exception =
             assertThrows(
@@ -25,7 +25,7 @@ public class InputValidationTest {
     @Test
     public void validCanID() {
       // Can IDs can only valid in the range [0, 62].
-      int validCanIds[] = {0, 1, 10, 62};
+      int[] validCanIds = {0, 1, 10, 62};
       for (int validCanId : validCanIds) {
         int returnValue = InputValidation.checkCanId(validCanId);
         assertWithMessage("Expected a valid CAN ID").that(returnValue).isEqualTo(validCanId);
