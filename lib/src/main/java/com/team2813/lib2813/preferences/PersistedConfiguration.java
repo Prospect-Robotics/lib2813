@@ -317,6 +317,7 @@ public final class PersistedConfiguration {
         defaultValue = Boolean.FALSE;
       }
       Preferences.initBoolean(key, defaultValue);
+      return defaultValue;
     }
     return Preferences.getBoolean(key, false);
   }
@@ -345,6 +346,7 @@ public final class PersistedConfiguration {
         defaultValue = 0;
       }
       Preferences.initInt(key, defaultValue);
+      return defaultValue;
     }
     return Preferences.getInt(key, 0);
   }
@@ -367,6 +369,7 @@ public final class PersistedConfiguration {
         defaultValue = 0L;
       }
       Preferences.initLong(key, defaultValue);
+      return defaultValue;
     }
     return Preferences.getLong(key, 0);
   }
@@ -392,6 +395,7 @@ public final class PersistedConfiguration {
         defaultValue = 0.0;
       }
       Preferences.initDouble(key, defaultValue);
+      return defaultValue;
     }
     return Preferences.getDouble(key, 0);
   }
@@ -417,6 +421,7 @@ public final class PersistedConfiguration {
         defaultValue = "";
       }
       Preferences.initString(key, defaultValue);
+      return defaultValue;
     }
     return Preferences.getString(key, "");
   }
