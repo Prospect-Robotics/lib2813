@@ -136,7 +136,7 @@ public final class PersistedConfigurationTest {
     protected abstract void assertSuppliersHaveUpdatedValues(T record);
 
     @Test
-    public void withoutExistingPreferences() {
+    public void withoutExistingPreferences_passingRecordInstance() {
       // Arrange
       T recordWithDefaults = createRecordWithConfiguredDefaults();
 
@@ -169,7 +169,7 @@ public final class PersistedConfigurationTest {
     }
 
     @Test
-    public void withoutExistingPreferences_defaultsNotSpecified() {
+    public void withoutExistingPreferences_passingRecordClass() {
       // Act
       var recordWithPreferences =
           PersistedConfiguration.fromPreferences(preferenceName, recordClass);
@@ -199,7 +199,7 @@ public final class PersistedConfigurationTest {
     }
 
     @Test
-    public void withExistingPreferences() {
+    public void withExistingPreferences_passingRecordInstance() {
       // Arrange
       updatePreferenceValues(ValuesKind.INITIAL_VALUES);
       var preferenceValues = preferenceValues();
@@ -232,7 +232,7 @@ public final class PersistedConfigurationTest {
     }
 
     @Test
-    public void withExistingPreferences_defaultsNotSpecified() {
+    public void withExistingPreferences_passingRecordClass() {
       // Arrange
       updatePreferenceValues(ValuesKind.INITIAL_VALUES);
       var preferenceValues = preferenceValues();
