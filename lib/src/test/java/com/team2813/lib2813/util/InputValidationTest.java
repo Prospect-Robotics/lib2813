@@ -19,35 +19,40 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertThrows;
 
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
+/** Tests for {@link InputValidation}. */
 public class InputValidationTest {
 
-  // Tests for the `InputValidation.checkCanId(...)` method.
+  /** Tests for the `InputValidation.checkCanId(...)` method. */
   @Nested
   public class CheckCanIdTest {
-    @Test
-    public void invalidCanId() {
-      // Can IDs can only valid in the range [0, 62].
-      int[] invalidCanIds = {-50, -1, 63, 100};
-      for (int invalidCanId : invalidCanIds) {
-        InvalidCanIdException exception =
-            assertThrows(
-                InvalidCanIdException.class, () -> InputValidation.checkCanId(invalidCanId));
-        assertThat(exception.getCanId()).isEqualTo(invalidCanId);
-        assertThat(exception).hasMessageThat().contains("is not a valid can id");
-      }
+    @ParameterizedTest
+    @ValueSource(ints = {-50, -1, 63, 100}) // Can IDs can only valid in the range [0, 62]
+    public void invalidCanId(int invalidCanId) {
+      InvalidCanIdException exception =
+          assertThrows(InvalidCanIdException.class, () -> InputValidation.checkCanId(invalidCanId));
+
+      assertThat(exception.getCanId()).isEqualTo(invalidCanId);
+      assertThat(exception).hasMessageThat().contains("is not a valid can id");
     }
 
-    @Test
-    public void validCanID() {
-      // Can IDs can only valid in the range [0, 62].
-      int[] validCanIds = {0, 1, 10, 62};
-      for (int validCanId : validCanIds) {
-        int returnValue = InputValidation.checkCanId(validCanId);
-        assertWithMessage("Expected a valid CAN ID").that(returnValue).isEqualTo(validCanId);
-      }
+    @ParameterizedTest
+    @MethodSource("validCanIds")
+    public void checkCanId_returnsInputForValidCanId(int validCanId) {
+      int returnValue = InputValidation.checkCanId(validCanId);
+
+      assertWithMessage("Expected to return the passed-in value")
+          .that(returnValue)
+          .isEqualTo(validCanId);
+    }
+
+    private static IntStream validCanIds() {
+      return IntStream.range(0, 63);
     }
   }
 }
