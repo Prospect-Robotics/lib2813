@@ -62,11 +62,11 @@ import java.util.function.*;
  *
  *   public record DriveConfiguration(
  *       boolean addVisionMeasurements, long robotWeight,
- *       DoubleSupplier powerMultiplier) {
+ *       DoubleSupplier maxAngularVelocity) {
  *
  *     public static DriveConfiguration fromPreferences() {
  *       DriveConfiguration defaultConfig = new DriveConfiguration(
- *           true, 1337, () -> 3.14);
+ *           true, 2813, () -> 3.14);
  *       return PersistedConfiguration.fromPreferences("Drive", defaultConfig);
  *     }
  *   }
@@ -78,8 +78,8 @@ import java.util.function.*;
  *
  * <ul>
  *   <li>{@code "Drive/addVisionMeasurements"} (default value: {@code true})
- *   <li>{@code "Drive/robotWeight"} (default value: {@code 1337})
- *   <li>{@code "Drive/powerMultiplier"} (default value: {@code 3.14})
+ *   <li>{@code "Drive/robotWeight"} (default value: {@code 2813})
+ *   <li>{@code "Drive/maxAngularVelocity"} (default value: {@code 3.14})
  * </ul>
  *
  * <p>For record classes with many component values of the same type, it is strongly recommended
