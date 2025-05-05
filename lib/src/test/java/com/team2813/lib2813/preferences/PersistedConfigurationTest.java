@@ -146,6 +146,8 @@ public final class PersistedConfigurationTest {
 
       // Assert: Preferences injected
       assertHasConfiguredDefaults(recordWithPreferences);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasConfiguredDefaults(recordWithPreferences);
 
       // Assert: Default values set
       assertPreferencesHaveConfiguredDefaults();
@@ -162,6 +164,8 @@ public final class PersistedConfigurationTest {
       assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
       assertSuppliersHaveUpdatedValues(recordWithPreferences);
       assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
     }
 
     @Test
@@ -174,6 +178,8 @@ public final class PersistedConfigurationTest {
       assertHasJavaDefaults(recordWithPreferences);
 
       // Assert: Default values set
+      assertPreferencesHaveJavaDefaults();
+      // Ensure the suppliers return the same value if called multiple times.
       assertPreferencesHaveJavaDefaults();
 
       // Arrange: Update preferences
@@ -188,6 +194,8 @@ public final class PersistedConfigurationTest {
       assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
       assertSuppliersHaveUpdatedValues(recordWithPreferences);
       assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
     }
 
     @Test
@@ -204,6 +212,8 @@ public final class PersistedConfigurationTest {
       // Assert: Preferences injected
       assertHasUpdatedValues(ValuesKind.INITIAL_VALUES, recordWithPreferences);
       assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.INITIAL_VALUES, recordWithPreferences);
 
       // Arrange: Update preferences
       updatePreferenceValues(ValuesKind.UPDATED_VALUES);
@@ -217,6 +227,8 @@ public final class PersistedConfigurationTest {
       assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
       assertSuppliersHaveUpdatedValues(recordWithPreferences);
       assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
     }
 
     @Test
@@ -232,6 +244,8 @@ public final class PersistedConfigurationTest {
       // Assert: Preferences injected
       assertHasUpdatedValues(ValuesKind.INITIAL_VALUES, recordWithPreferences);
       assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.INITIAL_VALUES, recordWithPreferences);
 
       // Arrange: Update preferences
       updatePreferenceValues(ValuesKind.UPDATED_VALUES);
@@ -245,6 +259,8 @@ public final class PersistedConfigurationTest {
       assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
       assertSuppliersHaveUpdatedValues(recordWithPreferences);
       assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
     }
   }
 
@@ -427,15 +443,11 @@ public final class PersistedConfigurationTest {
         case INITIAL_VALUES -> {
           assertThat(record.intValue()).isEqualTo(101);
           assertThat(record.intSupplier.getAsInt()).isEqualTo(102);
-          assertThat(record.intSupplier.getAsInt()).isEqualTo(102);
-          assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(103));
           assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(103));
         }
         case UPDATED_VALUES -> {
           assertThat(record.intValue()).isEqualTo(201);
           assertThat(record.intSupplier.getAsInt()).isEqualTo(202);
-          assertThat(record.intSupplier.getAsInt()).isEqualTo(202);
-          assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(203));
           assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(203));
         }
       }
@@ -444,8 +456,6 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertSuppliersHaveUpdatedValues(RecordWithInts record) {
       assertThat(record.intSupplier.getAsInt()).isEqualTo(202);
-      assertThat(record.intSupplier.getAsInt()).isEqualTo(202);
-      assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(203));
       assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(203));
     }
   }
