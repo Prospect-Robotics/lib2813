@@ -459,26 +459,6 @@ public final class PersistedConfiguration {
     errorReporter.accept(message);
   }
 
-  private static <T> T createInstanceWithJavaDefaults(Class<T> clazz)
-      throws ReflectiveOperationException {
-    if (clazz.isPrimitive()) {
-      return clazz.cast(Array.get(Array.newInstance(clazz, 1), 0));
-    }
-    if (Record.class.isAssignableFrom(clazz)) {
-      var components = clazz.getRecordComponents();
-      Object[] params = new Object[components.length];
-      Class<?>[] types = new Class[components.length];
-      int i = 0;
-      for (RecordComponent component : components) {
-        Class<?> type = component.getType();
-        types[i] = type;
-        params[i] = createInstanceWithJavaDefaults(type);
-      }
-      return clazz.getDeclaredConstructor(types).newInstance(params);
-    }
-    throw new IllegalArgumentException("Unsupported type: " + clazz);
-  }
-
   private PersistedConfiguration() {
     throw new AssertionError("Not instantiable");
   }
