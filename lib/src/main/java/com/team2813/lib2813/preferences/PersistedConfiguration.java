@@ -209,6 +209,7 @@ public final class PersistedConfiguration {
                 "Preference with name '%s' already registered to %s", name, registeredTo));
       }
     }
+    entry.clearPersistent();
   }
 
   private static <T> T createFromPreferences(
