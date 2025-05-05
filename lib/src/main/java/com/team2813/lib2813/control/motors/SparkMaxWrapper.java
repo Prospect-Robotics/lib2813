@@ -16,6 +16,7 @@ import com.team2813.lib2813.util.ConfigUtils;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +74,11 @@ public class SparkMaxWrapper implements PIDMotor {
   @Override
   public Angle getPositionMeasure() {
     return Units.Rotations.of(encoder.getPosition());
+  }
+
+  @Override
+  public Current getAppliedCurrent() {
+    return Units.Amps.of(motor.getOutputCurrent());
   }
 
   @Override
