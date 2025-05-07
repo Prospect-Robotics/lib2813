@@ -197,8 +197,8 @@ public final class PersistedConfiguration {
     }
 
     NetworkTable preferencesTable = ntInstance.getTable("Preferences");
-    NetworkTableEntry entry =
-        preferencesTable.getEntry(String.format("%s%c.registeredTo", name, PATH_SEPARATOR));
+    String key = String.format("%s%c.registeredTo", name, PATH_SEPARATOR);
+    NetworkTableEntry entry = preferencesTable.getEntry(key);
     if (!entry.exists()) {
       entry.setString(recordName);
     } else {
