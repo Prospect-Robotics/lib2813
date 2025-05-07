@@ -3,8 +3,12 @@ package com.team2813.lib2813.preferences;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static java.util.stream.Collectors.toMap;
+import static org.junit.Assert.assertThrows;
 
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableType;
 import edu.wpi.first.networktables.Topic;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Preferences;
@@ -134,6 +138,31 @@ public final class PersistedConfigurationTest {
      * returned by {@link #updatePreferenceValues(ValuesKind)}.
      */
     protected abstract void assertSuppliersHaveUpdatedValues(T record);
+
+    @Test
+    public void preferenceNameMapsToOnlyOneRecordType() {
+      // Arrange
+      PersistedConfiguration.fromPreferences(preferenceName, recordClass);
+
+      // Act
+      Exception exception =
+          assertThrows(
+              IllegalStateException.class,
+              () -> PersistedConfiguration.fromPreferences(preferenceName, UnrelatedRecord.class));
+
+      // Assert: Exception has expected message
+      assertThat(exception)
+          .hasMessageThat()
+          .containsMatch("Preference with name '" + preferenceName + "' already registered");
+
+      // Assert: .registeredTo topic added, and is not persistent
+      NetworkTable table =
+          NetworkTableInstance.getDefault().getTable("Preferences").getSubTable(preferenceName);
+      NetworkTableEntry entry = table.getEntry(".registeredTo");
+      assertThat(entry.exists()).isTrue();
+      assertThat(entry.isPersistent()).isFalse();
+      assertThat(entry.getType()).isEqualTo(NetworkTableType.kString);
+    }
 
     @Test
     public void withoutExistingPreferences_passingRecordInstance() {
@@ -815,6 +844,13 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertSuppliersHaveUpdatedValues(RecordWithRecords record) {
       // Supplier<Record> is not supported, so nothing to do here.
+    }
+  }
+
+  record UnrelatedRecord(int team) {
+
+    UnrelatedRecord() {
+      this(2813);
     }
   }
 }
