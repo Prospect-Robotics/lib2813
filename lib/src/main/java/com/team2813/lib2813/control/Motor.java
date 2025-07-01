@@ -25,6 +25,7 @@ public interface Motor {
   /**
    * Gets the current that is being applied onto the motor
    *
+   * @since 1.3.0
    * @return The current applied current
    */
   Current getAppliedCurrent();
