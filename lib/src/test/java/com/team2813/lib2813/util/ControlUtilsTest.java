@@ -1,10 +1,10 @@
 package com.team2813.lib2813.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 public class ControlUtilsTest {
   @Test
@@ -46,7 +46,7 @@ public class ControlUtilsTest {
    * @param expectedMessage (Part of an) error message expected in the exception.
    */
   private void assertIllegalArgumentExceptionIsThrownContainingMessage(
-      ThrowingRunnable testExpression, String expectedMessage) {
+      Executable testExpression, String expectedMessage) {
     Exception exception = assertThrows(IllegalArgumentException.class, testExpression);
     assertThat(exception).hasMessageThat().contains(expectedMessage);
   }
