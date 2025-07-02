@@ -61,6 +61,7 @@ wpi.java.configureTestTasks(test)
 tasks.named('test') {
     // Use JUnit 4 for unit tests.
     useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
 tasks.named('jar') {
