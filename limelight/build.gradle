@@ -24,16 +24,21 @@ repositories {
 
 dependencies {
 	implementation wpi.java.deps.wpilib()
+	implementation wpi.java.vendor.java()
+
 	api "org.json:json:20240205"
 
 	testImplementation 'junit:junit:4.13.2'
+	testImplementation 'com.google.truth:truth:1.4.4'
 	implementation 'com.google.code.gson:gson:2.12.1'
 
 	nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
-    simulationDebug wpi.sim.enableDebug()
+	nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
+	simulationDebug wpi.sim.enableDebug()
 
     nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
-    simulationRelease wpi.sim.enableRelease()
+	nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
+	simulationRelease wpi.sim.enableRelease()
 }
 
 wpi.java.configureTestTasks(test)

@@ -12,6 +12,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
@@ -47,8 +48,16 @@ class AprilTagMapPoseHelper {
     if (retriever == null) {
       return List.of();
     }
-    return retriever.getFidicuals().stream()
+    return retriever.getFiducialMap().values().stream()
             .filter(fidicual -> ids.contains(fidicual.getId()))
             .map(Fiducial::getPosition).toList();
+  }
+
+  public Optional<Pose3d> getTagPose(int id) {
+    if (retriever == null) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(retriever.getFiducialMap().get(id))
+            .map(Fiducial::getPosition);
   }
 }

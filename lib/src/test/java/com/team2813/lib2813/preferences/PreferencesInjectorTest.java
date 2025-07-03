@@ -6,10 +6,12 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Preferences;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.*;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,7 +44,7 @@ public final class PreferencesInjectorTest {
     }
 
     /** Test record for testing classes that contain boolean fields. */
-    record RecordWithBooleans(
+    private record RecordWithBooleans(
         boolean booleanValue, BooleanSupplier booleanSupplier, Supplier<Boolean> supplierBoolean) {
 
       public RecordWithBooleans(boolean defaultValue) {
@@ -138,7 +140,8 @@ public final class PreferencesInjectorTest {
     final String supplierIntKey = keyForFieldName(RecordWithInts.class, "supplierInt");
 
     /** Test record for testing classes that contain int fields. */
-    record RecordWithInts(int intValue, IntSupplier intSupplier, Supplier<Integer> supplierInt) {
+    private record RecordWithInts(
+        int intValue, IntSupplier intSupplier, Supplier<Integer> supplierInt) {
 
       RecordWithInts(int intValue, int intSupplierValue, int supplierIntValue) {
         this(intValue, () -> intSupplierValue, () -> supplierIntValue);
@@ -225,7 +228,8 @@ public final class PreferencesInjectorTest {
     final String supplierLongKey = keyForFieldName(RecordWithLongs.class, "supplierLong");
 
     /** Test record for testing classes that contain long fields. */
-    record RecordWithLongs(long longValue, LongSupplier longSupplier, Supplier<Long> supplierLong) {
+    private record RecordWithLongs(
+        long longValue, LongSupplier longSupplier, Supplier<Long> supplierLong) {
 
       RecordWithLongs(long longValue, long longSupplierValue, long supplierLongValue) {
         this(longValue, () -> longSupplierValue, () -> supplierLongValue);
@@ -312,7 +316,7 @@ public final class PreferencesInjectorTest {
     final String supplierDoubleKey = keyForFieldName(RecordWithDoubles.class, "supplierDouble");
 
     /** Test record for testing classes that contain double fields. */
-    record RecordWithDoubles(
+    private record RecordWithDoubles(
         double doubleValue, DoubleSupplier doubleSupplier, Supplier<Double> supplierDouble) {
 
       RecordWithDoubles(
@@ -400,7 +404,7 @@ public final class PreferencesInjectorTest {
     final String stringValueKey = keyForFieldName(RecordWithStrings.class, "stringValue");
     final String stringSupplierKey = keyForFieldName(RecordWithStrings.class, "stringSupplier");
 
-    record RecordWithStrings(String stringValue, Supplier<String> stringSupplier) {
+    private record RecordWithStrings(String stringValue, Supplier<String> stringSupplier) {
 
       RecordWithStrings(String stringValue, String stringSupplierValue) {
         this(stringValue, () -> stringSupplierValue);
@@ -471,6 +475,79 @@ public final class PreferencesInjectorTest {
     }
   }
 
+  public static class RecordPreferencesTest extends PreferencesInjectorTestCase {
+    final String recordValueKey = keyForFieldName(RecordWithRecords.class, "recordValue");
+    final String longValueKey = recordValueKey + ".longValue";
+    final String stringValueKey = recordValueKey + ".stringValue";
+
+    private record RecordWithPrimitives(long longValue, String stringValue) {}
+
+    private record RecordWithRecords(RecordWithPrimitives recordValue) {}
+
+    @Test
+    public void withoutExistingPreferences() {
+      // Arrange
+      var recordWithDefaults = new RecordWithRecords(new RecordWithPrimitives(42, "The Answer"));
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.recordValue.stringValue()).isEqualTo("The Answer");
+      assertThat(recordWithPreferences.recordValue.longValue()).isEqualTo(42);
+
+      // Assert: Default values set
+      assertThat(preferenceKeys()).containsExactly(stringValueKey, longValueKey);
+      assertThat(Preferences.getString(stringValueKey, "")).isEqualTo("The Answer");
+      assertThat(Preferences.getLong(longValueKey, -1)).isEqualTo(42);
+
+      // Arrange: Update preferences
+      Preferences.setString(stringValueKey, "Gear Heads");
+      Preferences.setLong(longValueKey, 2813);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.recordValue.longValue()).isEqualTo(2813);
+      assertThat(newRecordWithPreferences.recordValue.stringValue()).isEqualTo("Gear Heads");
+
+      assertHasNoChangesSince(preferenceValues);
+    }
+
+    @Test
+    public void withExistingPreferences() {
+      // Arrange
+      Preferences.initString(stringValueKey, "Agent");
+      Preferences.initLong(longValueKey, 99);
+      var preferenceValues = preferenceValues();
+      var recordWithDefaults = new RecordWithRecords(new RecordWithPrimitives(-1, ""));
+
+      // Act
+      var recordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(recordWithPreferences.recordValue.stringValue()).isEqualTo("Agent");
+      assertThat(recordWithPreferences.recordValue.longValue()).isEqualTo(99);
+      assertHasNoChangesSince(preferenceValues);
+
+      // Arrange: Update preferences
+      Preferences.setString(stringValueKey, "Gear Heads");
+      Preferences.setLong(longValueKey, 2813);
+      preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences = injector.injectPreferences(recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertThat(newRecordWithPreferences.recordValue.longValue()).isEqualTo(2813);
+      assertThat(newRecordWithPreferences.recordValue.stringValue()).isEqualTo("Gear Heads");
+
+      assertHasNoChangesSince(preferenceValues);
+    }
+  }
+
   /** Base class for all nested classes of {@link PreferencesInjectorTest}. */
   private abstract static class PreferencesInjectorTestCase {
     PreferencesInjector injector;
@@ -482,11 +559,17 @@ public final class PreferencesInjectorTest {
     public void createInjector() {
       String removePrefix = getClass().getCanonicalName() + ".";
       injector = new PreferencesInjector(removePrefix);
-      injector.throwExceptions = true;
-      injector.errorReporter =
+      PersistedConfiguration.throwExceptions = true;
+      PersistedConfiguration.errorReporter =
           message ->
               errorCollector.addError(
                   new AssertionError("Unexpected warning: \"" + message + "\""));
+    }
+
+    @After
+    public void resetTestGlobals() {
+      PersistedConfiguration.throwExceptions = false;
+      PersistedConfiguration.errorReporter = DataLogManager::log;
     }
 
     protected static String keyForFieldName(Class<? extends Record> recordClass, String fieldName) {

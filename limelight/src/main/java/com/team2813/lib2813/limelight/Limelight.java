@@ -21,7 +21,8 @@ public interface Limelight {
 	}
 
 	/**
-	 * @deprecated use {@link LocationalData#getTimestamp()}
+	 * @deprecated use methods in {@link LocationalData} that return a
+	 *   {@link BotPoseEstimate}.
 	 */
 	@Deprecated
 	OptionalDouble getTimestamp();
@@ -56,7 +57,10 @@ public interface Limelight {
 	
 	/**
 	 * Gets the locations of the given AprilTags.
+	 *
+	 * @deprecated use {@link LocationalData#getVisibleAprilTagPoses()}
 	 */
+	@Deprecated
 	List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags);
 
 	/**
@@ -65,6 +69,12 @@ public interface Limelight {
 	@Deprecated
 	OptionalDouble getCaptureLatency();
 
+	/**
+	 * Gets the most recent JSON from the Limelight.
+	 * Does not work for all implementations.
+	 *
+	 * @deprecated use {@link LocationalData#isValid()}.
+	 */
 	@Deprecated
 	Optional<JSONObject> getJsonDump();
 }

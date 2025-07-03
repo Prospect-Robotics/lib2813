@@ -1,38 +1,35 @@
 package com.team2813.lib2813.util;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertThrows;
 
-import com.team2813.lib2813.theories.Between;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
+import org.junit.Test;
 
-@RunWith(Theories.class)
 public class InputValidationTest {
-  private static <T> RuntimeException outOfBounds(T val) {
-    return new RuntimeException("Value was out of bounds");
-  }
+  // Tests for the `InputValidation.checkCanId(...)` method.
+  public static class CheckCanIdTest {
+    @Test
+    public void invalidCanId() {
+      // Can IDs can only valid in the range [0, 62].
+      int[] invalidCanIds = {-50, -1, 63, 100};
+      for (int invalidCanId : invalidCanIds) {
+        InvalidCanIdException exception =
+            assertThrows(
+                InvalidCanIdException.class, () -> InputValidation.checkCanId(invalidCanId));
+        assertThat(exception.getCanId()).isEqualTo(invalidCanId);
+        assertThat(exception).hasMessageThat().contains("is not a valid can id");
+      }
+    }
 
-  @Theory
-  public void invalidCanID(
-      @Between(first = -50, last = -1) @Between(first = 63, last = 100) int canID) {
-    InvalidCanIdException expected = new InvalidCanIdException(canID);
-    InvalidCanIdException actual =
-        assertThrows(InvalidCanIdException.class, () -> InputValidation.checkCanId(canID));
-    assertEquals("Messages were not identical", expected, actual);
-  }
-
-  @Theory
-  public void genericInvalidTest(@Between(first = 0, last = 4) int unused) {
-    Integer min = Integer.valueOf(0);
-    Integer actual = Integer.valueOf(unused);
-    Integer max = Integer.valueOf(4);
-    InputValidation.checkBounds(min, max, actual, InputValidationTest::outOfBounds);
-  }
-
-  @Theory
-  public void validCanID(@Between(first = 0, last = 62) int canID) {
-    assertEquals(canID, InputValidation.checkCanId(canID));
+    @Test
+    public void validCanID() {
+      // Can IDs can only valid in the range [0, 62].
+      int[] validCanIds = {0, 1, 10, 62};
+      for (int validCanId : validCanIds) {
+        int returnValue = InputValidation.checkCanId(validCanId);
+        assertWithMessage("Expected a valid CAN ID").that(returnValue).isEqualTo(validCanId);
+      }
+    }
   }
 }
