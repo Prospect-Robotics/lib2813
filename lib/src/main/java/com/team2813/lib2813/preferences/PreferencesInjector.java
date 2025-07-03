@@ -38,7 +38,7 @@ import edu.wpi.first.wpilibj.Preferences;
  *
  * @deprecated Use {@link PersistedConfiguration}
  */
-@Deprecated(since = "1.3.0", forRemoval = true)
+@Deprecated(since = "2.0.0", forRemoval = true)
 public class PreferencesInjector {
   private static final char PATH_SEPARATOR = '.';
 
