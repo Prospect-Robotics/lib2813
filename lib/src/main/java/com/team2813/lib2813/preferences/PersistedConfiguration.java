@@ -92,7 +92,7 @@ import java.util.function.*;
  * constructor; see <a href="https://www.baeldung.com/java-records-custom-constructor">Custom
  * Constructor in Java Records</a> for details.
  *
- * @since 1.3.0
+ * @since 2.0.0
  */
 public final class PersistedConfiguration {
   // The below package-scope fields are for the self-tests.
