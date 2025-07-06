@@ -1,75 +1,75 @@
 plugins {
-	id 'java-library'
-	id "edu.wpi.first.GradleRIO" version "2025.1.1"
-	id 'idea'
-	// Spotless code formatter.
-	id 'com.diffplug.spotless' version '6.25.0'
+    id 'java-library'
+    id "edu.wpi.first.GradleRIO" version "2025.1.1"
+    id 'idea'
+    // Spotless code formatter.
+    id 'com.diffplug.spotless' version '6.25.0'
 }
 
 idea {
-	module {
-		downloadJavadoc = true
-		downloadSources = true
-	}
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation wpi.java.deps.wpilib()
-	implementation wpi.java.vendor.java()
+    implementation wpi.java.deps.wpilib()
+    implementation wpi.java.vendor.java()
 
-	api "org.json:json:20240205"
+    api "org.json:json:20240205"
 
-	testImplementation 'junit:junit:4.13.2'
-	testImplementation 'com.google.truth:truth:1.4.4'
-	implementation 'com.google.code.gson:gson:2.12.1'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.google.truth:truth:1.4.4'
+    implementation 'com.google.code.gson:gson:2.12.1'
 
-	nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
-	nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
-	simulationDebug wpi.sim.enableDebug()
+    nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
+    nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
+    simulationDebug wpi.sim.enableDebug()
 
     nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
-	nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
-	simulationRelease wpi.sim.enableRelease()
+    nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
+    simulationRelease wpi.sim.enableRelease()
 }
 
 wpi.java.configureTestTasks(test)
 
 tasks.named('test') {
-	// Use JUnit 4 for tests
-	useJUnit()
+    // Use JUnit 4 for tests
+    useJUnit()
 }
 
 spotless {
-	// See https://github.com/diffplug/spotless/tree/main/plugin-gradle
-	format 'misc', {
-		// define the files to apply `misc` to
-		target '.gitattributes', '.gitignore'
+    // See https://github.com/diffplug/spotless/tree/main/plugin-gradle
+    format 'misc', {
+        // define the files to apply `misc` to
+        target '.gitattributes', '.gitignore'
 
-		// define the steps to apply to those files
-		trimTrailingWhitespace()
-		indentWithSpaces()
-		endWithNewline()
-	}
-	groovyGradle {
-		greclipse().configFile('greclipse-gradle.properties')
-	}
-	java {
-		importOrder() // Use the default importOrder configuration (can override)
-		removeUnusedImports()
+        // define the steps to apply to those files
+        trimTrailingWhitespace()
+        indentWithSpaces()
+        endWithNewline()
+    }
+    groovyGradle {
+        greclipse().configFile('greclipse-gradle.properties')
+    }
+    java {
+        importOrder() // Use the default importOrder configuration (can override)
+        removeUnusedImports()
 
-		// Use Google Java Format
-		// - aosp() causes it to use a four-space indent
-		googleJavaFormat('1.24.0').reflowLongStrings()
+        // Use Google Java Format
+        // - aosp() causes it to use a four-space indent
+        googleJavaFormat('1.24.0').reflowLongStrings()
 
-		formatAnnotations()  // fix formatting of type annotations
-	}
+        formatAnnotations()  // fix formatting of type annotations
+    }
 }

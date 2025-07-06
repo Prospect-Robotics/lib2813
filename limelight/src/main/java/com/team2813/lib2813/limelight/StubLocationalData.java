@@ -1,7 +1,6 @@
 package com.team2813.lib2813.limelight;
 
 import edu.wpi.first.math.geometry.Pose3d;
-
 import java.util.*;
 
 /** Implementation of LocationalData where all optional values return empty values. */

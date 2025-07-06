@@ -13,7 +13,7 @@ final class Optionals {
   static OptionalLong unboxLong(Optional<Long> val) {
     return val.map(OptionalLong::of).orElseGet(OptionalLong::empty);
   }
-  
+
   static OptionalDouble unboxDouble(Optional<Double> val) {
     return val.map(OptionalDouble::of).orElseGet(OptionalDouble::empty);
   }
