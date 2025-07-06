@@ -1,20 +1,19 @@
 package com.team2813.lib2813.limelight;
 
+import static java.util.Collections.unmodifiableMap;
+
+import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
+import com.team2813.lib2813.limelight.LimelightHelpers.PoseEstimate;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalDouble;
-
-import com.team2813.lib2813.limelight.LimelightHelpers.PoseEstimate;
-import com.team2813.lib2813.limelight.LimelightHelpers.LimelightResults;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
+import java.util.stream.Collectors;
 import org.json.JSONObject;
-
-import static java.util.Collections.unmodifiableMap;
 
 class NetworkTablesLimelight implements Limelight {
   private static final double[] ZEROS = new double[6];
@@ -38,7 +37,8 @@ class NetworkTablesLimelight implements Limelight {
 
   @Override
   public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
-    // The updateLimelight assumes we have the hostname of the limelight, which we don't. For now, this won't update the limelight.
+    // The updateLimelight assumes we have the hostname of the limelight, which we don't. For now,
+    // this won't update the limelight.
     aprilTagMapPoseHelper.setFieldMap(stream, false);
   }
 
@@ -76,16 +76,18 @@ class NetworkTablesLimelight implements Limelight {
     return StubLocationalData.INVALID;
   }
 
-  private static Optional<BotPoseEstimate> toBotPoseEstimate(PoseEstimate estimate, Set<Integer> visibleAprilTags) {
+  private static Optional<BotPoseEstimate> toBotPoseEstimate(
+      PoseEstimate estimate, Set<Integer> visibleAprilTags) {
     if (estimate == null || estimate.tagCount == 0 || Pose2d.kZero.equals(estimate.pose)) {
       return Optional.empty();
     }
-    return Optional.of(new BotPoseEstimate(estimate.pose, estimate.timestampSeconds, visibleAprilTags));
+    return Optional.of(
+        new BotPoseEstimate(estimate.pose, estimate.timestampSeconds, visibleAprilTags));
   }
 
   private Map<Integer, Pose3d> getVisibleAprilTagPoses(LimelightResults results) {
     Map<Integer, Pose3d> map = new HashMap<>();
-    for (var fiducial: results.targets_Fiducials) {
+    for (var fiducial : results.targets_Fiducials) {
       int id = (int) fiducial.fiducialID;
       aprilTagMapPoseHelper.getTagPose(id).ifPresent(pose -> map.put(id, pose));
     }
@@ -100,8 +102,11 @@ class NetworkTablesLimelight implements Limelight {
     private final Map<Integer, Pose3d> aprilTags;
 
     NTLocationalData(
-            LimelightResults results, Optional<BotPoseEstimate> poseEstimate, Optional<BotPoseEstimate> redPoseEstimate,
-            Optional<BotPoseEstimate> bluePoseEstimate, Map<Integer, Pose3d> aprilTags) {
+        LimelightResults results,
+        Optional<BotPoseEstimate> poseEstimate,
+        Optional<BotPoseEstimate> redPoseEstimate,
+        Optional<BotPoseEstimate> bluePoseEstimate,
+        Map<Integer, Pose3d> aprilTags) {
       this.results = results;
       this.poseEstimate = poseEstimate;
       this.redPoseEstimate = redPoseEstimate;
@@ -166,7 +171,9 @@ class NetworkTablesLimelight implements Limelight {
 
     @Override
     public Set<Integer> getVisibleTags() {
-      return Arrays.stream(results.targets_Fiducials).map(fiducial -> (int) fiducial.fiducialID).collect(Collectors.toUnmodifiableSet());
+      return Arrays.stream(results.targets_Fiducials)
+          .map(fiducial -> (int) fiducial.fiducialID)
+          .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override

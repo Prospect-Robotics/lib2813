@@ -1,14 +1,13 @@
 package com.team2813.lib2813.limelight.truth;
 
+import static com.google.common.truth.Fact.simpleFact;
+import static com.google.common.truth.Truth.assertAbout;
+
 import com.google.common.truth.DoubleSubject;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import edu.wpi.first.math.geometry.Rotation3d;
-
 import javax.annotation.Nullable;
-
-import static com.google.common.truth.Fact.simpleFact;
-import static com.google.common.truth.Truth.assertAbout;
 
 /** Truth Subject for making assertions about {@link Rotation3d} values. */
 public final class Rotation3dSubject extends Subject {
@@ -51,24 +50,24 @@ public final class Rotation3dSubject extends Subject {
   // Chained subjects methods below this point
 
   /**
-   * Returns a subject that can be used to make assertions about the
-   * counterclockwise rotation angle around the X axis (roll) in radians.
+   * Returns a subject that can be used to make assertions about the counterclockwise rotation angle
+   * around the X axis (roll) in radians.
    */
   public DoubleSubject x() {
     return check("getX()").that(nonNullActual().getX());
   }
 
   /**
-   * Returns a subject that can be used to make assertions about the
-   * counterclockwise rotation angle around the Y axis (pitch) in radians.
+   * Returns a subject that can be used to make assertions about the counterclockwise rotation angle
+   * around the Y axis (pitch) in radians.
    */
   public DoubleSubject y() {
     return check("getY()").that(nonNullActual().getY());
   }
 
   /**
-   * Returns a subject that can be used to make assertions about the
-   * counterclockwise rotation angle around the Z axis (yaw) in radians.
+   * Returns a subject that can be used to make assertions about the counterclockwise rotation angle
+   * around the Z axis (yaw) in radians.
    */
   public DoubleSubject z() {
     return check("getZ()").that(nonNullActual().getZ());

@@ -35,7 +35,8 @@ final class LimelightClient {
       URI uri = new URI("http", null, hostname, port, path, null, null);
       return HttpRequest.newBuilder(uri);
     } catch (URISyntaxException e) {
-      throw new HttpRequestException(String.format("Could not create URI to %s:%d for '%s'", hostname, port, path), e);
+      throw new HttpRequestException(
+          String.format("Could not create URI to %s:%d for '%s'", hostname, port, path), e);
     }
   }
 }
