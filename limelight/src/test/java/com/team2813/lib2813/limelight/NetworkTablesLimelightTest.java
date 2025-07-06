@@ -2,21 +2,23 @@ package com.team2813.lib2813.limelight;
 
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
-
-import java.util.List;
 
 public class NetworkTablesLimelightTest extends LimelightTestCase {
   private static final String TABLE_NAME = "limelight";
   private static final long ONE_HALF_MS_IN_MICROS = 500;
   private static final long ONE_SECOND_IN_MICROS = 1_000_000;
   private static long fakeTimestampMicros = 15 * ONE_SECOND_IN_MICROS;
-  private static final List<String> BOT_POSE_ESTIMATE_ENTRIES = List.of(
+  private static final List<String> BOT_POSE_ESTIMATE_ENTRIES =
+      List.of(
           "botpose",
-          "botpose_wpired", "botpose_orb_wpired",
-          "botpose_wpiblue", "botpose_orb_wpiblue");
+          "botpose_wpired",
+          "botpose_orb_wpired",
+          "botpose_wpiblue",
+          "botpose_orb_wpiblue");
 
   @After
   public void resetNetworkTables() {
@@ -52,7 +54,8 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
     return LimelightHelpers.getLimelightNTTableEntry(TABLE_NAME, "json");
   }
 
-  private static void setBotPoseEstimate(JSONObject resultsJson, String entryName, double latencyMillis) {
+  private static void setBotPoseEstimate(
+      JSONObject resultsJson, String entryName, double latencyMillis) {
     double[] estimate_array = getBotPoseEstimateArray(resultsJson, entryName, latencyMillis);
     DoubleArrayEntry tableEntry =
         LimelightHelpers.getLimelightDoubleArrayEntry(TABLE_NAME, entryName);
@@ -61,11 +64,12 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
 
   private static void clearBotPoseEstimate(String entryName, long timestampMicros) {
     DoubleArrayEntry tableEntry =
-            LimelightHelpers.getLimelightDoubleArrayEntry(TABLE_NAME, entryName);
+        LimelightHelpers.getLimelightDoubleArrayEntry(TABLE_NAME, entryName);
     tableEntry.set(new double[0], timestampMicros);
   }
 
-  private static double[] getBotPoseEstimateArray(JSONObject resultsJson, String entryName, double latencyMillis) {
+  private static double[] getBotPoseEstimateArray(
+      JSONObject resultsJson, String entryName, double latencyMillis) {
     if (!resultsJson.has(entryName)) {
       return new double[0]; // getBotPoseEstimate_wpi{Blue,Red}() will return null
     }
