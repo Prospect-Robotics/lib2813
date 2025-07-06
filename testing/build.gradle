@@ -1,0 +1,54 @@
+plugins {
+    id 'java-common-conventions'
+    id 'edu.wpi.first.GradleRIO' version '2025.1.1'
+}
+
+version = '1.0.0-alpha.1'
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+dependencies {
+    implementation wpi.java.deps.wpilib()
+    implementation wpi.java.vendor.java()
+    implementation 'com.google.truth:truth:1.4.4'
+
+    nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
+    nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
+    simulationDebug wpi.sim.enableDebug()
+
+    nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
+    nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
+    simulationRelease wpi.sim.enableRelease()
+    testImplementation(platform('org.junit:junit-bom:5.13.1'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+}
+
+// the magic line that makes tests work :)
+wpi.java.configureTestTasks(test)
+
+javadoc {
+    options.tags = [
+        // Converts `@apiNote` paragraph to "Note: " section in the generated javadoc
+        'apiNote:a:Api Note:',
+        // Converts `@implSpec` paragraph to "Implementation Requirements: " section in the generated javadoc
+        'implSpec:a:Implementation Requirements:'
+    ]
+}
+
+// Generates Javadocs for test libraries under /build/docs/testjavadoc
+// https://discuss.gradle.org/t/how-configure-gradle-to-generate-javadoc-for-testing-classes-junit/12764/6
+task testJavadoc(type: Javadoc) {
+    source = sourceSets.test.allJava
+    classpath = sourceSets.test.compileClasspath
+    destinationDir = file("${buildDir}/docs/testjavadoc")
+    println (title == null ? '<null>' : title)
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}

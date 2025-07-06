@@ -3,7 +3,7 @@ plugins {
 	id "edu.wpi.first.GradleRIO" version "2025.1.1"
 	id 'idea'
 	// Spotless code formatter.
-	id 'com.diffplug.spotless' version '6.25.0'
+	id 'com.diffplug.spotless'
 }
 
 idea {
@@ -30,6 +30,7 @@ dependencies {
 
 	testImplementation 'junit:junit:4.13.2'
 	testImplementation 'com.google.truth:truth:1.4.4'
+	testImplementation project(':testing')
 	implementation 'com.google.code.gson:gson:2.12.1'
 
 	nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)

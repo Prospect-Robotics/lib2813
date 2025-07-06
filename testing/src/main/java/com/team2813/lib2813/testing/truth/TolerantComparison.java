@@ -1,4 +1,4 @@
-package com.team2813.lib2813.limelight.truth;
+package com.team2813.lib2813.testing.truth;
 
 import org.jspecify.annotations.Nullable;
 
@@ -21,14 +21,14 @@ public abstract class TolerantComparison<T> {
 
   /**
    * @throws UnsupportedOperationException always
-   * @deprecated {@link Object#equals(Object)} is not supported on TolerantComparison. If
-   *     you meant to compare doubles, use {@link #of(T)} instead.
+   * @deprecated {@link Object#equals(Object)} is not supported on TolerantComparison. If you meant
+   *     to compare doubles, use {@link #of(T)} instead.
    */
   @Deprecated
   @Override
   public final boolean equals(@Nullable Object o) {
     throw new UnsupportedOperationException(
-            "If you meant to compare values, use TolerantComparison.of() instead.");
+        "If you meant to compare values, use TolerantComparison.of() instead.");
   }
 
   /**

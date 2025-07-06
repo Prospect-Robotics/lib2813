@@ -1,14 +1,13 @@
-package com.team2813.lib2813.limelight.truth;
+package com.team2813.lib2813.testing.truth;
+
+import static com.google.common.truth.Fact.simpleFact;
+import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.DoubleSubject;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import edu.wpi.first.math.geometry.Translation2d;
-
 import javax.annotation.Nullable;
-
-import static com.google.common.truth.Fact.simpleFact;
-import static com.google.common.truth.Truth.assertAbout;
 
 /** Truth Subject for making assertions about {@link Translation2d} values. */
 public final class Translation2dSubject extends Subject {
