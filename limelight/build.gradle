@@ -59,13 +59,16 @@ spotless {
 		indentWithSpaces()
 		endWithNewline()
 	}
+	groovyGradle {
+		greclipse().configFile('greclipse-gradle.properties')
+	}
 	java {
-		// importOrder() // Use the default importOrder configuration (can override)
+		importOrder() // Use the default importOrder configuration (can override)
 		removeUnusedImports()
 
 		// Use Google Java Format
 		// - aosp() causes it to use a four-space indent
-		// googleJavaFormat('1.24.0').reflowLongStrings()
+		googleJavaFormat('1.24.0').reflowLongStrings()
 
 		formatAnnotations()  // fix formatting of type annotations
 	}
