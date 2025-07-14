@@ -2,9 +2,9 @@ package com.team2813.lib2813.limelight;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.team2813.lib2813.limelight.truth.Pose2dSubject.assertThat;
-import static com.team2813.lib2813.limelight.truth.Pose3dSubject.assertThat;
-import static com.team2813.lib2813.limelight.truth.Translation3dSubject.assertThat;
+import static com.team2813.lib2813.testing.truth.Pose2dSubject.assertThat;
+import static com.team2813.lib2813.testing.truth.Pose3dSubject.assertThat;
+import static com.team2813.lib2813.testing.truth.Translation3dSubject.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import edu.wpi.first.math.geometry.Pose2d;
