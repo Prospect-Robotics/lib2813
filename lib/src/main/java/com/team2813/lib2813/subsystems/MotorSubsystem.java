@@ -10,6 +10,8 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -29,11 +31,9 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   protected final double acceptableError;
   protected final PIDController controller;
 
-  private double setpoint;
   private boolean isEnabled;
 
   protected MotorSubsystem(MotorSubsystemConfiguration builder) {
-    this.setpoint = builder.startingPosition;
     this.controller = builder.controller;
     this.controller.setTolerance(builder.acceptableError);
     acceptableError = builder.acceptableError;
@@ -41,27 +41,40 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     encoder = builder.encoder;
     controlMode = builder.controlMode;
     rotationUnit = builder.rotationUnit;
+
+    this.controller.setSetpoint(builder.startingPosition);
   }
 
   /**
-   * Sets the desired setpoint to the current setpoint, and enables the PID. control.
+   * Sets the desired setpoint to the provided value, and enables the PID control.
    *
-   * @param setpoint the position to go to
+   * @param position the position to go to.
    */
-  public void setSetpoint(T setpoint) {
+  public void setSetpoint(T position) {
     if (!isEnabled()) {
       enable();
     }
-    this.setpoint = setpoint.get().in(rotationUnit);
-    controller.setSetpoint(this.setpoint);
+    double setpoint = position.get().in(rotationUnit);
+    controller.setSetpoint(setpoint);
   }
 
+  /**
+   * Returns a command that sets the desired setpoint to the provided value.
+   *
+   * @param setpoint the position to go to.
+   */
+  public final Command setSetpointCommand(T setpoint) {
+    return new InstantCommand(() -> this.setSetpoint(setpoint), this);
+  }
+
+  /** Returns the current setpoint as an angle. */
   public Angle getSetpoint() {
-    return rotationUnit.of(setpoint);
+    return rotationUnit.of(controller.getSetpoint());
   }
 
+  /** Determines if the motor is at the current setpoint, within the acceptable error. */
   public boolean atPosition() {
-    return Math.abs(getMeasurement() - setpoint) <= acceptableError;
+    return Math.abs(getMeasurement() - controller.getSetpoint()) <= acceptableError;
   }
 
   /**
@@ -103,18 +116,50 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /**
    * {@inheritDoc}
    *
-   * <p>Additionally, this method disables PID control of the subsystem
+   * <p>Additionally, this method disables PID control of the subsystem. It <em>does not</em> clamp
+   * the provided value.
    */
   @Override
   public void set(ControlMode mode, double demand) {
-    if (isEnabled()) {
-      disable();
-    }
+    isEnabled = false;
     motor.set(mode, demand);
   }
 
+  /**
+   * Clamps the given output value and provides it to the motor.
+   *
+   * <p>This was protected and non-final to allow subclasses to clamp the output. Subclasses should
+   * override {@link #clampOutput(double)}.
+   *
+   * @param output The output calculated by the PID algorithm.
+   * @param setpoint Ignored.
+   * @deprecated Subclasses should override {@link #clampOutput(double)}.
+   */
+  @Deprecated
   protected void useOutput(double output, double setpoint) {
-    motor.set(controlMode, output);
+    motor.set(controlMode, clampOutput(output));
+  }
+
+  /**
+   * Clamps the given output value and provides it to the motor.
+   *
+   * <p>This is called by {@link #periodic()} if this subsystem is enabled.
+   */
+  private void useOutput(double output) {
+    useOutput(output, controller.getSetpoint());
+  }
+
+  /**
+   * Extension point that allows subclasses to clamp the output.
+   *
+   * <p>The default implementation returns the provided value.
+   *
+   * @param output Output provided by the PID controller.
+   * @return Output to provide to the motor.
+   * @see edu.wpi.first.math.MathUtil#clamp(double, double, double)
+   */
+  protected double clampOutput(double output) {
+    return output;
   }
 
   protected double getMeasurement() {
@@ -154,7 +199,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   @Override
   public void periodic() {
     if (isEnabled) {
-      useOutput(controller.calculate(getMeasurement()), setpoint);
+      useOutput(controller.calculate(getMeasurement()));
     }
   }
 
@@ -240,9 +285,9 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     }
 
     /**
-     * sets the starting position.
+     * Sets the initial setpoint of the controller
      *
-     * @param startingPosition the position to start at
+     * @param startingPosition the initial setpoint
      * @return {@code this} for chaining
      */
     public MotorSubsystemConfiguration startingPosition(Angle startingPosition) {
@@ -250,9 +295,17 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       return this;
     }
 
-    public MotorSubsystemConfiguration startingPosition(Supplier<Angle> startingPosition) {
-      this.startingPosition = startingPosition.get().in(this.rotationUnit);
-      return this;
+    /**
+     * Sets the initial setpoint of the controller from the current value of a supplier.
+     *
+     * <p>This is provided to allow the subclass to define an {@code Enum} (that implements {@code
+     * Supplier<Angle>}) which defines the supported positions of this subsystem.
+     *
+     * @param startingPositionSupplier supplier to use to get the initial setpoint
+     * @return {@code this} for chaining
+     */
+    public MotorSubsystemConfiguration startingPosition(Supplier<Angle> startingPositionSupplier) {
+      return startingPosition(startingPositionSupplier.get());
     }
 
     public MotorSubsystemConfiguration acceptableError(double error) {
