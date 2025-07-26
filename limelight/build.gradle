@@ -2,8 +2,6 @@ plugins {
     id 'java-common-conventions'
     id "edu.wpi.first.GradleRIO" version "2025.1.1"
     id 'idea'
-    // Spotless code formatter.
-    id 'com.diffplug.spotless'
 }
 
 idea {
