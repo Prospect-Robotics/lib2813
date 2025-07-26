@@ -45,15 +45,6 @@ javadoc {
     ]
 }
 
-// Generates Javadocs for test libraries under /build/docs/testjavadoc
-// https://discuss.gradle.org/t/how-configure-gradle-to-generate-javadoc-for-testing-classes-junit/12764/6
-task testJavadoc(type: Javadoc) {
-    source = sourceSets.test.allJava
-    classpath = sourceSets.test.compileClasspath
-    destinationDir = file("${buildDir}/docs/testjavadoc")
-    println (title == null ? '<null>' : title)
-}
-
 task sourceJar(type: Jar) {
     from sourceSets.main.allJava
     archiveClassifier = 'sources'
