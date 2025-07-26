@@ -13,19 +13,27 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 /**
- * JUnit Jupiter extension for allowing a test to schedule commands.
+ * JUnit Jupiter extension for testing code that depends on WPILib.
+ *
+ * <p>Also provides a {@link CommandTester} for tests.
  *
  * <p>Example use:
  *
  * <pre>{@code
- * @ExtendWith(CommandTesterExtension.class)
+ * @ExtendWith(WPILibExtension.class)
  * public final class FlightSubsystemTest {
  *
  *   @Test
- *   public void takesFlight(CommandTester commandTester) {}
+ *   public void initiallyNotInAir() {
+ *     var flight = new FlightSubsystem();
+ *
+ *     assertThat(flight.inAir()).isFalse();
+ *   }
+ *
+ *   @Test
+ *   public void takesFlight(CommandTester commandTester) {
  *     var flight = new FlightSubsystem();
  *     Command takeOff = flight.createTakeOffCommandCommand();
- *     assertThat(flight.inAir()).isFalse();
  *
  *     commandTester.runUntilComplete(takeOff);
  *
@@ -34,7 +42,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
  * }
  * }</pre>
  */
-public final class CommandTesterExtension
+public final class WPILibExtension
     implements Extension,
         AfterAllCallback,
         AfterEachCallback,
