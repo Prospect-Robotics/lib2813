@@ -1,3 +1,7 @@
+import groovy.time.TimeCategory
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
@@ -9,9 +13,55 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     // Configure string concat to always inline compile
     options.compilerArgs.add '-XDstringConcat=inline'
+}
+
+tasks.withType(Test).configureEach { testTask ->
+
+    // Display test results as tests run, and a summary at the end.
+    // See https://stackoverflow.com/a/36130467/95725
+    testLogging {
+        // set options for log level LIFECYCLE
+        events TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_OUT
+        exceptionFormat TestExceptionFormat.FULL
+        showExceptions true
+        showCauses true
+        showStackTraces true
+
+        // set options for log level DEBUG and INFO
+        debug {
+            events TestLogEvent.STARTED,
+                    TestLogEvent.FAILED,
+                    TestLogEvent.PASSED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.STANDARD_ERROR,
+                    TestLogEvent.STANDARD_OUT
+            exceptionFormat TestExceptionFormat.FULL
+        }
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+    }
+
+    afterSuite { TestDescriptor desc, TestResult result ->
+        if (!desc.parent) {  // will match the outermost suite
+            def output = "${testTask.project.name}:${testTask.name} results: ${result.resultType} " +
+                    "(${result.testCount} tests, " +
+                    "${result.successfulTestCount} passed, " +
+                    "${result.failedTestCount} failed, " +
+                    "${result.skippedTestCount} skipped) " +
+                    "in ${TimeCategory.minus(new Date(result.endTime), new Date(result.startTime))}"
+            def startItem = '│ ', endItem = ' │'
+            def repeatLength = startItem.length() + output.length() + endItem.length() - 2
+            println('\n┌' + ('─' * repeatLength) + '┐')
+            println(startItem + output + endItem)
+            println('└' + ('─' * repeatLength) + '┘\n')
+        }
+    }
 }
 
 tasks.named('jar') {
