@@ -56,16 +56,19 @@ public final class WPILibExtension
     DriverStationSim.setEnabled(true);
     DriverStationSim.notifyNewData();
     CommandScheduler.getInstance().enable();
+    CommandScheduler.getInstance().cancelAll();
     CommandScheduler.getInstance().unregisterAllSubsystems();
   }
 
   @Override
   public void afterEach(ExtensionContext context) {
+    CommandScheduler.getInstance().cancelAll();
     CommandScheduler.getInstance().unregisterAllSubsystems();
   }
 
   @Override
   public void afterAll(ExtensionContext context) {
+    CommandScheduler.getInstance().cancelAll();
     CommandScheduler.getInstance().unregisterAllSubsystems();
     CommandScheduler.getInstance().disable();
     DriverStationSim.setEnabled(false);
