@@ -1,0 +1,37 @@
+package com.team2813.lib2813.testing.junit.jupiter;
+
+import org.junit.platform.testkit.engine.EngineExecutionResults;
+import org.junit.platform.testkit.engine.Events;
+
+/**
+ * A collection of utility methods that support asserting conditions in tests of JUnit Extensions.
+ */
+final class ExtensionAssertions {
+
+  /**
+   * Asserts that the supplied {@code events} do not contain any failures.
+   *
+   * @param events Events fired during execution of a test plan on the JUnit Platform.
+   */
+  public static void assertHasNoFailures(Events events) {
+    events.assertStatistics(
+        stats -> {
+          stats.skipped(0);
+          stats.failed(0);
+        });
+  }
+
+  /**
+   * Asserts that the supplied {@code results} do not contain any failures.
+   *
+   * @param results Results of executing a test plan on the JUnit Platform.
+   */
+  public static void assertHasNoFailures(EngineExecutionResults results) {
+    assertHasNoFailures(results.containerEvents());
+    assertHasNoFailures(results.testEvents());
+  }
+
+  private ExtensionAssertions() {
+    throw new AssertionError("Not instantiable");
+  }
+}

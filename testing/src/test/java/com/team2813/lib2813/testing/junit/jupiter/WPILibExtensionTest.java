@@ -2,6 +2,7 @@ package com.team2813.lib2813.testing.junit.jupiter;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.team2813.lib2813.testing.junit.jupiter.ExtensionAssertions.assertHasNoFailures;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 import edu.wpi.first.hal.HAL;
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
-import org.junit.platform.testkit.engine.Events;
 
 /** Tests for {@link WPILibExtension}. */
 public class WPILibExtensionTest {
@@ -127,19 +127,6 @@ public class WPILibExtensionTest {
       DriverStationSim.setEnabled(false);
       DriverStationSim.notifyNewData();
     }
-  }
-
-  private void assertHasNoFailures(EngineExecutionResults results) {
-    assertHasNoFailures(results.containerEvents());
-    assertHasNoFailures(results.testEvents());
-  }
-
-  private void assertHasNoFailures(Events events) {
-    events.assertStatistics(
-        stats -> {
-          stats.skipped(0);
-          stats.failed(0);
-        });
   }
 
   private static class VerifiableCommand extends Command {
