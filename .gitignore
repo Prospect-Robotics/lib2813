@@ -9,6 +9,8 @@ bin
 
 ctre_sim
 
+# JVM crash logs; see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij
