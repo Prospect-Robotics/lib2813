@@ -5,7 +5,10 @@ import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
 
+@RunWith(Enclosed.class)
 public class InputValidationTest {
   // Tests for the `InputValidation.checkCanId(...)` method.
   public static class CheckCanIdTest {
