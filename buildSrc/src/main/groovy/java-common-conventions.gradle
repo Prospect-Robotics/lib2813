@@ -20,6 +20,12 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.withType(Test).configureEach { testTask ->
 
+    // Allow adding a JVM arg when running tests via a Gradle Property named 'gearHeads.testJvmArg'.
+    // In .github/workflows/gradle.yml this is used to specify where to put JVM crash logs.
+    if (project.hasProperty('gearHeads.testJvmArg')) {
+        jvmArgs project.properties['gearHeads.testJvmArg']
+    }
+
     // Display test results as tests run, and a summary at the end.
     // See https://stackoverflow.com/a/36130467/95725
     testLogging {
