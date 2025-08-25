@@ -9,6 +9,7 @@ import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -85,6 +86,11 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       disable();
     }
     motor.set(mode, demand, feedForward);
+  }
+
+  @Override
+  public Current getAppliedCurrent() {
+    return motor.getAppliedCurrent();
   }
 
   public void enable() {
