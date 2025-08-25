@@ -167,31 +167,34 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public double position() {
     return encoder.position();
   }
 
+  @Override
   public Angle getPositionMeasure() {
     return encoder.getPositionMeasure();
   }
 
   @Override
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public void setPosition(double position) {
     encoder.setPosition(position);
   }
 
+  @Override
   public void setPosition(Angle position) {
     encoder.setPosition(position);
   }
 
   @Override
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public double getVelocity() {
     return encoder.getVelocity();
   }
 
+  @Override
   public AngularVelocity getVelocityMeasure() {
     return encoder.getVelocityMeasure();
   }
