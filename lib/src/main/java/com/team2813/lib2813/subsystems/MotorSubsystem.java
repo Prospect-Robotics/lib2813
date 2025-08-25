@@ -280,21 +280,27 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     }
 
     /**
-     * sets the starting position.
+     * Sets the initial setpoint of the controller
      *
-     * @param startingPosition the position to start at
+     * @param startingPosition the initial setpoint
      * @return {@code this} for chaining
      */
-    @Deprecated
     public MotorSubsystemConfiguration startingPosition(Angle startingPosition) {
       this.startingPosition = startingPosition.in(this.rotationUnit);
       return this;
     }
 
-    @Deprecated
-    public MotorSubsystemConfiguration startingPosition(Supplier<Angle> startingPosition) {
-      this.startingPosition = startingPosition.get().in(this.rotationUnit);
-      return this;
+    /**
+     * Sets the initial setpoint of the controller from the current value of a supplier.
+     *
+     * <p>This is provided to allow the subclass to define an {@code Enum} (that implements {@code
+     * Supplier<Angle>}) which defines the supported positions of this subsystem.
+     *
+     * @param startingPositionSupplier supplier to use to get the initial setpoint
+     * @return {@code this} for chaining
+     */
+    public MotorSubsystemConfiguration startingPosition(Supplier<Angle> startingPositionSupplier) {
+      return startingPosition(startingPositionSupplier.get());
     }
 
     public MotorSubsystemConfiguration acceptableError(double error) {
