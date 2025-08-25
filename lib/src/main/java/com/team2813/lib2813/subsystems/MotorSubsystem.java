@@ -128,7 +128,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /**
    * Clamps the given output value and provides it to the motor.
    *
-   * @deprecated Use {@link #useOutput(double)}
+   * <p>This was protected and non-final to allow subclasses to clamp the output. Subclasses should
+   * override {@link #clampOutput(double)}.
+   *
+   * @param output The output calculated by the PID algorithm.
+   * @param setpoint Ignored.
+   * @deprecated Subclasses should override {@link #clampOutput(double)}.
    */
   @Deprecated
   protected void useOutput(double output, double setpoint) {
@@ -140,7 +145,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * <p>This is called by {@link #periodic()} if this subsystem is enabled.
    */
-  protected final void useOutput(double output) {
+  private void useOutput(double output) {
     useOutput(output, controller.getSetpoint());
   }
 
