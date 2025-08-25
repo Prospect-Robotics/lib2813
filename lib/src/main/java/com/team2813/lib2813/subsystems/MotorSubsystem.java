@@ -1,10 +1,17 @@
 package com.team2813.lib2813.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Rotations;
+
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.Encoder;
 import com.team2813.lib2813.control.Motor;
 import com.team2813.lib2813.control.PIDMotor;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -30,6 +37,10 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   protected final AngleUnit rotationUnit;
   protected final double acceptableError;
   protected final PIDController controller;
+  private final DoublePublisher positionPublisher;
+  private final BooleanPublisher atPositionPublisher;
+  private final DoublePublisher appliedCurrentPublisher;
+  private final DoublePublisher setpointPublisher;
 
   private boolean isEnabled;
 
@@ -41,6 +52,18 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     encoder = builder.encoder;
     controlMode = builder.controlMode;
     rotationUnit = builder.rotationUnit;
+    if (builder.ntInstance != null) {
+      NetworkTable networkTable = builder.ntInstance.getTable(getName());
+      positionPublisher = networkTable.getDoubleTopic("position").publish();
+      atPositionPublisher = networkTable.getBooleanTopic("at position").publish();
+      appliedCurrentPublisher = networkTable.getDoubleTopic("applied current").publish();
+      setpointPublisher = networkTable.getDoubleTopic("setpoint").publish();
+    } else {
+      positionPublisher = null;
+      atPositionPublisher = null;
+      appliedCurrentPublisher = null;
+      setpointPublisher = null;
+    }
 
     this.controller.setSetpoint(builder.startingPosition);
   }
@@ -217,6 +240,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     if (isEnabled) {
       useOutput(controller.calculate(getMeasurement()));
     }
+    if (positionPublisher != null) {
+      positionPublisher.set(getPositionMeasure().in(Rotations));
+      setpointPublisher.set(getSetpoint().in(Rotations));
+      atPositionPublisher.set(atPosition());
+      appliedCurrentPublisher.set(getAppliedCurrent().in(Amps));
+    }
   }
 
   /** A configuration for a MotorSubsystem */
@@ -234,6 +263,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     private PIDController controller;
     private double acceptableError;
     private double startingPosition;
+    private NetworkTableInstance ntInstance;
 
     /**
      * Creates a new configuration for a MotorSubsystems. The default acceptable error is {@value
@@ -338,6 +368,11 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     public MotorSubsystemConfiguration rotationUnit(AngleUnit rotationUnit) {
       startingPosition = rotationUnit.convertFrom(startingPosition, this.rotationUnit);
       this.rotationUnit = rotationUnit;
+      return this;
+    }
+
+    public MotorSubsystemConfiguration publishTo(NetworkTableInstance ntInstance) {
+      this.ntInstance = ntInstance;
       return this;
     }
   }
