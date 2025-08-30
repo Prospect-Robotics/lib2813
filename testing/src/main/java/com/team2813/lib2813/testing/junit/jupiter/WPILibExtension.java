@@ -52,7 +52,9 @@ public final class WPILibExtension
   @Override
   public void beforeAll(ExtensionContext context) {
     // See https://www.chiefdelphi.com/t/driverstation-getalliance-in-gradle-test/
-    HAL.initialize(500, 0);
+    if (!HAL.initialize(500, 0)) {
+      throw new IllegalStateException("Could not initialize Hardware Abstraction Layer");
+    }
     DriverStationSim.setEnabled(true);
     DriverStationSim.notifyNewData();
     CommandScheduler.getInstance().enable();
