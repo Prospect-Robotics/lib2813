@@ -29,24 +29,21 @@ tasks.withType(Test).configureEach { testTask ->
     // Display test results as tests run, and a summary at the end.
     // See https://stackoverflow.com/a/36130467/95725
     testLogging {
-        // set options for log level LIFECYCLE
-        events TestLogEvent.FAILED,
-                TestLogEvent.PASSED,
-                TestLogEvent.SKIPPED,
-                TestLogEvent.STANDARD_OUT
+        // Set options for log level LIFECYCLE
         exceptionFormat TestExceptionFormat.FULL
         showExceptions true
         showCauses true
         showStackTraces true
+        events = [TestLogEvent.FAILED, TestLogEvent.SKIPPED]
 
-        // set options for log level DEBUG and INFO
+        // Set options for log level DEBUG and INFO
         debug {
-            events TestLogEvent.STARTED,
-                    TestLogEvent.FAILED,
-                    TestLogEvent.PASSED,
-                    TestLogEvent.SKIPPED,
-                    TestLogEvent.STANDARD_ERROR,
-                    TestLogEvent.STANDARD_OUT
+            events = [TestLogEvent.STARTED,
+                      TestLogEvent.FAILED,
+                      TestLogEvent.PASSED,
+                      TestLogEvent.SKIPPED,
+                      TestLogEvent.STANDARD_ERROR,
+                      TestLogEvent.STANDARD_OUT]
             exceptionFormat TestExceptionFormat.FULL
         }
         info.events = debug.events

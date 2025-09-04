@@ -39,7 +39,7 @@ dependencies {
 
 wpi.java.configureTestTasks(test)
 
-tasks.named('test') {
+test {
     // Use JUnit 4 for tests
     useJUnit()
 }
