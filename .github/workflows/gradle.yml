@@ -17,7 +17,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v3
     - name: Run build with Gradle Wrapper
-      run: ./gradlew build -PgearHeads.testJvmArg='-XX:ErrorFile=${{ github.workspace }}/hs_err_pid%p.log'
+      run: ./gradlew --info build -PgearHeads.testJvmArg='-XX:ErrorFile=${{ github.workspace }}/hs_err_pid%p.log'
     - name: Archive test artifacts
       if: success() || failure()
       uses: actions/upload-artifact@v4
