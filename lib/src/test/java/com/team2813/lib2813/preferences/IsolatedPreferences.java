@@ -21,6 +21,7 @@ public final class IsolatedPreferences extends ExternalResource {
   protected void before() {
     NetworkTableInstance.getDefault();
     tempInstance = NetworkTableInstance.create();
+    tempInstance.startLocal();
     Preferences.setNetworkTableInstance(tempInstance);
   }
 
