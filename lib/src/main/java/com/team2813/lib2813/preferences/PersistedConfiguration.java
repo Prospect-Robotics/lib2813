@@ -125,7 +125,9 @@ public final class PersistedConfiguration {
    * @throws IllegalStateException If {@code preferenceName} was used for a different record class.
    */
   public static <T extends Record> T fromPreferences(String preferenceName, T configWithDefaults) {
-    return fromPreferences(preferenceName, configWithDefaults, PATH_SEPARATOR);
+    @SuppressWarnings("unchecked")
+    Class<T> recordClass = (Class<T>) configWithDefaults.getClass();
+    return fromPreferences(preferenceName, recordClass, configWithDefaults);
   }
 
   /**
@@ -151,24 +153,17 @@ public final class PersistedConfiguration {
    * @throws IllegalStateException If {@code preferenceName} was used for a different record class.
    */
   public static <T extends Record> T fromPreferences(String preferenceName, Class<T> recordClass) {
-    return fromPreferences(preferenceName, recordClass, null, PATH_SEPARATOR);
-  }
-
-  static <T extends Record> T fromPreferences(
-      String preferenceName, T configWithDefaults, char pathSeparator) {
-    @SuppressWarnings("unchecked")
-    Class<T> recordClass = (Class<T>) configWithDefaults.getClass();
-    return fromPreferences(preferenceName, recordClass, configWithDefaults, pathSeparator);
+    return fromPreferences(preferenceName, recordClass, null);
   }
 
   private static <T extends Record> T fromPreferences(
-      String preferenceName, Class<T> recordClass, T configWithDefaults, char pathSeparator) {
+      String preferenceName, Class<T> recordClass, T configWithDefaults) {
     NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
     validatePreferenceName(preferenceName);
     verifyNotRegisteredToAnotherClass(ntInstance, preferenceName, recordClass);
 
     try {
-      return createFromPreferences(preferenceName, recordClass, configWithDefaults, pathSeparator);
+      return createFromPreferences(preferenceName, recordClass, configWithDefaults);
     } catch (ReflectiveOperationException e) {
       if (throwExceptions) {
         throw new RuntimeException(e); // For self-tests.
@@ -197,8 +192,7 @@ public final class PersistedConfiguration {
     }
 
     NetworkTable preferencesTable = ntInstance.getTable("Preferences");
-    String key = String.format("%s%c.registeredTo", name, PATH_SEPARATOR);
-    NetworkTableEntry entry = preferencesTable.getEntry(key);
+    NetworkTableEntry entry = preferencesTable.getEntry(name + "/.registeredTo");
     if (!entry.exists()) {
       entry.setString(recordName);
     } else {
@@ -213,7 +207,7 @@ public final class PersistedConfiguration {
   }
 
   private static <T> T createFromPreferences(
-      String prefix, Class<? extends T> clazz, T configWithDefaults, char pathSeparator)
+      String prefix, Class<? extends T> clazz, T configWithDefaults)
       throws ReflectiveOperationException {
     var components = clazz.getRecordComponents();
     Object[] params = new Object[components.length];
@@ -221,7 +215,7 @@ public final class PersistedConfiguration {
     int i = 0;
     for (RecordComponent component : components) {
       String name = component.getName();
-      String key = prefix + pathSeparator + name;
+      String key = prefix + PATH_SEPARATOR + name;
       Class<?> type = component.getType();
       types[i] = type;
 
@@ -250,7 +244,7 @@ public final class PersistedConfiguration {
       }
 
       if (isRecordField) {
-        params[i] = createFromPreferences(key, type, componentValue, pathSeparator);
+        params[i] = createFromPreferences(key, type, componentValue);
       } else if (factory == null) {
         warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
         params[i] = componentValue;
