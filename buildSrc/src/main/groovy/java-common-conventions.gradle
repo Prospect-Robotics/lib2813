@@ -1,4 +1,5 @@
 import groovy.time.TimeCategory
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
@@ -52,17 +53,21 @@ tasks.withType(Test).configureEach { testTask ->
 
     afterSuite { TestDescriptor desc, TestResult result ->
         if (!desc.parent) {  // will match the outermost suite
-            def output = "${testTask.project.name}:${testTask.name} results: ${result.resultType} " +
+            def summary = "${result.resultType}"
+            def logLevel = LogLevel.WARN
+            if (result.failedTestCount > 0) {
+                summary = "❗${summary}❗"
+            } else {
+                summary = "💚 ${summary} 💚"
+                logLevel = LogLevel.LIFECYCLE
+            }
+            def message = "Task :${testTask.project.name}:${testTask.name} results: ${summary} " +
                     "(${result.testCount} tests, " +
                     "${result.successfulTestCount} passed, " +
                     "${result.failedTestCount} failed, " +
                     "${result.skippedTestCount} skipped) " +
                     "in ${TimeCategory.minus(new Date(result.endTime), new Date(result.startTime))}"
-            def startItem = '│ ', endItem = ' │'
-            def repeatLength = startItem.length() + output.length() + endItem.length() - 2
-            println('\n┌' + ('─' * repeatLength) + '┐')
-            println(startItem + output + endItem)
-            println('└' + ('─' * repeatLength) + '┘\n')
+            logger.log(logLevel, message)
         }
     }
 }
