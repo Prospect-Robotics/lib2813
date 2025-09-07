@@ -88,7 +88,7 @@ public class BuildConstantsPublisherTest {
     // Arrange.
     NetworkTableInstance ntInstance = NetworkTableInstance.create();
     BuildConstantsPublisher publisher = new BuildConstantsPublisher(FakeBuildConstants.class);
-    NetworkTable table = ntInstance.getTable(BuildConstantsPublisher.TABLE_NAME);
+    NetworkTable table = ntInstance.getTable(BuildConstantsPublisher.METADATA_TABLE_NAME);
 
     // Act.
     publisher.publish(ntInstance);
