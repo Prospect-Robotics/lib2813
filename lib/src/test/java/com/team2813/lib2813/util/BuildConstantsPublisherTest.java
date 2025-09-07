@@ -11,12 +11,19 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import org.junit.jupiter.api.Test;
 
 public class BuildConstantsPublisherTest {
+  // This format must be consistent with the `createVersionFile` settings in the build.gradle.
+  private static final DateTimeFormatter DATE_TIME_FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+
   // Fake constants copied and adapted from this article
   // https://docs.wpilib.org/en/stable/docs/software/advanced-gradlerio/deploy-git-data.html
   public final class FakeBuildConstants {
@@ -29,7 +36,7 @@ public class BuildConstantsPublisherTest {
     public static final String GIT_BRANCH = "main";
     public static final String BUILD_DATE = "2023-10-27 12:29:57 EDT";
     public static final long BUILD_UNIX_TIME = 1698424197122L;
-    public static final int DIRTY = 0;
+    public static final int DIRTY = 1;
 
     private FakeBuildConstants() {}
   }
@@ -42,9 +49,6 @@ public class BuildConstantsPublisherTest {
    */
   private class DateTimeStringSubject extends Subject {
     private final String actual;
-    // The format must be consistent with the `createVersionFile` settings in the build.gradle.
-    private final DateTimeFormatter formatter =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
 
     private DateTimeStringSubject(FailureMetadata metadata, String actual) {
       super(metadata, actual);
@@ -58,10 +62,10 @@ public class BuildConstantsPublisherTest {
       }
 
       try {
-        LocalDateTime.parse(actual, formatter);
+        LocalDateTime.parse(actual, DATE_TIME_FORMATTER);
       } catch (DateTimeParseException e) {
         failWithActual(
-            fact("expected to parse as LocalDateTime with format", formatter),
+            fact("expected to parse as LocalDateTime with format", DATE_TIME_FORMATTER),
             fact("but parsing failed with", e.getMessage()));
       }
     }
@@ -81,6 +85,36 @@ public class BuildConstantsPublisherTest {
    */
   private Long getIntegerEntryOrDefault(NetworkTable table, String key, long defaultValue) {
     return table.getIntegerTopic(key).getEntry(defaultValue).get();
+  }
+
+  @Test
+  public void extractsBuildConstants() {
+    // Arrange.
+    BuildConstantsPublisher publisher = new BuildConstantsPublisher(FakeBuildConstants.class);
+
+    // Act.
+    var constants = publisher.buildConstants();
+
+    // Assert.
+    ZonedDateTime expectedBuildTime =
+        ZonedDateTime.ofInstant(
+                Instant.ofEpochMilli(FakeBuildConstants.BUILD_UNIX_TIME),
+                ZoneId.of("America/New_York"))
+            .withNano(0);
+    ZonedDateTime expectedGitCommitTime =
+        ZonedDateTime.parse(FakeBuildConstants.GIT_DATE, DATE_TIME_FORMATTER);
+    var expectedRecord =
+        new BuildConstantsRecord(
+            FakeBuildConstants.MAVEN_NAME,
+            FakeBuildConstants.GIT_REVISION,
+            FakeBuildConstants.GIT_SHA,
+            FakeBuildConstants.GIT_BRANCH,
+            expectedGitCommitTime,
+            expectedBuildTime,
+            FakeBuildConstants.BUILD_UNIX_TIME,
+            FakeBuildConstants.DIRTY);
+
+    assertThat(constants).hasValue(expectedRecord);
   }
 
   @Test
@@ -117,7 +151,9 @@ public class BuildConstantsPublisherTest {
     assertAbout(DateTimeStringSubject::new)
         .that(getStringEntryOrEmpty(table, "BuildDate"))
         .parsesAsLocalDateTime();
-    assertThat(getIntegerEntryOrDefault(table, "Dirty", -1)).isAnyOf(0l, 1l);
+    assertThat(getIntegerEntryOrDefault(table, "Dirty", -1)).isAnyOf(0L, 1L);
+
+    ntInstance.close();
   }
 
   @Test
