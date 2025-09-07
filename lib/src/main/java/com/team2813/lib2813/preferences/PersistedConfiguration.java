@@ -95,6 +95,8 @@ import java.util.function.*;
  * @since 2.0.0
  */
 public final class PersistedConfiguration {
+  static final String REGISTERED_CLASSES_NETWORK_TABLE_KEY = "PersistedConfiguration/registry";
+
   // The below package-scope fields are for the self-tests.
   static boolean throwExceptions = false;
   static Consumer<String> errorReporter = DataLogManager::log;
@@ -191,10 +193,11 @@ public final class PersistedConfiguration {
       recordName = recordClass.getName();
     }
 
-    NetworkTable preferencesTable = ntInstance.getTable("Preferences");
-    NetworkTableEntry entry = preferencesTable.getEntry(name + "/.registeredTo");
+    NetworkTable registeredClassesTable = ntInstance.getTable(REGISTERED_CLASSES_NETWORK_TABLE_KEY);
+    NetworkTableEntry entry = registeredClassesTable.getEntry(name);
     if (!entry.exists()) {
       entry.setString(recordName);
+      entry.clearPersistent();
     } else {
       String registeredTo = entry.getString("");
       if (!recordName.equals(registeredTo)) {
@@ -203,7 +206,6 @@ public final class PersistedConfiguration {
                 "Preference with name '%s' already registered to %s", name, registeredTo));
       }
     }
-    entry.clearPersistent();
   }
 
   private static <T> T createFromPreferences(
