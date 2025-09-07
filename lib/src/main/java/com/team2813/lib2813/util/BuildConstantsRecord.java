@@ -68,22 +68,4 @@ record BuildConstantsRecord(
   String buildTimeString() {
     return DATE_FORMATTER.format(buildTime);
   }
-
-  private static ZonedDateTime extractZonedDateTime(Class<?> buildConstantsClass, String fieldName)
-      throws NoSuchFieldException, IllegalAccessException {
-    String value = (String) buildConstantsClass.getDeclaredField(fieldName).get(null);
-    try {
-      return ZonedDateTime.parse(value, DATE_FORMATTER);
-    } catch (DateTimeParseException e) {
-      String message =
-          "Could not extract build constants from "
-              + buildConstantsClass.getSimpleName()
-              + " due to unparsable date-time value for "
-              + fieldName
-              + ": "
-              + e.getMessage();
-      DriverStation.reportWarning(message, e.getStackTrace());
-      return null;
-    }
-  }
 }

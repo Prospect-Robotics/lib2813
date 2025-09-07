@@ -24,40 +24,14 @@ import java.util.function.Function;
  *
  * <p>To instantiate a BuildConstantsPublisher, a build constants class, {@code BuildConstants}, is
  * needs to be generated for the robot library by enabling the `gversion` plugin in the gradle build
- * file.
- *
- * <pre>{@code
- * plugins {
- *   ...
- *   // Plugin needed for Git Build Info
- *   // (see https://docs.wpilib.org/en/stable/docs/software/advanced-gradlerio/deploy-git-data.html)
- *   id 'com.peterabeles.gversion' version '1.10'
- *   ...
- * }
- * ...
- * // Generates a BuildConstants file.
- * // https://docs.wpilib.org/en/stable/docs/software/advanced-gradlerio/deploy-git-data.html
- * project.compileJava.dependsOn(createVersionFile)
- * def BUILD_CONSTANTS_AUTOGEN_PATH = 'build/generated/sources/build_constants/'
- * gversion {
- *     // Build inside build/ (so that it will be ignored by git due to .gitignore)
- *     // and inside build/generated/ (so that it will be ignored by our Spotless
- *     // rules).
- *     srcDir       = BUILD_CONSTANTS_AUTOGEN_PATH
- *     classPackage = 'com.team2813'
- *     className    = 'BuildConstants'
- *     dateFormat   = 'yyyy-MM-dd HH:mm:ss z'
- *     timeZone     = 'America/Los_Angeles' // Use preferred time zone
- *     indent       = '  '
- * }
- * sourceSets.main.java.srcDirs += BUILD_CONSTANTS_AUTOGEN_PATH
- * ...
- * }</pre>
+ * file. Instructions can be found <a
+ * href="https://docs.wpilib.org/en/stable/docs/software/advanced-gradlerio/deploy-git-data.html">in
+ * the WPILib documentation</a>.
  *
  * <p>With the BuildConstants generation enabled, the publisher is initialized and used like this:
  *
  * <pre>{@code
- * BuildConstantsPublisher buildConstantsPublisher(com.team2813.BuildConstants.class);
+ * BuildConstantsPublisher buildConstantsPublisher(frc.robot.BuildConstants.class);
  * // Publish the build constants to "/Metadata" on the NetworkTables
  * buildConstantsPublisher.publish(NetworkTableInstance.getDefault());
  * // Log the build constants in the robot console as well.
