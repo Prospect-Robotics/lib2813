@@ -30,12 +30,18 @@ record BuildConstantsRecord(
    */
   static Optional<BuildConstantsRecord> fromGeneratedClass(Class<?> buildConstantsClass) {
     try {
+      ZonedDateTime gitDate = extractZonedDateTime(buildConstantsClass, "GIT_DATE");
+      if (gitDate == null) {
+        return Optional.empty();
+      }
+      ZonedDateTime buildDate = extractZonedDateTime(buildConstantsClass, "BUILD_DATE");
+      if (buildDate == null) {
+        return Optional.empty();
+      }
       String mavenName = (String) buildConstantsClass.getDeclaredField("MAVEN_NAME").get(null);
       int gitRevision = (int) buildConstantsClass.getDeclaredField("GIT_REVISION").get(null);
       String gitSha = (String) buildConstantsClass.getDeclaredField("GIT_SHA").get(null);
-      String gitDate = (String) buildConstantsClass.getDeclaredField("GIT_DATE").get(null);
       String gitBranch = (String) buildConstantsClass.getDeclaredField("GIT_BRANCH").get(null);
-      String buildDate = (String) buildConstantsClass.getDeclaredField("BUILD_DATE").get(null);
       long buildTimeMillis =
           (long) buildConstantsClass.getDeclaredField("BUILD_UNIX_TIME").get(null);
       int dirty = (int) buildConstantsClass.getDeclaredField("DIRTY").get(null);
@@ -46,11 +52,11 @@ record BuildConstantsRecord(
               gitRevision,
               gitSha,
               gitBranch,
-              ZonedDateTime.parse(gitDate, DATE_FORMATTER),
-              ZonedDateTime.parse(buildDate, DATE_FORMATTER),
+              gitDate,
+              buildDate,
               buildTimeMillis,
               dirty));
-    } catch (NoSuchFieldException | IllegalAccessException | DateTimeParseException e) {
+    } catch (NoSuchFieldException | IllegalAccessException e) {
       String message =
           "Could not extract build constants from "
               + buildConstantsClass.getSimpleName()
@@ -67,5 +73,23 @@ record BuildConstantsRecord(
 
   String buildTimeString() {
     return DATE_FORMATTER.format(buildTime);
+  }
+
+  private static ZonedDateTime extractZonedDateTime(Class<?> buildConstantsClass, String fieldName)
+      throws NoSuchFieldException, IllegalAccessException {
+    String value = (String) buildConstantsClass.getDeclaredField(fieldName).get(null);
+    try {
+      return ZonedDateTime.parse(value, DATE_FORMATTER);
+    } catch (DateTimeParseException e) {
+      String message =
+          "Could not extract build constants from "
+              + buildConstantsClass.getSimpleName()
+              + " due to unparsable date-time value for "
+              + fieldName
+              + ": "
+              + e.getMessage();
+      DriverStation.reportWarning(message, e.getStackTrace());
+      return null;
+    }
   }
 }
