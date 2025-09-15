@@ -96,6 +96,7 @@ import java.util.function.*;
  */
 public final class PersistedConfiguration {
   static final String REGISTERED_CLASSES_NETWORK_TABLE_KEY = "PersistedConfiguration/registry";
+  private static boolean deletedLegacyKeys = false;
 
   // The below package-scope fields are for the self-tests.
   static boolean throwExceptions = false;
@@ -160,6 +161,7 @@ public final class PersistedConfiguration {
 
   private static <T extends Record> T fromPreferences(
       String preferenceName, Class<T> recordClass, T configWithDefaults) {
+    deleteLegacyKeys();
     NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
     validatePreferenceName(preferenceName);
     verifyNotRegisteredToAnotherClass(ntInstance, preferenceName, recordClass);
@@ -454,6 +456,20 @@ public final class PersistedConfiguration {
     }
 
     return () -> factory.create(component, key, null, false);
+  }
+
+  private static void deleteLegacyKeys() {
+    if (!deletedLegacyKeys) {
+      // Preferences installs a listener that makes all new topics persistent. The ".registeredTo"
+      // topics used to be placed under /Preferences, so could have been persisted. They are now
+      // written under a different top-level table. Delete the topics created by the previous code.
+      for (var key : Preferences.getKeys()) {
+        if (key.endsWith(".registeredTo")) {
+          Preferences.remove(key);
+        }
+      }
+      deletedLegacyKeys = true;
+    }
   }
 
   private static void warn(String format, Object... args) {
