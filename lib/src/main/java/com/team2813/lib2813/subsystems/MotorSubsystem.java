@@ -80,13 +80,24 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /**
    * {@inheritDoc}
    *
-   * <p>Additionally, this method disables PID control of the subsystem
+   * <p>Additionally, this method disables PID control of the subsystem. It <em>does not</em> clamp
+   * the provided value.
+   */
+  @Override
+  public final void set(ControlMode mode, double demand) {
+    isEnabled = false;
+    motor.set(mode, demand);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * <p>Additionally, this method disables PID control of the subsystem. It <em>does not</em> clamp
+   * the provided demand value.
    */
   @Override
   public final void set(ControlMode mode, double demand, double feedForward) {
-    if (isEnabled()) {
-      disable();
-    }
+    isEnabled = false;
     motor.set(mode, demand, feedForward);
   }
 
@@ -123,18 +134,6 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    */
   public final boolean isEnabled() {
     return isEnabled;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * <p>Additionally, this method disables PID control of the subsystem. It <em>does not</em> clamp
-   * the provided value.
-   */
-  @Override
-  public final void set(ControlMode mode, double demand) {
-    isEnabled = false;
-    motor.set(mode, demand);
   }
 
   /**
