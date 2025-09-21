@@ -50,7 +50,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * @param position the position to go to.
    */
-  public void setSetpoint(T position) {
+  public final void setSetpoint(T position) {
     if (!isEnabled()) {
       enable();
     }
@@ -68,12 +68,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   /** Returns the current setpoint as an angle. */
-  public Angle getSetpoint() {
+  public final Angle getSetpoint() {
     return rotationUnit.of(controller.getSetpoint());
   }
 
   /** Determines if the motor is at the current setpoint, within the acceptable error. */
-  public boolean atPosition() {
+  public final boolean atPosition() {
     return Math.abs(getMeasurement() - controller.getSetpoint()) <= acceptableError;
   }
 
@@ -83,7 +83,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * <p>Additionally, this method disables PID control of the subsystem
    */
   @Override
-  public void set(ControlMode mode, double demand, double feedForward) {
+  public final void set(ControlMode mode, double demand, double feedForward) {
     if (isEnabled()) {
       disable();
     }
@@ -91,15 +91,27 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public Current getAppliedCurrent() {
+  public final Current getAppliedCurrent() {
     return motor.getAppliedCurrent();
   }
 
-  public void enable() {
+  /**
+   * Enables the motor
+   *
+   * <p>The motor voltage will be periodically updated to move the motor towards the current
+   * setupoint.
+   */
+  public final void enable() {
     isEnabled = true;
   }
 
-  public void disable() {
+  /**
+   * Stops the motor.
+   *
+   * <p>The motor voltage will be set to zero, and the motor will not adjust to move towards the
+   * current setpoint.
+   */
+  public final void disable() {
     isEnabled = false;
     motor.set(controlMode, 0);
   }
@@ -109,7 +121,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * @return Whether the controller is enabled.
    */
-  public boolean isEnabled() {
+  public final boolean isEnabled() {
     return isEnabled;
   }
 
@@ -120,7 +132,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * the provided value.
    */
   @Override
-  public void set(ControlMode mode, double demand) {
+  public final void set(ControlMode mode, double demand) {
     isEnabled = false;
     motor.set(mode, demand);
   }
@@ -162,7 +174,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     return output;
   }
 
-  protected double getMeasurement() {
+  protected final double getMeasurement() {
     return encoder.getPositionMeasure().in(rotationUnit);
   }
 
@@ -173,7 +185,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public Angle getPositionMeasure() {
+  public final Angle getPositionMeasure() {
     return encoder.getPositionMeasure();
   }
 
@@ -184,7 +196,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public void setPosition(Angle position) {
+  public final void setPosition(Angle position) {
     encoder.setPosition(position);
   }
 
@@ -195,7 +207,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public AngularVelocity getVelocityMeasure() {
+  public final AngularVelocity getVelocityMeasure() {
     return encoder.getVelocityMeasure();
   }
 
