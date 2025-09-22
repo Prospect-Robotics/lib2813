@@ -2,6 +2,7 @@ package com.team2813.lib2813.preferences;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.team2813.lib2813.preferences.PersistedConfiguration.REGISTERED_CLASSES_NETWORK_TABLE_KEY;
 import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertThrows;
 
@@ -155,10 +156,10 @@ public final class PersistedConfigurationTest {
           .hasMessageThat()
           .containsMatch("Preference with name '" + preferenceName + "' already registered");
 
-      // Assert: .registeredTo topic added, and is not persistent
+      // Assert: topic added under "/PersistedConfiguration", and is not persistent
       NetworkTable table =
-          NetworkTableInstance.getDefault().getTable("Preferences").getSubTable(preferenceName);
-      NetworkTableEntry entry = table.getEntry(".registeredTo");
+          NetworkTableInstance.getDefault().getTable(REGISTERED_CLASSES_NETWORK_TABLE_KEY);
+      NetworkTableEntry entry = table.getEntry(preferenceName);
       assertThat(entry.exists()).isTrue();
       assertThat(entry.isPersistent()).isFalse();
       assertThat(entry.getType()).isEqualTo(NetworkTableType.kString);
