@@ -3,9 +3,6 @@ package com.team2813.lib2813.preferences;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Preferences;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -13,8 +10,6 @@ import org.junit.rules.ExternalResource;
  * tests.
  */
 public final class IsolatedPreferences extends ExternalResource {
-  private static final ScheduledExecutorService CLOSE_EXECUTOR =
-      Executors.newSingleThreadScheduledExecutor();
   private NetworkTableInstance tempInstance;
 
   /** Gets the {@link NetworkTable} that contains the preference values. */
@@ -26,12 +21,18 @@ public final class IsolatedPreferences extends ExternalResource {
   protected void before() {
     NetworkTableInstance.getDefault();
     tempInstance = NetworkTableInstance.create();
+    tempInstance.startLocal();
     Preferences.setNetworkTableInstance(tempInstance);
   }
 
   @Override
   protected void after() {
+    if (!tempInstance.waitForListenerQueue(.1)) {
+      System.err.println(
+          "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 100ms);"
+              + " JVM may crash");
+    }
     Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
-    CLOSE_EXECUTOR.schedule(() -> tempInstance.close(), 10, TimeUnit.MILLISECONDS);
+    tempInstance.close();
   }
 }
