@@ -1,24 +1,23 @@
-package com.team2813.lib2813.subsystems;
+package com.team2813.lib2813.util;
 
-import static com.google.common.truth.Truth.assertThat;
-
+import com.google.common.truth.Truth;
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.PIDMotor;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 public abstract class FakePIDMotor implements PIDMotor {
-  double demand = 0.0f;
+  public double demand = 0.0f;
   private ControlMode controlMode;
 
-  double getVoltage() {
-    assertThat(controlMode).isEqualTo(ControlMode.VOLTAGE);
+  public double getVoltage() {
+    Truth.assertThat(controlMode).isEqualTo(ControlMode.VOLTAGE);
     return demand;
   }
 
   @Override
   public void set(ControlMode mode, double demand) {
-    assertThat(mode).isNotNull();
+    Truth.assertThat(mode).isNotNull();
     controlMode = mode;
     this.demand = demand;
   }

@@ -8,6 +8,7 @@ import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.testing.junit.jupiter.CommandTester;
 import com.team2813.lib2813.testing.junit.jupiter.WPILibExtension;
+import com.team2813.lib2813.util.FakePIDMotor;
 import edu.wpi.first.wpilibj2.command.Command;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
