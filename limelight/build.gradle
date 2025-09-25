@@ -11,10 +11,6 @@ idea {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
