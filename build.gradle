@@ -1,0 +1,21 @@
+allprojects {
+    repositories {
+        mavenCentral()
+        maven {
+            // WPI
+            url 'https://frcmaven.wpi.edu/artifactory/release/'
+        }
+        maven {
+            // CTRE
+            url 'https://maven.ctr-electronics.com/release'
+        }
+        maven {
+            // REV Robotics
+            url 'https://maven.revrobotics.com/'
+        }
+        maven {
+            // PathPlanner
+            url 'https://3015rangerrobotics.github.io/pathplannerlib/repo'
+        }
+    }
+}
