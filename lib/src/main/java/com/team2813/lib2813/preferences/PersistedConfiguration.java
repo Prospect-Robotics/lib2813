@@ -16,8 +16,8 @@ import java.util.function.*;
 /**
  * Initializes the fields of a Record Class from values stored in {@link Preferences}.
  *
- * <p>The Preference values can be updated in the SmartDashboard and/or Shuffleboard UI; updated
- * values will be stored in the flash storage for the robot.
+ * <p>The Preference values can be updated in the Elastic. Updated values will be stored in the
+ * flash storage for the robot.
  *
  * <p>Example use:
  *
@@ -124,6 +124,7 @@ public final class PersistedConfiguration {
    * @param preferenceName Preference subtable to use to get the values.
    * @param configWithDefaults Record instance with all values set to their preferred default
    *     values.
+   * @return An instance of the record class, populated with data from the Preferences table.
    * @throws IllegalArgumentException If {@code preferenceName} is empty or contains a {@code '/'}.
    * @throws IllegalStateException If {@code preferenceName} was used for a different record class.
    */
@@ -152,6 +153,7 @@ public final class PersistedConfiguration {
    *
    * @param preferenceName Preference subtable to use to get the values.
    * @param recordClass Type of the record instance to populate from preferences.
+   * @return An instance of the record class, populated with data from the Preferences table.
    * @throws IllegalArgumentException If {@code preferenceName} is empty or contains a {@code '/'}.
    * @throws IllegalStateException If {@code preferenceName} was used for a different record class.
    */
@@ -159,11 +161,22 @@ public final class PersistedConfiguration {
     return fromPreferences(preferenceName, recordClass, null);
   }
 
+  /**
+   * Creates a record class instance of the provided type, with fields populated from Preferences.
+   *
+   * @param preferenceName Preference subtable to use to get the values.
+   * @param recordClass Type of the record instance to populate from preferences.
+   * @param configWithDefaults Record instance with all values set to their preferred default values
+   *     (can be {@code null}).
+   * @return An instance of the record class, populated with data from the Preferences table.
+   */
   private static <T extends Record> T fromPreferences(
       String preferenceName, Class<T> recordClass, T configWithDefaults) {
     deleteLegacyKeys();
-    NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
     validatePreferenceName(preferenceName);
+
+    // TODO: Use Preferences.getNetworkTable() once there is a release of WPILib that includes it.
+    NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
     verifyNotRegisteredToAnotherClass(ntInstance, preferenceName, recordClass);
 
     try {
@@ -188,6 +201,15 @@ public final class PersistedConfiguration {
     }
   }
 
+  /**
+   * Throws an exception if the given record class has been registered under a different name.
+   *
+   * @param ntInstance The network table instance that the preference is published to.
+   * @param name Preference subtable that will be used to get the values.
+   * @param recordClass Type of the record instance to populate from preferences.
+   * @throws IllegalStateException If the subtable of the given name was registered to a different
+   *     class.
+   */
   private static void verifyNotRegisteredToAnotherClass(
       NetworkTableInstance ntInstance, String name, Class<? extends Record> recordClass) {
     String recordName = recordClass.getCanonicalName();
@@ -210,6 +232,15 @@ public final class PersistedConfiguration {
     }
   }
 
+  /**
+   * Creates an instance of the given type using the provided default values.
+   *
+   * @param prefix String to prepend to record field names to get the Preference key.
+   * @param clazz Record class type.
+   * @param configWithDefaults Default values to use if there are no values stored in NetworkTables.
+   * @return An instance of the record class, populated with data from the Preferences table.
+   * @throws ReflectiveOperationException If the fields of the class cannot be read via reflection.
+   */
   private static <T> T createFromPreferences(
       String prefix, Class<? extends T> clazz, T configWithDefaults)
       throws ReflectiveOperationException {
@@ -265,19 +296,51 @@ public final class PersistedConfiguration {
     return constructor.newInstance(params);
   }
 
+  /**
+   * Type-safe functional interface for creating an instance of a type using data in Preferences.
+   */
+  @FunctionalInterface
+  private interface GenericPreferenceFactory<T> {
+    /**
+     * Gets a value from Preferences for the given component.
+     *
+     * @param component Provides dynamic access to the component of the record class.
+     * @param key The Preference key that should be used when initializing the Preference.
+     * @param defaultValue The default value that should be used when initializing the Preference.
+     * @param initializePreference Whether the preference should be initialized.
+     * @return The value; will match the type in "component";
+     */
+    T create(RecordComponent component, String key, T defaultValue, boolean initializePreference);
+  }
+
+  /**
+   * Functional interface for creating an instance of a type using data in Preferences.
+   *
+   * <p>Note: this interface exists to avoid ugly casts in the code that uses the reflection APIs.
+   */
   @FunctionalInterface
   private interface PreferenceFactory {
+    /**
+     * Gets a value from Preferences for the given component.
+     *
+     * @param component Provides dynamic access to the component of the record class.
+     * @param key The Preference key that should be used when initializing the Preference.
+     * @param defaultValue The default value that should be used when initializing the Preference.
+     * @param initializePreference Whether the preference should be initialized.
+     * @return The value; will match the type in "component";
+     */
     Object create(
         RecordComponent component, String key, Object defaultValue, boolean initializePreference);
   }
 
-  @FunctionalInterface
-  private interface GenericPreferenceFactory<T> {
-    T create(RecordComponent component, String key, T defaultValue, boolean initializePreference);
-  }
-
   private static final Map<Type, PreferenceFactory> TYPE_TO_FACTORY = new HashMap<>();
 
+  /**
+   * Registers a preference factory with a type.
+   *
+   * @param type The type to register.
+   * @param simpleFactory The factory that should be used to create values of the given type.
+   */
   @SuppressWarnings("unchecked")
   private static <T> void register(Class<T> type, GenericPreferenceFactory<T> simpleFactory) {
     PreferenceFactory factory =
@@ -458,6 +521,7 @@ public final class PersistedConfiguration {
     return () -> factory.create(component, key, null, false);
   }
 
+  /** Deletes Preferences that were created by older versions of this class. */
   private static void deleteLegacyKeys() {
     if (!deletedLegacyKeys) {
       // Preferences installs a listener that makes all new topics persistent. The ".registeredTo"
@@ -472,6 +536,12 @@ public final class PersistedConfiguration {
     }
   }
 
+  /**
+   * Emits a warning, usually via {@link DataLogManager}.
+   *
+   * @param format A format string as described in {@link java.util.Formatter Formatter}.
+   * @param args Arguments referenced by the format specifiers in the format string.
+   */
   private static void warn(String format, Object... args) {
     String message = String.format("WARNING: " + format, args);
     errorReporter.accept(message);
