@@ -12,7 +12,9 @@ import java.util.Objects;
 
 public class FakeMotor implements Motor {
   private boolean isStopped = true;
+  private double feedForward = 0.0f;
   public double demand = 0.0f;
+
   public Resistance resistance = Resistance.ofBaseUnits(0.025f, Units.Ohms);
   private ControlMode controlMode = ControlMode.VOLTAGE;
 
@@ -23,22 +25,44 @@ public class FakeMotor implements Motor {
     return Voltage.ofBaseUnits(demand, Units.Volts);
   }
 
+  /**
+   * Gets the feedforward that was applied.
+   *
+   * @return feedforward, in fractional units between -1 and +1.
+   */
+  public double getFeedForward() {
+    return switch (controlMode) {
+      case VELOCITY, MOTION_MAGIC -> feedForward;
+      default ->
+          throw new IllegalStateException(
+              "Cannot get feedforward when controlMode is " + controlMode);
+    };
+  }
+
   public final void assertIsStopped() {
     assertThat(isStopped).isTrue();
   }
 
   @Override
   public final void set(ControlMode mode, double demand) {
-    controlMode = Objects.requireNonNull(mode, "mode should not be null");
-    if (controlMode != ControlMode.MOTION_MAGIC) {
-      isStopped = (Math.abs(demand) <= 0.0001);
-    }
-    this.demand = demand;
+    set(mode, demand, 0);
   }
 
   @Override
   public void set(ControlMode mode, double demand, double feedForward) {
-    set(mode, demand);
+    Objects.requireNonNull(mode, "mode should not be null");
+    if (feedForward >= 0) {
+      assertThat(feedForward).isAtMost(1.01);
+    } else {
+      assertThat(feedForward).isAtLeast(-1.01);
+    }
+
+    if (controlMode != ControlMode.MOTION_MAGIC) {
+      isStopped = (Math.abs(demand) <= 0.0001 && Math.abs(feedForward) <= 0.0001);
+    }
+    this.controlMode = mode;
+    this.demand = demand;
+    this.feedForward = feedForward;
   }
 
   @Override
