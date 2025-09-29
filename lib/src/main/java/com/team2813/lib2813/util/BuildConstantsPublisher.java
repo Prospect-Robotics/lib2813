@@ -20,7 +20,7 @@ import java.util.function.Function;
  * <p>The constants are published under the {@code "/Metadata"} table in NetworkTables. This is a
  * special NetworkTables table. Some tools have special support for the "/Metadata" table. For
  * instance, Advantage Scope has a dedicated Metadata tab that loads information like Build
- * Constants in a well formated table view.
+ * Constants in a well formatted table view.
  *
  * <p>To instantiate a BuildConstantsPublisher, a build constants class, {@code BuildConstants}, is
  * needs to be generated for the robot library by enabling the `gversion` plugin in the gradle build
@@ -37,6 +37,8 @@ import java.util.function.Function;
  * // Log the build constants in the robot console as well.
  * buildConstantsPublisher.log();
  * }</pre>
+ *
+ * @author Team 2813
  */
 public final class BuildConstantsPublisher {
   /** The name of the NetworkTable under which the build constants are published. */
