@@ -3,26 +3,45 @@ package com.team2813.lib2813.testing.truth;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A partially specified check about an approximate relationship to a {@code double} subject using a
- * tolerance.
+ * Represents a partially specified check on a subject of type {@code T} for approximate equality
+ * within a given tolerance. This class is intended to be used as part of a fluent assertion API,
+ * where the subject and tolerance are defined earlier in the chain, and the expected value is
+ * provided via {@link #of(Object)}.
+ *
+ * <p>For example, in a fluent assertion style:
+ * <pre>{@code
+ * assertThat(actualValue).isWithin(tolerance).of(expectedValue);
+ * }</pre>
+ *
+ * <p>Subclasses of this class implement the specific logic for comparing the subject with the
+ * expected value considering the tolerance.
+ *
+ * @param <T> the type of the value being compared (typically {@link Double})
  */
 public abstract class TolerantComparison<T> {
 
-  // Prevent subclassing outside of this package
+  /**
+   * Package-private constructor to prevent subclassing outside of this package.
+   */
   TolerantComparison() {}
 
   /**
-   * Fails if the subject was expected to be within the tolerance of the given value but was not.
-   * The subject and tolerance are specified earlier in the fluent call chain.
+   * Fails the assertion if the subject is not within the tolerance of the given expected value.
+   * The subject and tolerance must have been specified earlier in the fluent call chain.
+   *
+   * @param expected the value the subject is expected to be approximately equal to
    */
   public abstract void of(T expected);
 
-  // Remaining code copied from DoubleSubject.TolerantDoubleComparison
-
   /**
+   * {@inheritDoc}
+   *
+   * <p>This method is unsupported for {@code TolerantComparison}. Equality comparisons should be
+   * performed via {@link #of(Object)} rather than {@link Object#equals(Object)}.
+   *
    * @throws UnsupportedOperationException always
-   * @deprecated {@link Object#equals(Object)} is not supported on TolerantComparison. If you meant
-   *     to compare doubles, use {@link #of(T)} instead.
+   * @deprecated Use {@link #of(Object)} to compare values. {@link Object#equals(Object)} is not
+   *     supported.
    */
   @Deprecated
   @Override
@@ -32,8 +51,12 @@ public abstract class TolerantComparison<T> {
   }
 
   /**
+   * {@inheritDoc}
+   *
+   * <p>This method is unsupported for {@code TolerantComparison}.
+   *
    * @throws UnsupportedOperationException always
-   * @deprecated {@link Object#hashCode()} is not supported on TolerantComparison
+   * @deprecated {@link Object#hashCode()} is not supported on {@code TolerantComparison}.
    */
   @Deprecated
   @Override

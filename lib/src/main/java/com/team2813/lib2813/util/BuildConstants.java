@@ -2,7 +2,11 @@ package com.team2813.lib2813.util;
 
 import java.time.ZonedDateTime;
 
-/** Holder for data collected at build time about the robot code. */
+/**
+ * Holder for data collected at build time about the robot code.
+ *
+ * @author Team 2813
+ */
 public interface BuildConstants {
 
   /** The current git branch when the code was built. */

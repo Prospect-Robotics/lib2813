@@ -7,34 +7,65 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * A lightshow that keeps track of the states that have been applied, and uses the last state. To be
- * more specific, all states that return {@code true} on a call to {@link State#apply()} are added
- * to the list. States are only removed from the list if they are at the front and {@link
- * State#apply()} returns {@code false}, when a state is removed, the next one will be activated if
- * {@link State#apply()} returns {@code true}, until either a state returns {@code true} upon a call
- * to {@link State#apply()}, in which the color will be used, or there are no states where {@link
- * State#apply()} return {@code true}, then the default color is used.
+ * A Lightshow implementation that manages a queue of active states.
+ *
+ * <p>Behavior:
+ * <ul>
+ *   <li>All {@link State}s that return {@code true} for {@link State#apply()} are added to a
+ *       queue.</li>
+ *   <li>States are removed from the front of the queue if {@link State#apply()} returns {@code
+ *       false}.</li>
+ *   <li>The last active state in the queue is used to determine the color to display.</li>
+ *   <li>If no states are active, the {@link Lightshow#off} state or {@link #defaultState} is used.
+ *   </li>
+ * </ul>
+ *
+ * @author Team 2813
  */
 public abstract class QueueLightshow extends Lightshow {
+
   private final Deque<State> activatedStates = new ArrayDeque<>();
 
+  /**
+   * Creates a QueueLightshow from an enum class of {@link State}s.
+   *
+   * @param <T> the enum type implementing {@link State}
+   * @param enumClass the enum class containing the states
+   */
   public <T extends Enum<T> & State> QueueLightshow(Class<T> enumClass) {
     super(enumClass);
     defaultState = Optional.of(Lightshow.off);
   }
 
+  /**
+   * Creates a QueueLightshow from a set of {@link State}s.
+   *
+   * @param states the set of states to use
+   */
   public QueueLightshow(Set<State> states) {
     super(states);
     defaultState = Optional.of(Lightshow.off);
   }
 
+  /**
+   * Updates the queue of active states and returns the current color to display.
+   *
+   * <p>New states that return {@code true} for {@link State#apply()} are added to the front of the
+   * queue. States at the front of the queue that return {@code false} are removed. The color of the
+   * first active state is used.
+   *
+   * @return the color of the current active state, or empty if no states are active
+   */
   @Override
   protected Optional<Color> update() {
+    // Add new active states that are not already in the queue
     for (State s : states) {
       if (!activatedStates.contains(s) && s.apply()) {
         activatedStates.addFirst(s);
       }
     }
+
+    // Remove inactive states from the front
     while (!activatedStates.isEmpty()) {
       State s = activatedStates.poll();
       if (s.apply()) {
@@ -42,6 +73,7 @@ public abstract class QueueLightshow extends Lightshow {
         return Optional.of(s.color());
       }
     }
+
     return Optional.empty();
   }
 }
