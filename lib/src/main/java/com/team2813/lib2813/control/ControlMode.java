@@ -14,14 +14,6 @@ import com.revrobotics.spark.SparkBase.ControlType;
  * each mode corresponding to a specific {@link ControlType} from the SPARK API.
  * Additional vendor mappings can be added as needed.
  * 
- * <p>Supported control modes:
- * <ul>
- * <li><b>DUTY_CYCLE:</b> Open-loop duty cycle control (percentage output)</li>
- * <li><b>VELOCITY:</b> Closed-loop velocity control with PID feedback</li>
- * <li><b>MOTION_MAGIC:</b> Closed-loop position control with motion profiling</li>
- * <li><b>VOLTAGE:</b> Open-loop voltage control</li>
- * </ul>
- * 
  * @author Team 2813
  * @since 1.0
  */
