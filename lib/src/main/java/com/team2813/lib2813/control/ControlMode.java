@@ -65,7 +65,7 @@ public enum ControlMode {
      * <p>Controls the motor by applying a specific voltage directly to the motor terminals.
      * Unlike duty cycle control, voltage control compensates for battery voltage variations
      * to provide more consistent motor behavior. The demand value represents the desired
-     * voltage to apply to the motor.
+     * voltage (in Volts) to apply to the motor.
      * 
      * <p>Maps to {@link ControlType#kVoltage} for SPARK controllers.
      */
