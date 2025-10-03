@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 /**
  * Defines PID control over a motor, with values specified by an encoder
  *
- * @param <T> the {@link Supplier<Angle>} type to use positions from.
+ * @param <T> the type of the {@link Supplier<Angle>} used to specify setpoints.
  */
 public abstract class MotorSubsystem<T extends Supplier<Angle>> extends SubsystemBase
     implements Motor, Encoder {
@@ -211,6 +211,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     return encoder.getVelocityMeasure();
   }
 
+  /** Applies the PID output to the motor if this subsystem is enabled. */
   @Override
   public void periodic() {
     if (isEnabled) {
@@ -220,10 +221,10 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
 
   /** A configuration for a MotorSubsystem */
   public static class MotorSubsystemConfiguration {
-    /** The default error of a motor subsystems */
+    /** The default acceptable position error. */
     public static final double DEFAULT_ERROR = 5.0;
 
-    /** The default starting position if one is not defined */
+    /** The default starting position if one is not provided. */
     public static final double DEFAULT_STARTING_POSITION = 0.0;
 
     private ControlMode controlMode;
@@ -235,12 +236,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     private double startingPosition;
 
     /**
-     * Creates a new config for MotorSubsystems. The default acceptable error is {@value
+     * Creates a new configuration for a MotorSubsystems. The default acceptable error is {@value
      * #DEFAULT_ERROR}, the PID constants are set to 0, and the starting position is {@value
      * #DEFAULT_STARTING_POSITION}
      *
-     * @param motor the motor to use
-     * @param encoder the encoder to use
+     * @param motor the motor to control
+     * @param encoder the encoder providing feedback
      */
     public MotorSubsystemConfiguration(Motor motor, Encoder encoder) {
       this.motor = Objects.requireNonNull(motor, "motor should not be null");
@@ -257,7 +258,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      * default acceptable error is {@value #DEFAULT_ERROR}, the PID constants are set to 0, and the
      * starting position is {@value #DEFAULT_STARTING_POSITION}
      *
-     * @param motor the motor to use that also supports an encoder
+     * @param motor the integrated motor controller
      */
     public MotorSubsystemConfiguration(PIDMotor motor) {
       this(motor, motor);
@@ -323,6 +324,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       return startingPosition(startingPositionSupplier.get());
     }
 
+    /** Sets the acceptable position error. */
     public MotorSubsystemConfiguration acceptableError(double error) {
       this.acceptableError = error;
       return this;
