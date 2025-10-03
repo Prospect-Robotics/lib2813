@@ -13,9 +13,5 @@ allprojects {
             // REV Robotics
             url 'https://maven.revrobotics.com/'
         }
-        maven {
-            // PathPlanner
-            url 'https://3015rangerrobotics.github.io/pathplannerlib/repo'
-        }
     }
 }
