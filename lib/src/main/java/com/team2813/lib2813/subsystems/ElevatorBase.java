@@ -1,0 +1,92 @@
+package com.team2813.lib2813.subsystems;
+
+import static edu.wpi.first.units.Units.Radians;
+
+import java.util.function.Supplier;
+
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.team2813.lib2813.control.ControlMode;
+import com.team2813.lib2813.control.InvertType;
+import com.team2813.lib2813.control.motors.TalonFXWrapper;
+import com.team2813.lib2813.subsystems.ElevatorBase;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
+
+/**
+ * Generic configurable elevator base class.
+ * Extend this to create specific elevator implementations
+ * (set motor IDs, PID values, enum positions, etc.).
+ *
+ * Author: Team 2813
+ */
+public abstract class ElevatorBase extends MotorSubsystem<ElevatorBase.PositionBase> {
+
+    /** Defines an elevator position with a unit-safe angle */
+    public interface PositionBase extends Supplier<Angle>{
+        Angle get();
+    }
+
+    protected final TalonFXWrapper motor;
+    protected final PIDController pid;
+
+    protected final BooleanPublisher atPos;
+    protected final DoublePublisher pos;
+
+    /**
+     * @param motor the TalonFXWrapper to control this elevator
+     * @param pid   PID controller for closed-loop position control
+     * @param gearRatio mechanism gear ratio (rotations -> mechanism movement)
+     * @param ntInstance NetworkTables instance for telemetry
+     */
+    protected ElevatorBase(
+            TalonFXWrapper motor,
+            PIDController pid,
+            NetworkTableInstance ntInstance,
+            double acceptableError
+    ) {
+        super(new MotorSubsystemConfiguration(motor)
+        .controlMode(ControlMode.VOLTAGE)
+        .acceptableError(acceptableError)
+        .rotationUnit(Radians)
+        .controller(pid));
+        this.motor = motor;
+        this.pid = pid;
+        NetworkTable nt = ntInstance.getTable("Elevator");
+        atPos = nt.getBooleanTopic("at position").publish();
+        pos = nt.getDoubleTopic("position").publish();
+    }
+
+    /** Override this in child to return applied current */
+    @Override
+    public abstract Current getAppliedCurrent();
+
+    /** Clamp/control how output is sent to the motor */
+    @Override
+    protected void useOutput(double output, double setpoint) {
+        // Default clamp [-6,6], can override in child if needed
+        super.useOutput(MathUtil.clamp(output, -6, 6), setpoint);
+    }
+
+    /** Telemetry updates */
+    @Override
+    public void periodic() {
+        super.periodic();
+        atPos.set(atPosition());
+        pos.set(getMeasurement());
+    }
+
+    /** Utility method for making a default-configured motor */
+    protected static TalonFXWrapper makeMotor(int masterID, int followerID) {
+        TalonFXWrapper wrapper = new TalonFXWrapper(masterID, InvertType.CLOCKWISE);
+        wrapper.setNeutralMode(NeutralModeValue.Brake);
+        wrapper.addFollower(followerID, InvertType.FOLLOW_MASTER);
+        return wrapper;
+    }
+}
