@@ -57,10 +57,9 @@ public final class WPILibExtension
 
   /**
    * Initializes WPILib components before all tests.
-   * <p>
-   * Sets up the HAL, enables the driver station simulation,
+   *
+   * <p>Sets up the HAL, enables the driver station simulation,
    * and resets the {@link CommandScheduler}.
-   * </p>
    *
    * @param context the JUnit extension context
    * @throws IllegalStateException if the HAL cannot be initialized
@@ -123,10 +122,9 @@ public final class WPILibExtension
 
   /**
    * Provides a {@link CommandTester} instance for parameter injection.
-   * <p>
-   * The tester schedules the given command and repeatedly runs
+   *
+   * <p>The tester schedules the given command and repeatedly runs
    * the {@link CommandScheduler} until the command completes.
-   * </p>
    *
    * @param parameterContext the parameter context
    * @param extensionContext the extension context
