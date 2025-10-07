@@ -1,0 +1,39 @@
+plugins {
+    id 'java-common-conventions'
+    id "edu.wpi.first.GradleRIO" version "2025.1.1"
+    id 'idea'
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+dependencies {
+    implementation wpi.java.deps.wpilib()
+    implementation wpi.java.vendor.java()
+    implementation 'org.photonvision:photonlib-java:v2025.3.2'
+    implementation 'org.photonvision:photontargeting-java:v2025.3.2'
+    implementation project(':lib')
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.google.truth:truth:1.4.4'
+    testImplementation project(':testing')
+
+    nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
+    nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
+    simulationDebug wpi.sim.enableDebug()
+
+    nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
+    nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
+    simulationRelease wpi.sim.enableRelease()
+}
+
+wpi.java.configureTestTasks(test)
+
+test {
+    // Use JUnit 4 for tests
+    useJUnit()
+}
