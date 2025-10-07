@@ -6,7 +6,15 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Publishes timestamped data to a network tables topic. */
+/**
+ * Publishes timestamped data to a network tables topic.
+ *
+ * <p>If an empty list is passed to the {@link #publish(List)} method, then a zero value is
+ * published only if the most recent published data is too far in the past. This can reduce
+ * flickering when the data is displayed in tools like AdvantageScope. It is particularly useful for
+ * data that takes longer to produce than the frequency of the robot's event loop (for example,
+ * estimated robot pose data produced by a camera).
+ */
 final class TimestampedStructPublisher<S> {
   private static final long MICROS_PER_SECOND = 1_000_000;
   static final long EXPECTED_UPDATE_FREQUENCY_MICROS =
@@ -36,7 +44,13 @@ final class TimestampedStructPublisher<S> {
     publishedZeroValue = true;
   }
 
-  /** Publishes the values to network tables. */
+  /**
+   * Publishes the values to network tables.
+   *
+   * <p>This should be called in a <a
+   * href="https://docs.wpilib.org/en/stable/docs/software/convenience-features/scheduling-functions.html">periodic
+   * method</a> once per loop, even if no data is currently available.
+   */
   public void publish(List<TimestampedValue<S>> timestampedValues) {
     if (timestampedValues.isEmpty()) {
       if (!publishedZeroValue) {

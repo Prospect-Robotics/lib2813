@@ -17,16 +17,42 @@ final class TimestampedValue<T> {
   private final long networkTablesTimestamp;
   private final T value;
 
+  /**
+   * Creates a value associated with a provided FPGA timestamp.
+   *
+   * @param fpgaTimestamp time from the FPGA hardware clock
+   * @param timeUnit the time unit of the fpgaTimestamp parameter
+   * @param value the value record or computed at the provided timestamp.
+   * @return timestamped value with the provided parameters
+   * @param <T> Type of the value
+   * @see edu.wpi.first.wpilibj.Timer#getFPGATimestamp()
+   */
   public static <T> TimestampedValue<T> withFpgaTimestamp(
       double fpgaTimestamp, TimeUnit timeUnit, T value) {
     return withFpgaTimestampMicros(
         (long) Units.Microseconds.convertFrom(fpgaTimestamp, timeUnit), value);
   }
 
+  /**
+   * Creates a value associated with a provided FPGA timestamp in microseconds.
+   *
+   * @param fpgaTimestamp time from the FPGA hardware clock, in microseconds
+   * @param value the value record or computed at the provided timestamp.
+   * @return timestamped value with the provided parameters
+   * @param <T> type of the value
+   * @see edu.wpi.first.wpilibj.Timer#getFPGATimestamp()
+   */
   public static <T> TimestampedValue<T> withFpgaTimestampMicros(long fpgaTimestamp, T value) {
     return new TimestampedValue<>(fpgaTimestamp, value);
   }
 
+  /**
+   * Creates a value from a NetworkTables timestamped object.
+   *
+   * @param timestampedObject timestampted object to copy from
+   * @return timestamped value
+   * @param <T> type of the value
+   */
   public static <T> TimestampedValue<T> fromTimestampedObject(
       TimestampedObject<T> timestampedObject) {
     return withFpgaTimestampMicros(timestampedObject.timestamp, timestampedObject.value);
@@ -58,6 +84,7 @@ final class TimestampedValue<T> {
     return networkTablesTimestamp;
   }
 
+  /** Gets the underlying value. */
   public T value() {
     return value;
   }
