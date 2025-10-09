@@ -8,6 +8,9 @@ import org.photonvision.PhotonCamera;
  * Contains methods and constants for publishing data from robot vision systems to network tables.
  */
 final class VisionNetworkTables {
+  /** Topic name to use when publishing the Pose3d position of a camera. */
+  static final String CAMERA_POSE_TOPIC = "cameraPose";
+
   /** Topic name to use when publishing the estimated robot position as a Pose2d value */
   static final String POSE_ESTIMATE_TOPIC = "poseEstimate";
 
