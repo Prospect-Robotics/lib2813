@@ -31,25 +31,26 @@ import org.photonvision.simulation.VisionSystemSim;
 /**
  * Provides estimated robot positions, in field pose, from multiple PhotonVision cameras.
  *
- * <p>This class manages one or more PhotonVision cameras, and provides an API {@link
- * #update(Consumer)} to provide an updated estimated robot pose by combining readings from
- * AprilTags visible from the cameras. It also supports adding camera configurations to
+ * <p>This class manages one or more PhotonVision cameras, and provides an API ({@link
+ * #processAll(PoseEstimateConsumer)}) to provide an updated estimated robot pose by combining
+ * readings from AprilTags visible from the cameras. It also supports adding the cameras to
  * PhotonVision's simulated vision system.
  *
- * <p>Note that, when we are dealing with 2D and 3D poses, we follow the transformation conventions
- * established by WPILib and PhotonVision:
- * https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/coordinate-systems.html
+ * <p>Note that, when we are dealing with 2D and 3D poses, we follow <a
+ * href="https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/coordinate-systems.html"
+ * target="_top">the transformation conventions</a> established by WPILib and PhotonVision.
  *
  * <p>Furthermore note that the global robot pose or any of the camera global poses are also
- * referred to as "field-centric pose". In our libraries, field-centric poses are always specified
- * relative to the blue origin per
- * https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#always-blue-origin
+ * referred to as "field-centric pose". In our libraries, field-centric poses are <a
+ * href="https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#always-blue-origin"
+ * target="_top">always specified relative to the blue origin</a>.
  */
 public class MultiPhotonPoseEstimator implements AutoCloseable {
   private static final String LIMELIGHT_CAMERA_NAME = "limelight";
   private final List<PhotonCameraWrapper> cameraWrappers;
   private PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
 
+  /** A builder for {@code MultiPhotonPoseEstimator}. */
   public static class Builder {
     private final Map<String, CameraConfig> cameraConfigs = new HashMap<>();
     private final AprilTagFieldLayout aprilTagFieldLayout;
@@ -57,7 +58,7 @@ public class MultiPhotonPoseEstimator implements AutoCloseable {
     private final PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
 
     /**
-     * MultiPhotonPoseEstimator builder constructor.
+     * {@code MultiPhotonPoseEstimator} builder constructor.
      *
      * @param ntInstance Network table instance used to log the pose of AprilTag detections as well
      *     as pose estimates.
@@ -168,7 +169,7 @@ public class MultiPhotonPoseEstimator implements AutoCloseable {
       implements AutoCloseable {
 
     /**
-     * Publishes the estimated drive pose calculated from this camera.
+     * Publishes the position of this camera.
      *
      * @param pose 3D field-centric (relative to blue origin) pose of the drive train.
      */
@@ -273,21 +274,16 @@ public class MultiPhotonPoseEstimator implements AutoCloseable {
    * <p>This method takes a field-centric drive train pose (drive train and robot are the same
    * here), update the camera field-centric poses and publish them on network tables.
    *
-   * <p>TODO(vdikov): This method sits very counter-intiutively in this class. The class is all
-   * about estimating pose and feeding it to the drive train pose estimation. Yet, this method is
-   * feeding a drive-train `pose` back to it. One could reasonably assume that the drive train pose
-   * is somehow used for the multi-photon pose estimation and plays some role there. But the method
-   * code tells a much more prosaic story - the `pose` is only used for reporting camera poses,
-   * relative to "some" drive-train (at that point we don't even know if that pose is derived from
-   * the multi-photon pose estimation whatsoever). The MultiPhotonPoseEstimator API would become
-   * cleaner if we remove this method and find other ways to report Camera poses. kcooney@ has
-   * drafted several cool ideas how we can address that with a better class/interfaces architecture
-   * here: https://github.com/Prospect-Robotics/Robot2025/pull/157#discussion_r2282753534
-   *
-   * @param pose 2D field-centric (relative to blue origin) pose of the drive train (i.e., the
-   *     robot).
+   * @param pose 2D field-centric (relative to blue origin) pose.
    */
   public void setDrivePose(Pose2d pose) {
+    // TODO(vdikov): This method sits very counter-intuitively in this class. The class is all about
+    // estimating pose and feeding it to the drive train pose estimation. Yet, this method is
+    // feeding a drive-train `pose` back to it. The MultiPhotonPoseEstimator API would become
+    // cleaner if we remove this method and find other ways to report Camera poses. kcooney@ has
+    // provided several some ideas on how we can address that with a better class/interfaces
+    // architecture here:
+    // https://github.com/Prospect-Robotics/Robot2025/pull/157#discussion_r2282753534
     Pose3d pose3d = new Pose3d(pose);
     for (PhotonCameraWrapper cameraWrapper : cameraWrappers) {
       cameraWrapper.publishEstimatedDrivePose(pose3d);
