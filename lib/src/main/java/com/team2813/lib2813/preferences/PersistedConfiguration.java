@@ -100,7 +100,7 @@ public final class PersistedConfiguration {
   static Consumer<String> errorReporter = DataLogManager::log;
 
   /**
-   * Construct a record instance, populating its components from Preferences.
+   * Constructs a record instance, populating its components from Preferences, using the provided instance to get default values.
    *
    * <p>The provided instance supplies the default values. For each component:
    * <ul>
