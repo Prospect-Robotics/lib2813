@@ -65,8 +65,6 @@ public final class IsolatedPreferences extends ExternalResource {
 
     // Restore Preferences to the default NetworkTable instance
     Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
-
-    // Close the temporary instance
     tempInstance.close();
   }
 }
