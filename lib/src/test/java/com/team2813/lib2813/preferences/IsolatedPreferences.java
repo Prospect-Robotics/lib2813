@@ -44,12 +44,8 @@ public final class IsolatedPreferences extends ExternalResource {
   protected void before() {
     // Ensure the default instance is initialized
     NetworkTableInstance.getDefault();
-
-    // Create a temporary local NetworkTable instance for isolation
     tempInstance = NetworkTableInstance.create();
     tempInstance.startLocal();
-
-    // Redirect Preferences to use the temporary instance
     Preferences.setNetworkTableInstance(tempInstance);
   }
 
