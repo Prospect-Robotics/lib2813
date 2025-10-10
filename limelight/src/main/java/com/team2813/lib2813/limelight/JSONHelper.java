@@ -17,7 +17,7 @@ class JSONHelper {
   /**
    * Converts an integer value from a JSON object to a boolean.
    *
-   * <p>The key must be present and contain 0 (false) or 1 (true). Returns {@link Optional#empty()} 
+   * <p>The key must be present and contain 0 (false) or 1 (true). Returns {@link Optional#empty()}
    * if the key is missing or the value is not an integer.
    *
    * @param obj the JSON object to read from
@@ -38,7 +38,8 @@ class JSONHelper {
   /**
    * Returns a function that retrieves a nested JSONObject by key.
    *
-   * <p>The returned function returns {@link Optional#empty()} if the key is missing or not a JSON object.
+   * <p>The returned function returns {@link Optional#empty()} if the key is missing or not a JSON
+   * object.
    *
    * @param key the key to extract
    * @return a function that extracts an Optional&lt;JSONObject&gt; from a parent JSONObject

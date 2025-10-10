@@ -60,9 +60,7 @@ class DataCollection implements Runnable {
    */
   record Result(JSONObject json, double responseTimestamp) {}
 
-  /**
-   * Custom body handler to parse the HTTP response into a {@link Result} with timestamp.
-   */
+  /** Custom body handler to parse the HTTP response into a {@link Result} with timestamp. */
   private static class JSONHandler implements BodyHandler<Result> {
 
     @Override

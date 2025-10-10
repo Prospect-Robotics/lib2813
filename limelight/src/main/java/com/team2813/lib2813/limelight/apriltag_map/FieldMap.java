@@ -7,6 +7,7 @@ package com.team2813.lib2813.limelight.apriltag_map;
  * fiducials under the key "fiducials". Each fiducial is represented by a {@link Fiducial} object.
  *
  * <p>Example JSON format:
+ *
  * <pre>
  * {
  *   "fiducials": [

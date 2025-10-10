@@ -7,9 +7,9 @@ import edu.wpi.first.math.geometry.Pose3d;
 /**
  * Represents a fiducial (AprilTag) in 3D space.
  *
- * <p>This class stores the fiducial's unique ID and its pose as a 4x4 transformation matrix. It
- * can convert this transform into a {@link Pose3d} object for use with WPILib's geometry and
- * odometry systems.
+ * <p>This class stores the fiducial's unique ID and its pose as a 4x4 transformation matrix. It can
+ * convert this transform into a {@link Pose3d} object for use with WPILib's geometry and odometry
+ * systems.
  */
 public class Fiducial {
 

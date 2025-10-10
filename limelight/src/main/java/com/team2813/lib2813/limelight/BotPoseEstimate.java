@@ -10,11 +10,11 @@ import java.util.Set;
  * currently visible AprilTag IDs.
  *
  * @param pose The estimated position and orientation of the robot in 2D space.
- * @param timestampSeconds The timestamp of this estimate, in seconds, relative to the drivetrain clock.
+ * @param timestampSeconds The timestamp of this estimate, in seconds, relative to the drivetrain
+ *     clock.
  * @param visibleAprilTags The set of AprilTag IDs that were visible when this estimate was made.
  */
-public record BotPoseEstimate(
-    Pose2d pose, double timestampSeconds, Set<Integer> visibleAprilTags) {
+public record BotPoseEstimate(Pose2d pose, double timestampSeconds, Set<Integer> visibleAprilTags) {
 
   /**
    * @deprecated Use the constructor including {@code visibleAprilTags}. This constructor

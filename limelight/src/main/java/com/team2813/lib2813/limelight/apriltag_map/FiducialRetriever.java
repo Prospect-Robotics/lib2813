@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 /**
  * Retrieves and stores fiducial (AprilTag) information from a JSON input stream.
  *
- * <p>The JSON is expected to represent a {@link FieldMap}, which contains an array of
- * {@link Fiducial} objects. Each fiducial is mapped by its unique ID for easy lookup.
+ * <p>The JSON is expected to represent a {@link FieldMap}, which contains an array of {@link
+ * Fiducial} objects. Each fiducial is mapped by its unique ID for easy lookup.
  */
 public class FiducialRetriever {
 
@@ -34,8 +34,7 @@ public class FiducialRetriever {
     FieldMap map = gson.fromJson(new InputStreamReader(stream, UTF_8), FieldMap.class);
     // Convert array of fiducials to an unmodifiable map keyed by fiducial ID
     fiducialMap =
-        Arrays.stream(map.fiducials)
-            .collect(Collectors.toUnmodifiableMap(Fiducial::getId, f -> f));
+        Arrays.stream(map.fiducials).collect(Collectors.toUnmodifiableMap(Fiducial::getId, f -> f));
   }
 
   /**

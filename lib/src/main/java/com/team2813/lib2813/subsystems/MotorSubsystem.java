@@ -18,11 +18,12 @@ import java.util.function.Supplier;
  * Abstract subsystem that manages a motor with PID control based on encoder measurements.
  *
  * <p>This class allows:
+ *
  * <ul>
- *   <li>Setting a desired position via a {@link Supplier<Angle>} setpoint.</li>
- *   <li>Applying PID control to reach that setpoint using a {@link PIDController}.</li>
- *   <li>Using different {@link ControlMode}s for manual or PID-driven motor control.</li>
- *   <li>Flexible angle units via {@link AngleUnit} for calculations and measurements.</li>
+ *   <li>Setting a desired position via a {@link Supplier<Angle>} setpoint.
+ *   <li>Applying PID control to reach that setpoint using a {@link PIDController}.
+ *   <li>Using different {@link ControlMode}s for manual or PID-driven motor control.
+ *   <li>Flexible angle units via {@link AngleUnit} for calculations and measurements.
  * </ul>
  *
  * @param <T> the type of {@link Supplier<Angle>} used to provide dynamic setpoints.

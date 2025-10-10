@@ -12,7 +12,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableType;
 import edu.wpi.first.networktables.Topic;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.Preferences;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -24,14 +23,13 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 /**
  * Unit tests for {@link PersistedConfiguration}.
  *
- * <p>This test class uses nested classes to test different types of preferences (boolean, int, long,
- * double, String, and record types). It verifies both default behavior and preference updates.
+ * <p>This test class uses nested classes to test different types of preferences (boolean, int,
+ * long, double, String, and record types). It verifies both default behavior and preference
+ * updates.
  *
  * <p>The Enclosed runner is used so we can have nested test classes.
  */
@@ -54,7 +52,6 @@ public final class PersistedConfigurationTest {
     /** The record class used for mapping preferences. */
     private final Class<T> recordClass;
 
-    /** IsolatedPreferences ensures tests don't interfere with global Preferences. */
     @Rule public final IsolatedPreferences isolatedPreferences = new IsolatedPreferences();
 
     /** Allows collecting multiple test errors in a single test execution. */
@@ -81,8 +78,9 @@ public final class PersistedConfigurationTest {
     public final void setTestGlobals() {
       PersistedConfiguration.throwExceptions = true;
       PersistedConfiguration.errorReporter =
-          message -> errorCollector.addError(
-              new AssertionError("Unexpected warning: \"" + message + "\""));
+          message ->
+              errorCollector.addError(
+                  new AssertionError("Unexpected warning: \"" + message + "\""));
     }
 
     /** Resets global configuration after each test. */
@@ -150,44 +148,52 @@ public final class PersistedConfigurationTest {
       }
     }
 
-    /** Creates a record instance with default values configured for the test. */
+    /**
+     * Creates an instance of the record class with all values set to default values.
+     *
+     * <p>The values for the record components should all be unique, and none of them should be the
+     * Java default value for the type.
+     */
     protected abstract T createRecordWithConfiguredDefaults();
 
-    /** Asserts that the record has the configured defaults. */
+    /**
+     * Verifies that the given record has the same values as one created by {@link
+     * #createRecordWithConfiguredDefaults()}.
+     */
     protected abstract void assertHasConfiguredDefaults(T record);
 
-    /** Asserts that preferences contain the configured default values. */
+    /**
+     * Verifies that preferences have the same values as one created by {@link
+     * #createRecordWithConfiguredDefaults()}.
+     */
     protected abstract void assertPreferencesHaveConfiguredDefaults();
 
-    /** Asserts that the record has Java defaults (0, false, or empty for object types). */
+    /** Verifies that all values of the given record equal the Java default value for the type. */
     protected abstract void assertHasJavaDefaults(T record);
 
-    /** Asserts that the preferences contain Java default values. */
+    /** Verifies that all preferences have values equal to the Java default value of the type. */
     protected abstract void assertPreferencesHaveJavaDefaults();
 
-    /** Updates the preference values according to {@link ValuesKind}. */
+    /** Updates the values of all preferences. */
     protected abstract void updatePreferenceValues(ValuesKind kind);
 
     /**
-     * Asserts that the record contains values matching the updated preference values.
-     *
-     * @param kind type of values to compare against
-     * @param record the record to verify
+     * Verifies that all values of the given record equal the values returned by {@link
+     * #updatePreferenceValues(ValuesKind)}.
      */
     protected abstract void assertHasUpdatedValues(ValuesKind kind, T record);
 
     /**
-     * Asserts that all supplier fields in the record reflect updated preference values.
-     *
-     * @param record the record to verify
+     * Verifies that all suppliers contained in the given record have values equal the values
+     * returned by {@link #updatePreferenceValues(ValuesKind)}.
      */
     protected abstract void assertSuppliersHaveUpdatedValues(T record);
 
     /**
      * Verifies that the preference name maps to only one record type.
      *
-     * <p>If a preference is already registered with a different record type, an exception should
-     * be thrown.
+     * <p>If a preference is already registered with a different record type, an exception should be
+     * thrown.
      */
     @Test
     public void preferenceNameMapsToOnlyOneRecordType() {
@@ -198,6 +204,7 @@ public final class PersistedConfigurationTest {
               IllegalStateException.class,
               () -> PersistedConfiguration.fromPreferences(preferenceName, UnrelatedRecord.class));
 
+      // Assert: Exception has expected message
       assertThat(exception)
           .hasMessageThat()
           .containsMatch("Preference with name '" + preferenceName + "' already registered");
@@ -220,12 +227,139 @@ public final class PersistedConfigurationTest {
     // is omitted here but follows the same style as above: explain the test record,
     // default values, and the assertion logic.
 
-  }
+    @Test
+    public void withoutExistingPreferences_passingRecordInstance() {
+      // Arrange
+      T recordWithDefaults = createRecordWithConfiguredDefaults();
 
-  /** A record used for testing invalid/unrelated registration. */
-  record UnrelatedRecord(int team) {
-    UnrelatedRecord() {
-      this(2813);
+      // Act
+      T recordWithPreferences =
+          PersistedConfiguration.fromPreferences(preferenceName, recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertHasConfiguredDefaults(recordWithPreferences);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasConfiguredDefaults(recordWithPreferences);
+
+      // Assert: Default values set
+      assertPreferencesHaveConfiguredDefaults();
+
+      // Arrange: Update preferences
+      updatePreferenceValues(ValuesKind.UPDATED_VALUES);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      T newRecordWithPreferences =
+          PersistedConfiguration.fromPreferences(preferenceName, recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
+      assertSuppliersHaveUpdatedValues(recordWithPreferences);
+      assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
     }
+
+    @Test
+    public void withoutExistingPreferences_passingRecordClass() {
+      // Act
+      var recordWithPreferences =
+          PersistedConfiguration.fromPreferences(preferenceName, recordClass);
+
+      // Assert: Preferences injected
+      assertHasJavaDefaults(recordWithPreferences);
+
+      // Assert: Default values set
+      assertPreferencesHaveJavaDefaults();
+      // Ensure the suppliers return the same value if called multiple times.
+      assertPreferencesHaveJavaDefaults();
+
+      // Arrange: Update preferences
+      updatePreferenceValues(ValuesKind.UPDATED_VALUES);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences =
+          PersistedConfiguration.fromPreferences(preferenceName, recordClass);
+
+      // Assert: Preferences injected
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
+      assertSuppliersHaveUpdatedValues(recordWithPreferences);
+      assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
+    }
+
+    @Test
+    public void withExistingPreferences_passingRecordInstance() {
+      // Arrange
+      updatePreferenceValues(ValuesKind.INITIAL_VALUES);
+      var preferenceValues = preferenceValues();
+      T recordWithDefaults = createRecordWithConfiguredDefaults();
+
+      // Act
+      T recordWithPreferences =
+          PersistedConfiguration.fromPreferences(preferenceName, recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertHasUpdatedValues(ValuesKind.INITIAL_VALUES, recordWithPreferences);
+      assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.INITIAL_VALUES, recordWithPreferences);
+
+      // Arrange: Update preferences
+      updatePreferenceValues(ValuesKind.UPDATED_VALUES);
+      preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences =
+          PersistedConfiguration.fromPreferences(preferenceName, recordWithDefaults);
+
+      // Assert: Preferences injected
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
+      assertSuppliersHaveUpdatedValues(recordWithPreferences);
+      assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
+    }
+
+    @Test
+    public void withExistingPreferences_passingRecordClass() {
+      // Arrange
+      updatePreferenceValues(ValuesKind.INITIAL_VALUES);
+      var preferenceValues = preferenceValues();
+
+      // Act
+      var recordWithPreferences =
+          PersistedConfiguration.fromPreferences(preferenceName, recordClass);
+
+      // Assert: Preferences injected
+      assertHasUpdatedValues(ValuesKind.INITIAL_VALUES, recordWithPreferences);
+      assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.INITIAL_VALUES, recordWithPreferences);
+
+      // Arrange: Update preferences
+      updatePreferenceValues(ValuesKind.UPDATED_VALUES);
+      preferenceValues = preferenceValues();
+
+      // Act
+      var newRecordWithPreferences =
+          PersistedConfiguration.fromPreferences(preferenceName, recordClass);
+
+      // Assert: Preferences injected
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
+      assertSuppliersHaveUpdatedValues(recordWithPreferences);
+      assertHasNoChangesSince(preferenceValues);
+      // Ensure the suppliers return the same value if called multiple times.
+      assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
+    }
+  }
+}
+
+/** A record used for testing invalid/unrelated registration. */
+record UnrelatedRecord(int team) {
+  UnrelatedRecord() {
+    this(2813);
   }
 }

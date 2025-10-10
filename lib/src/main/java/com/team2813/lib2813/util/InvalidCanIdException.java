@@ -32,8 +32,7 @@ public class InvalidCanIdException extends RuntimeException {
     this.canId = canId;
     if (0 <= canId && canId <= 62) {
       throw new IllegalArgumentException(
-          String.format(
-              "%d is a valid CAN ID (it is between 0 and 62, inclusive)", canId));
+          String.format("%d is a valid CAN ID (it is between 0 and 62, inclusive)", canId));
     }
   }
 

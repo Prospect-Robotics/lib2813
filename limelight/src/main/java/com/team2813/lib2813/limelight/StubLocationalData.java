@@ -5,22 +5,22 @@ import java.util.*;
 
 /**
  * Stub implementation of LocationalData where all optional values return empty.
- * 
- * <p>This class provides a null-object pattern implementation for LocationalData,
- * useful as a fallback when real Limelight data is unavailable. It can represent
- * either valid or invalid data states, but always returns empty optionals for all
- * pose and timing information.
- * 
+ *
+ * <p>This class provides a null-object pattern implementation for LocationalData, useful as a
+ * fallback when real Limelight data is unavailable. It can represent either valid or invalid data
+ * states, but always returns empty optionals for all pose and timing information.
+ *
  * <p>Two singleton instances are provided:
+ *
  * <ul>
- *   <li>{@link #VALID} - represents valid but empty data</li>
- *   <li>{@link #INVALID} - represents invalid/disconnected state</li>
+ *   <li>{@link #VALID} - represents valid but empty data
+ *   <li>{@link #INVALID} - represents invalid/disconnected state
  * </ul>
  */
 final class StubLocationalData implements LocationalData {
   /** Singleton instance representing valid but empty locational data. */
   static final StubLocationalData VALID = new StubLocationalData(true);
-  
+
   /** Singleton instance representing invalid locational data. */
   static final StubLocationalData INVALID = new StubLocationalData(false);
 
@@ -29,7 +29,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * Creates a new StubLocationalData instance.
-   * 
+   *
    * @param valid whether this stub data should report as valid
    */
   private StubLocationalData(boolean valid) {
@@ -38,7 +38,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return the validity state set during construction
    */
   @Override
@@ -48,7 +48,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always false, as stub data never has targets
    */
   @Override
@@ -58,7 +58,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -68,7 +68,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -78,7 +78,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -88,7 +88,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -98,7 +98,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -108,7 +108,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -118,7 +118,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -128,7 +128,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -138,7 +138,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -148,7 +148,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always empty
    */
   @Override
@@ -158,7 +158,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always an empty, immutable set
    */
   @Override
@@ -168,7 +168,7 @@ final class StubLocationalData implements LocationalData {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @return always an empty, immutable map
    */
   @Override

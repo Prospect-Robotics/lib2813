@@ -10,8 +10,8 @@ import org.junit.jupiter.api.function.Executable;
  * Unit tests for {@link ControlUtils}.
  *
  * <p>Specifically tests the {@link ControlUtils#deadband(double, double)} method, which applies a
- * deadband to a joystick input or control value. A deadband zeroes out values within a threshold and
- * scales values outside the threshold appropriately.
+ * deadband to a joystick input or control value. A deadband zeroes out values within a threshold
+ * and scales values outside the threshold appropriately.
  */
 public class ControlUtilsTest {
 

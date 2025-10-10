@@ -12,8 +12,8 @@ import javax.annotation.Nullable;
 /**
  * A Truth {@link Subject} for making assertions about {@link Rotation2d} values.
  *
- * <p>This subject provides fluent assertions for comparing 2D rotations,
- * including tolerance-based comparisons and checks for zero rotation.
+ * <p>This subject provides fluent assertions for comparing 2D rotations, including tolerance-based
+ * comparisons and checks for zero rotation.
  *
  * <p>Rotations are compared in radians.
  */
@@ -23,6 +23,7 @@ public final class Rotation2dSubject extends Subject {
    * Entry point for {@link Rotation2d} assertions.
    *
    * <p>Usage:
+   *
    * <pre>{@code
    * Rotation2d actual = new Rotation2d(Math.PI / 2);
    * Rotation2d expected = new Rotation2d(Math.PI / 2 + 1e-3);
@@ -40,7 +41,7 @@ public final class Rotation2dSubject extends Subject {
   }
 
   /**
-   * Factory for {@link Rotation2dSubject}, used with {@link assertAbout}.
+   * Factory for {@link Pose2dSubject}, for use with assertAbout().
    *
    * @return a factory for creating {@link Rotation2dSubject} instances
    */
@@ -84,8 +85,7 @@ public final class Rotation2dSubject extends Subject {
   }
 
   /**
-   * Returns a {@link DoubleSubject} for making assertions about the rotation’s
-   * raw radians value.
+   * Returns a {@link DoubleSubject} for making assertions about the rotation’s raw radians value.
    *
    * @return a {@link DoubleSubject} for the rotation’s radians
    */

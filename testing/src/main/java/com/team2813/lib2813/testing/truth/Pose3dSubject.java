@@ -11,11 +11,11 @@ import javax.annotation.Nullable;
 /**
  * A Truth {@link Subject} for making assertions about {@link Pose3d} values.
  *
- * <p>This subject provides fluent assertions for comparing 3D poses, including
- * tolerance-based comparisons of translations and rotations.
+ * <p>This subject provides fluent assertions for comparing 3D poses, including tolerance-based
+ * comparisons of translations and rotations.
  *
- * <p>See <a href="https://truth.dev/extension">Truth: Writing your own custom subject</a>
- * for more on extending Truth.
+ * <p>See <a href="https://truth.dev/extension">Truth: Writing your own custom subject</a> for more
+ * on extending Truth.
  */
 public final class Pose3dSubject extends Subject {
 
@@ -23,6 +23,7 @@ public final class Pose3dSubject extends Subject {
    * Entry point for {@link Pose3d} assertions.
    *
    * <p>Usage:
+   *
    * <pre>{@code
    * Pose3d actualPose = ...;
    * Pose3d expectedPose = ...;
@@ -40,7 +41,7 @@ public final class Pose3dSubject extends Subject {
   }
 
   /**
-   * Factory for {@link Pose3dSubject}, used with {@link assertAbout}.
+   * Factory for {@link Pose2dSubject}, for use with assertAbout().
    *
    * @return a factory for creating {@link Pose3dSubject} instances
    */
@@ -74,8 +75,8 @@ public final class Pose3dSubject extends Subject {
   }
 
   /**
-   * Returns a {@link Translation3dSubject} for making assertions about the translation
-   * component of this pose.
+   * Returns a {@link Translation3dSubject} for making assertions about the translation component of
+   * this pose.
    *
    * @return a subject for the pose's 3D translation
    */
@@ -86,8 +87,8 @@ public final class Pose3dSubject extends Subject {
   }
 
   /**
-   * Returns a {@link Rotation3dSubject} for making assertions about the rotation
-   * component of this pose.
+   * Returns a {@link Rotation3dSubject} for making assertions about the rotation component of this
+   * pose.
    *
    * @return a subject for the pose's 3D rotation
    */

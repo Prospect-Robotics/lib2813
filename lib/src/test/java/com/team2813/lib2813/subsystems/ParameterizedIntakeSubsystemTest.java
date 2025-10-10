@@ -23,11 +23,12 @@ import org.mockito.Answers;
  * subsystem behaves correctly regardless of control mode configuration.
  *
  * <p>The tests verify:
+ *
  * <ul>
- *   <li>Initial motor state is stopped</li>
- *   <li>Motor responds correctly to intake commands</li>
- *   <li>Motor stops correctly after intake/outtake commands</li>
- *   <li>Motor responds correctly to outtake commands</li>
+ *   <li>Initial motor state is stopped
+ *   <li>Motor responds correctly to intake commands
+ *   <li>Motor stops correctly after intake/outtake commands
+ *   <li>Motor responds correctly to outtake commands
  * </ul>
  */
 @ParameterizedClass

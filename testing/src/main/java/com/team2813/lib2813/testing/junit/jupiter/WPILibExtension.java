@@ -16,11 +16,12 @@ import org.junit.jupiter.api.extension.ParameterResolver;
  * JUnit Jupiter extension for testing robot code that depends on WPILib.
  *
  * <p>This extension:
+ *
  * <ul>
- *   <li>Initializes the WPILib {@link HAL} and driver station simulation before tests run.</li>
- *   <li>Configures the {@link CommandScheduler} to ensure a clean environment.</li>
- *   <li>Provides a {@link CommandTester} parameter for tests, which allows running
- *       WPILib commands until completion.</li>
+ *   <li>Initializes the WPILib {@link HAL} and driver station simulation before tests run.
+ *   <li>Configures the {@link CommandScheduler} to ensure a clean environment.
+ *   <li>Provides a {@link CommandTester} parameter for tests, which allows running WPILib commands
+ *       until completion.
  * </ul>
  *
  * <p>Example usage:
@@ -58,8 +59,8 @@ public final class WPILibExtension
   /**
    * Initializes WPILib components before all tests.
    *
-   * <p>Sets up the HAL, enables the driver station simulation,
-   * and resets the {@link CommandScheduler}.
+   * <p>Sets up the HAL, enables the driver station simulation, and resets the {@link
+   * CommandScheduler}.
    *
    * @param context the JUnit extension context
    * @throws IllegalStateException if the HAL cannot be initialized
@@ -78,8 +79,7 @@ public final class WPILibExtension
   }
 
   /**
-   * Cleans up after each test by canceling all commands
-   * and unregistering all subsystems.
+   * Cleans up after each test by canceling all commands and unregistering all subsystems.
    *
    * @param context the JUnit extension context
    */
@@ -90,9 +90,8 @@ public final class WPILibExtension
   }
 
   /**
-   * Cleans up after all tests by canceling all commands,
-   * unregistering all subsystems, disabling the scheduler,
-   * and resetting the driver station simulation.
+   * Cleans up after all tests by canceling all commands, unregistering all subsystems, disabling
+   * the scheduler, and resetting the driver station simulation.
    *
    * @param context the JUnit extension context
    */
@@ -123,8 +122,8 @@ public final class WPILibExtension
   /**
    * Provides a {@link CommandTester} instance for parameter injection.
    *
-   * <p>The tester schedules the given command and repeatedly runs
-   * the {@link CommandScheduler} until the command completes.
+   * <p>The tester schedules the given command and repeatedly runs the {@link CommandScheduler}
+   * until the command completes.
    *
    * @param parameterContext the parameter context
    * @param extensionContext the extension context

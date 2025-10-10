@@ -10,14 +10,13 @@ import java.util.Set;
  * A Lightshow implementation that manages a queue of active states.
  *
  * <p>Behavior:
+ *
  * <ul>
- *   <li>All {@link State}s that return {@code true} for {@link State#apply()} are added to a
- *       queue.</li>
+ *   <li>All {@link State}s that return {@code true} for {@link State#apply()} are added to a queue.
  *   <li>States are removed from the front of the queue if {@link State#apply()} returns {@code
- *       false}.</li>
- *   <li>The last active state in the queue is used to determine the color to display.</li>
+ *       false}.
+ *   <li>The last active state in the queue is used to determine the color to display.
  *   <li>If no states are active, the {@link Lightshow#off} state or {@link #defaultState} is used.
- *   </li>
  * </ul>
  *
  * @author Team 2813

@@ -12,15 +12,15 @@ import javax.annotation.Nullable;
 /**
  * A Truth {@link Subject} for making assertions about {@link Rotation3d} values.
  *
- * <p>This subject provides fluent assertions for comparing 3D rotations,
- * including tolerance-based comparisons of roll, pitch, and yaw angles,
- * as well as checks for zero rotation.
+ * <p>This subject provides fluent assertions for comparing 3D rotations, including tolerance-based
+ * comparisons of roll, pitch, and yaw angles, as well as checks for zero rotation.
  *
  * <p>Rotations are expressed in radians:
+ *
  * <ul>
- *   <li>{@link #x()} → roll (counterclockwise about X axis)</li>
- *   <li>{@link #y()} → pitch (counterclockwise about Y axis)</li>
- *   <li>{@link #z()} → yaw (counterclockwise about Z axis)</li>
+ *   <li>{@link #x()} → roll (counterclockwise about X axis)
+ *   <li>{@link #y()} → pitch (counterclockwise about Y axis)
+ *   <li>{@link #z()} → yaw (counterclockwise about Z axis)
  * </ul>
  */
 public final class Rotation3dSubject extends Subject {
@@ -29,6 +29,7 @@ public final class Rotation3dSubject extends Subject {
    * Entry point for {@link Rotation3d} assertions.
    *
    * <p>Usage:
+   *
    * <pre>{@code
    * Rotation3d actual = new Rotation3d(Math.PI / 2, 0, 0);
    * Rotation3d expected = new Rotation3d(Math.PI / 2 + 1e-3, 0, 0);
@@ -46,7 +47,7 @@ public final class Rotation3dSubject extends Subject {
   }
 
   /**
-   * Factory for {@link Rotation3dSubject}, used with {@link assertAbout}.
+   * Factory for {@link Pose2dSubject}, for use with assertAbout().
    *
    * @return a factory for creating {@link Rotation3dSubject} instances
    */
@@ -64,8 +65,8 @@ public final class Rotation3dSubject extends Subject {
   /**
    * Returns a tolerant comparison assertion for this rotation.
    *
-   * <p>The tolerance is expressed in radians and applies to each of the
-   * roll (X), pitch (Y), and yaw (Z) components independently.
+   * <p>The tolerance is expressed in radians and applies to each of the roll (X), pitch (Y), and
+   * yaw (Z) components independently.
    *
    * @param tolerance the maximum allowed difference in radians
    * @return a {@link TolerantComparison} for comparing rotations with a tolerance

@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
  * perform approximate comparisons within a tolerance, and check special properties like being zero.
  *
  * <p>Example usage:
+ *
  * <pre>{@code
  * Translation3d translation = new Translation3d(1.0, 2.0, 3.0);
  * Translation3dSubject.assertThat(translation)
@@ -38,8 +39,8 @@ public final class Translation3dSubject extends Subject {
   }
 
   /**
-   * Returns a Truth {@link Factory} for {@link Translation3dSubject}, used with
-   * {@link com.google.common.truth.Truth#assertAbout(Subject.Factory)}.
+   * Returns a Truth {@link Factory} for {@link Translation3dSubject}, used with {@link
+   * com.google.common.truth.Truth#assertAbout(Subject.Factory)}.
    *
    * @return a factory for creating {@link Translation3dSubject} instances
    */
@@ -61,8 +62,8 @@ public final class Translation3dSubject extends Subject {
   }
 
   /**
-   * Returns a {@link TolerantComparison} to assert that this translation is within the given
-   * {@code tolerance} of an expected {@link Translation3d}.
+   * Returns a {@link TolerantComparison} to assert that this translation is within the given {@code
+   * tolerance} of an expected {@link Translation3d}.
    *
    * @param tolerance the allowed absolute difference in x, y, and z components
    * @return a {@link TolerantComparison} for fluent approximate comparisons
@@ -78,9 +79,7 @@ public final class Translation3dSubject extends Subject {
     };
   }
 
-  /**
-   * Fails if the {@link Translation3d} is not the zero vector.
-   */
+  /** Fails if the {@link Translation3d} is not the zero vector. */
   public void isZero() {
     if (!Translation3d.kZero.equals(actual)) {
       failWithActual(simpleFact("expected to be zero"));

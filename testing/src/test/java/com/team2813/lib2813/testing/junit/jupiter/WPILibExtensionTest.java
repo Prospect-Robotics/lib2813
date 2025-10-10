@@ -114,9 +114,7 @@ public class WPILibExtensionTest {
     }
   } // end SampleTest
 
-  /**
-   * Verifies that {@link WPILibExtension} executes SampleTest correctly and without failures.
-   */
+  /** Verifies that {@link WPILibExtension} executes SampleTest correctly and without failures. */
   @Test
   void verifyExtension() {
     withDriverStationTemporarilyEnabled(

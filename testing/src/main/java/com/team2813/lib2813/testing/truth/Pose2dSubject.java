@@ -11,11 +11,11 @@ import javax.annotation.Nullable;
 /**
  * A Truth {@link Subject} for making assertions about {@link Pose2d} values.
  *
- * <p>This subject provides fluent assertions for comparing poses, including
- * tolerance-based comparisons of translations and rotations.
+ * <p>This subject provides fluent assertions for comparing poses, including tolerance-based
+ * comparisons of translations and rotations.
  *
- * <p>See <a href="https://truth.dev/extension">Truth: Writing your own custom subject</a>
- * for more on extending Truth.
+ * <p>See <a href="https://truth.dev/extension">Truth: Writing your own custom subject</a> for more
+ * on extending Truth.
  */
 public final class Pose2dSubject extends Subject {
 
@@ -23,6 +23,7 @@ public final class Pose2dSubject extends Subject {
    * Entry point for {@link Pose2d} assertions.
    *
    * <p>Usage:
+   *
    * <pre>{@code
    * Pose2d actualPose = ...;
    * Pose2d expectedPose = ...;
@@ -40,7 +41,7 @@ public final class Pose2dSubject extends Subject {
   }
 
   /**
-   * Factory for {@link Pose2dSubject}, used with {@link assertAbout}.
+   * Factory for {@link Pose2dSubject}, for use with assertAbout().
    *
    * @return a factory for creating {@link Pose2dSubject} instances
    */
@@ -57,9 +58,8 @@ public final class Pose2dSubject extends Subject {
 
   /**
    * Returns a tolerant comparison assertion for the current pose.
-   * <p>
-   * The tolerance applies to both translation (x, y) and rotation (θ).
-   * </p>
+   *
+   * <p>The tolerance applies to both translation (x, y) and rotation (θ).
    *
    * @param tolerance the maximum allowed difference in meters (translation) or radians (rotation)
    * @return a {@link TolerantComparison} for comparing poses with a tolerance
@@ -75,8 +75,8 @@ public final class Pose2dSubject extends Subject {
   }
 
   /**
-   * Returns a {@link Translation2dSubject} for making assertions about the translation
-   * component of this pose.
+   * Returns a {@link Translation2dSubject} for making assertions about the translation component of
+   * this pose.
    *
    * @return a subject for the pose's translation
    */
@@ -87,8 +87,8 @@ public final class Pose2dSubject extends Subject {
   }
 
   /**
-   * Returns a {@link Rotation2dSubject} for making assertions about the rotation
-   * component of this pose.
+   * Returns a {@link Rotation2dSubject} for making assertions about the rotation component of this
+   * pose.
    *
    * @return a subject for the pose's rotation
    */

@@ -27,7 +27,8 @@ public class ConfigUtils {
   /**
    * Applies a configuration to a REV device with retry attempts.
    *
-   * @param configMethod Supplier that applies a REV configuration and returns a {@link REVLibError}.
+   * @param configMethod Supplier that applies a REV configuration and returns a {@link
+   *     REVLibError}.
    */
   public static void revConfig(Supplier<REVLibError> configMethod) {
     REVLibError errorCode = configMethod.get();
@@ -62,7 +63,8 @@ public class ConfigUtils {
   /**
    * Applies a configuration to a CTRE device with retry attempts.
    *
-   * @param configMethod Supplier that applies a CTRE configuration and returns an {@link ErrorCode}.
+   * @param configMethod Supplier that applies a CTRE configuration and returns an {@link
+   *     ErrorCode}.
    */
   public static void ctreConfig(Supplier<ErrorCode> configMethod) {
     ErrorCode errorCode = configMethod.get();

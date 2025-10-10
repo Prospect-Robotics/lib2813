@@ -10,13 +10,13 @@ import java.util.Set;
 /**
  * Abstract base class for robot lightshow subsystems.
  *
- * <p>A Lightshow subsystem manages a set of {@link State}s that determine the colors to be displayed
- * on LEDs or other lighting hardware. Implementations define how to actually apply the color via
- * {@link #useColor(Color)} and how to compute the active color in {@link #update()}.
+ * <p>A Lightshow subsystem manages a set of {@link State}s that determine the colors to be
+ * displayed on LEDs or other lighting hardware. Implementations define how to actually apply the
+ * color via {@link #useColor(Color)} and how to compute the active color in {@link #update()}.
  *
  * <p>States can be represented as enums implementing {@link State}, or as arbitrary {@link State}
  * instances.
- * 
+ *
  * <p>There is a built-in static {@link #off} state that always represents the lights being off.
  *
  * @author Team 2813
@@ -24,17 +24,18 @@ import java.util.Set;
 public abstract class Lightshow extends SubsystemBase {
 
   /** A static state representing that the lights should be off (always applied). */
-  protected static final State off = new State() {
-    @Override
-    public Color color() {
-      return new Color(0, 0, 0);
-    }
+  protected static final State off =
+      new State() {
+        @Override
+        public Color color() {
+          return new Color(0, 0, 0);
+        }
 
-    @Override
-    public boolean apply() {
-      return true;
-    }
-  };
+        @Override
+        public boolean apply() {
+          return true;
+        }
+      };
 
   /** The set of active states that the lightshow considers when updating the color. */
   protected final Set<State> states = new HashSet<>();
@@ -98,10 +99,9 @@ public abstract class Lightshow extends SubsystemBase {
   /**
    * Called periodically by the scheduler to update the lights.
    *
-   * <p>This implementation calls {@link #update()}, and applies the resulting color using
-   * {@link #useColor(Color)}. If {@link #update()} returns empty, the {@link #defaultState}'s
-   * color is used (if present). If neither provides a color, {@link #useColor(Color)} may not be
-   * called.
+   * <p>This implementation calls {@link #update()}, and applies the resulting color using {@link
+   * #useColor(Color)}. If {@link #update()} returns empty, the {@link #defaultState}'s color is
+   * used (if present). If neither provides a color, {@link #useColor(Color)} may not be called.
    */
   @Override
   public void periodic() {

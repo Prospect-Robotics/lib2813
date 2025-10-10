@@ -18,33 +18,29 @@ import org.junit.Test;
 
 /**
  * Unit tests for {@link RestLimelight}.
- * <p>
- * This test suite uses a {@link FakeLimelight} HTTP server to simulate REST responses from a
+ *
+ * <p>This test suite uses a {@link FakeLimelight} HTTP server to simulate REST responses from a
  * physical Limelight device. It validates Limelight instance management, HTTP endpoint behavior,
  * and field map uploads.
- * </p>
  */
 public class RestLimelightTest extends LimelightTestCase {
 
   /**
    * Fake Limelight instance running as an embedded HTTP server.
-   * <p>
-   * Used to simulate responses from a real Limelight device without requiring hardware.
-   * </p>
+   *
+   * <p>Used to simulate responses from a real Limelight device without requiring hardware.
    */
   @ClassRule public static final FakeLimelight fakeLimelight = new FakeLimelight();
 
-  /**
-   * Resets any cached {@link RestLimelight} instances after each test.
-   */
+  /** Resets any cached {@link RestLimelight} instances after each test. */
   @After
   public void resetLimelights() {
     RestLimelight.eraseInstances();
   }
 
   /**
-   * Resets the {@link FakeLimelight} after each test, ensuring no test state leaks
-   * between test methods.
+   * Resets the {@link FakeLimelight} after each test, ensuring no test state leaks between test
+   * methods.
    */
   @After
   public void resetFakeLimelight() {
@@ -52,8 +48,8 @@ public class RestLimelightTest extends LimelightTestCase {
   }
 
   /**
-   * Verifies that calls to obtain the default {@link RestLimelight} return the same instance,
-   * and that the default instance is equal to one retrieved by name.
+   * Verifies that calls to obtain the default {@link RestLimelight} return the same instance, and
+   * that the default instance is equal to one retrieved by name.
    */
   @Test
   public void equality() {
@@ -82,8 +78,8 @@ public class RestLimelightTest extends LimelightTestCase {
   }
 
   /**
-   * Verifies that uploading a field map to a {@link RestLimelight} updates
-   * the {@link FakeLimelight} server as expected.
+   * Verifies that uploading a field map to a {@link RestLimelight} updates the {@link
+   * FakeLimelight} server as expected.
    *
    * @throws Exception if reading the field map resource or uploading fails
    */
@@ -121,11 +117,10 @@ public class RestLimelightTest extends LimelightTestCase {
 
   /**
    * Sets the Limelight JSON results response in the {@link FakeLimelight}.
-   * <p>
-   * Unlike older schemas, the new Limelight JSON schema does not include a {@code "Results"} object
-   * at the root. Instead, all fields are inlined. Since resource test files still contain
+   *
+   * <p>Unlike older schemas, the new Limelight JSON schema does not include a {@code "Results"}
+   * object at the root. Instead, all fields are inlined. Since resource test files still contain
    * {@code "Results"}, this method extracts and forwards that sub-object.
-   * </p>
    *
    * @param json the full Limelight JSON, expected to contain a {@code "Results"} object
    */

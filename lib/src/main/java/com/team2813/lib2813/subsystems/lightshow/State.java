@@ -4,10 +4,10 @@ import edu.wpi.first.wpilibj.util.Color;
 
 /**
  * Represents a Lightshow state with a color and activation condition.
- * 
- * <p>Each {@link State} provides a color and a condition indicating whether it should currently
- * be applied.
- * 
+ *
+ * <p>Each {@link State} provides a color and a condition indicating whether it should currently be
+ * applied.
+ *
  * @author Team 2813
  */
 public interface State {

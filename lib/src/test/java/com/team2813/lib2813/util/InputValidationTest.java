@@ -22,14 +22,14 @@ public class InputValidationTest {
   /**
    * Tests for the {@link InputValidation#checkCanId(int)} method.
    *
-   * <p>CAN IDs are valid in the range [0, 62]. This class ensures that invalid IDs throw
-   * {@link InvalidCanIdException} and that valid IDs return unchanged.
+   * <p>CAN IDs are valid in the range [0, 62]. This class ensures that invalid IDs throw {@link
+   * InvalidCanIdException} and that valid IDs return unchanged.
    */
   public static class CheckCanIdTest {
 
     /**
-     * Verifies that {@link InputValidation#checkCanId(int)} throws
-     * {@link InvalidCanIdException} for IDs outside the valid range [0, 62].
+     * Verifies that {@link InputValidation#checkCanId(int)} throws {@link InvalidCanIdException}
+     * for IDs outside the valid range [0, 62].
      */
     @Test
     public void invalidCanId() {
@@ -41,13 +41,13 @@ public class InputValidationTest {
         // Verify that the exception contains the invalid ID
         assertThat(exception.getCanId()).isEqualTo(invalidCanId);
         // Verify that the exception message mentions invalid CAN ID
-        assertThat(exception).hasMessageThat().contains("is not a valid can id");
+        assertThat(exception).hasMessageThat().contains("is not a valid CAN ID");
       }
     }
 
     /**
-     * Verifies that {@link InputValidation#checkCanId(int)} returns the original ID for valid
-     * CAN IDs in the range [0, 62].
+     * Verifies that {@link InputValidation#checkCanId(int)} returns the original ID for valid CAN
+     * IDs in the range [0, 62].
      */
     @Test
     public void validCanID() {

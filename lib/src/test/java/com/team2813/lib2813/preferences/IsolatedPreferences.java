@@ -9,8 +9,8 @@ import org.junit.rules.ExternalResource;
  * A JUnit {@link ExternalResource} that isolates {@link Preferences} changes made during a test.
  *
  * <p>This rule ensures that modifications to WPILib preferences within a test do not persist or
- * affect other tests. It accomplishes this by creating a temporary {@link NetworkTableInstance}
- * and associating it with {@link Preferences} for the duration of the test.
+ * affect other tests. It accomplishes this by creating a temporary {@link NetworkTableInstance} and
+ * associating it with {@link Preferences} for the duration of the test.
  *
  * <p>Usage example:
  *

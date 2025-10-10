@@ -9,6 +9,7 @@ import org.jspecify.annotations.Nullable;
  * provided via {@link #of(Object)}.
  *
  * <p>For example, in a fluent assertion style:
+ *
  * <pre>{@code
  * assertThat(actualValue).isWithin(tolerance).of(expectedValue);
  * }</pre>
@@ -20,14 +21,12 @@ import org.jspecify.annotations.Nullable;
  */
 public abstract class TolerantComparison<T> {
 
-  /**
-   * Package-private constructor to prevent subclassing outside of this package.
-   */
+  /** Package-private constructor to prevent subclassing outside of this package. */
   TolerantComparison() {}
 
   /**
-   * Fails the assertion if the subject is not within the tolerance of the given expected value.
-   * The subject and tolerance must have been specified earlier in the fluent call chain.
+   * Fails the assertion if the subject is not within the tolerance of the given expected value. The
+   * subject and tolerance must have been specified earlier in the fluent call chain.
    *
    * @param expected the value the subject is expected to be approximately equal to
    */

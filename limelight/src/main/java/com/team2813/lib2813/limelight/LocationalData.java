@@ -74,8 +74,8 @@ public interface LocationalData {
   /**
    * Capture latency in milliseconds.
    *
-   * <p>This is the time between the end of the exposure of the middle row and the beginning of
-   * the tracking loop.
+   * <p>This is the time between the end of the exposure of the middle row and the beginning of the
+   * tracking loop.
    *
    * @deprecated Use {@link #getBotPoseEstimateBlue()} or {@link #getBotPoseEstimateRed()} instead
    */
@@ -99,7 +99,8 @@ public interface LocationalData {
   OptionalDouble getTimestamp();
 
   /**
-   * Returns the sum of capture latency and targeting latency in milliseconds, if both are available.
+   * Returns the sum of capture latency and targeting latency in milliseconds, if both are
+   * available.
    *
    * @return the total latency in milliseconds
    * @deprecated Use {@link #getBotPoseEstimateBlue()} or {@link #getBotPoseEstimateRed()} instead

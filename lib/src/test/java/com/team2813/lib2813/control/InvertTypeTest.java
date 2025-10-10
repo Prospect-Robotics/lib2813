@@ -6,12 +6,7 @@ import static org.junit.Assert.assertTrue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import org.junit.Test;
 
-/**
- * Unit tests for {@link InvertType}.
- *
- * <p>These tests verify that invert mappings exist for all rotation-based invert types and that
- * conversion methods between Phoenix and Spark MAX inversions behave correctly.
- */
+/** Unit tests for {@link InvertType}. */
 public class InvertTypeTest {
 
   /**

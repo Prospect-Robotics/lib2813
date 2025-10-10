@@ -12,9 +12,9 @@ import org.json.JSONObject;
 /**
  * Interface for interacting with a Limelight vision camera.
  *
- * <p>Provides methods for retrieving locational data, working with field maps, and accessing
- * raw JSON output. Some legacy methods are marked {@link Deprecated} in favor of
- * {@link LocationalData}-based APIs.
+ * <p>Provides methods for retrieving locational data, working with field maps, and accessing raw
+ * JSON output. Some legacy methods are marked {@link Deprecated} in favor of {@link
+ * LocationalData}-based APIs.
  */
 public interface Limelight {
 
@@ -49,8 +49,8 @@ public interface Limelight {
   LocationalData getLocationalData();
 
   /**
-   * Sets the field map for the Limelight from an input stream. Optionally, this can upload the
-   * map to the Limelight.
+   * Sets the field map for the Limelight from an input stream. Optionally, this can upload the map
+   * to the Limelight.
    *
    * @param stream the input stream containing the field map
    * @param updateLimelight whether to update the Limelight with this map

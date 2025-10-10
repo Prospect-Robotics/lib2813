@@ -20,23 +20,24 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * REST-based implementation of the Limelight interface for communicating with a Limelight vision camera.
- * This class manages a connection to a Limelight device over HTTP and provides methods for retrieving
- * vision targeting data, robot pose estimates, and AprilTag information.
- * 
- * <p>Instances are managed through static factory methods and are cached based on their network address.
- * The class uses a scheduled executor service to periodically collect data from the Limelight device.
+ * REST-based implementation of the Limelight interface for communicating with a Limelight vision
+ * camera. This class manages a connection to a Limelight device over HTTP and provides methods for
+ * retrieving vision targeting data, robot pose estimates, and AprilTag information.
+ *
+ * <p>Instances are managed through static factory methods and are cached based on their network
+ * address. The class uses a scheduled executor service to periodically collect data from the
+ * Limelight device.
  */
 class RestLimelight implements Limelight {
   /** Map of cached Limelight instances keyed by their network address. */
   private static final Map<String, RestLimelight> limelights = new HashMap<>();
-  
+
   /** Helper for managing AprilTag field map poses. */
   private final AprilTagMapPoseHelper aprilTagMapPoseHelper;
-  
+
   /** Thread for collecting data from the Limelight. */
   private final DataCollection collectionThread;
-  
+
   /** Shared executor service for all Limelight instances. */
   private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 
@@ -51,7 +52,7 @@ class RestLimelight implements Limelight {
 
   /**
    * Creates a new RestLimelight instance with the specified network address.
-   * 
+   *
    * @param address the hostname or IP address of the Limelight device
    */
   RestLimelight(String address) {
@@ -61,8 +62,8 @@ class RestLimelight implements Limelight {
   }
 
   /**
-   * Starts the periodic data collection thread if it hasn't been started already.
-   * The thread runs at a fixed rate of 40ms with an initial delay of 20ms.
+   * Starts the periodic data collection thread if it hasn't been started already. The thread runs
+   * at a fixed rate of 40ms with an initial delay of 20ms.
    */
   void start() {
     if (!started) {
@@ -72,16 +73,14 @@ class RestLimelight implements Limelight {
   }
 
   /**
-   * Manually runs one iteration of the data collection thread.
-   * This is primarily useful for testing purposes.
+   * Manually runs one iteration of the data collection thread. This is primarily useful for testing
+   * purposes.
    */
   void runThread() {
     collectionThread.run();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Optional<JSONObject> getJsonDump() {
     return collectionThread.getMostRecent().map(DataCollection.Result::json);
@@ -89,16 +88,15 @@ class RestLimelight implements Limelight {
 
   /**
    * Gets the capture latency of the most recent frame from the Limelight.
-   * 
-   * @return an OptionalDouble containing the capture latency in milliseconds, or empty if unavailable
+   *
+   * @return an OptionalDouble containing the capture latency in milliseconds, or empty if
+   *     unavailable
    */
   public OptionalDouble getCaptureLatency() {
     return getLocationalData().getCaptureLatency();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public OptionalDouble getTimestamp() {
     return getLocationalData().getTimestamp();
@@ -117,9 +115,7 @@ class RestLimelight implements Limelight {
     aprilTagMapPoseHelper.setFieldMap(stream, updateLimelight);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags) {
     return aprilTagMapPoseHelper.getVisibleTagPoses(visibleTags);
@@ -127,7 +123,7 @@ class RestLimelight implements Limelight {
 
   /**
    * Creates a negation function that inverts the boolean result of another function.
-   * 
+   *
    * @param <T> the type of the function input
    * @param fnc the function to negate
    * @return a function that returns the opposite boolean value
@@ -138,7 +134,7 @@ class RestLimelight implements Limelight {
 
   /**
    * Checks if the Limelight currently has a valid target in view.
-   * 
+   *
    * @return true if a target is detected, false otherwise
    */
   public boolean hasTarget() {
@@ -147,9 +143,9 @@ class RestLimelight implements Limelight {
 
   /**
    * Gets the most recent locational data from the Limelight.
-   * 
-   * @return LocationalData containing pose estimates, tag information, and latency data,
-   *         or a stub with valid defaults if no data is available
+   *
+   * @return LocationalData containing pose estimates, tag information, and latency data, or a stub
+   *     with valid defaults if no data is available
    */
   public LocationalData getLocationalData() {
     Optional<LocationalData> locationalData =
@@ -158,8 +154,8 @@ class RestLimelight implements Limelight {
   }
 
   /**
-   * Cleans up resources by canceling the data collection thread and waiting for termination.
-   * Logs any interruption errors to the DriverStation.
+   * Cleans up resources by canceling the data collection thread and waiting for termination. Logs
+   * any interruption errors to the DriverStation.
    */
   private void clean() {
     try {
@@ -199,8 +195,8 @@ class RestLimelight implements Limelight {
   }
 
   /**
-   * Clears all cached Limelight instances and cleans up their resources.
-   * This method should be called when shutting down or resetting the system.
+   * Clears all cached Limelight instances and cleans up their resources. This method should be
+   * called when shutting down or resetting the system.
    */
   static void eraseInstances() {
     for (RestLimelight limelight : limelights.values()) {
@@ -210,19 +206,20 @@ class RestLimelight implements Limelight {
   }
 
   /**
-   * Implementation of LocationalData that parses data from JSON responses received from the Limelight.
-   * This class provides access to robot pose estimates, AprilTag information, and timing data.
+   * Implementation of LocationalData that parses data from JSON responses received from the
+   * Limelight. This class provides access to robot pose estimates, AprilTag information, and timing
+   * data.
    */
   private class RestLocationalData implements LocationalData {
     /** The root JSON object containing all Limelight data. */
     private final JSONObject root;
-    
+
     /** The timestamp when the response was received, in seconds. */
     private final double responseTimestamp;
 
     /**
      * Creates a new RestLocationalData instance from a data collection result.
-     * 
+     *
      * @param result the result containing JSON data and timestamp
      */
     RestLocationalData(DataCollection.Result result) {
@@ -230,17 +227,13 @@ class RestLimelight implements Limelight {
       this.responseTimestamp = result.responseTimestamp();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isValid() {
       return getBooleanFromInt(root, "v").orElse(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasTarget() {
       return getArr(root, "Fiducial").map(not(JSONArray::isEmpty)).orElse(false);
@@ -248,7 +241,7 @@ class RestLimelight implements Limelight {
 
     /**
      * Checks if a pose array is invalid or contains only zero values.
-     * 
+     *
      * @param arr the JSON array to validate
      * @return true if the array is invalid (wrong length, no target, or all zeros), false otherwise
      */
@@ -268,10 +261,9 @@ class RestLimelight implements Limelight {
     }
 
     /**
-     * Parses a JSON array into a Pose3d object.
-     * The array is expected to contain 6 elements: [x, y, z, roll, pitch, yaw] where
-     * rotation values are in degrees.
-     * 
+     * Parses a JSON array into a Pose3d object. The array is expected to contain 6 elements: [x, y,
+     * z, roll, pitch, yaw] where rotation values are in degrees.
+     *
      * @param arr the JSON array containing pose data
      * @return an Optional containing the parsed Pose3d, or empty if the array is invalid
      */
@@ -288,57 +280,43 @@ class RestLimelight implements Limelight {
           new Pose3d(arr.getDouble(0), arr.getDouble(1), arr.getDouble(2), rotation));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public OptionalDouble getTimestamp() {
       return unboxDouble(getDouble(root, "ts"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public OptionalDouble getCaptureLatency() {
       return unboxDouble(getDouble(root, "cl"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public OptionalDouble getTargetingLatency() {
       return unboxDouble(getDouble(root, "tl"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Optional<Pose3d> getBotpose() {
       return getArr(root, "botpose").flatMap(this::parseArr);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Optional<BotPoseEstimate> getBotPoseEstimate() {
       return getArr(root, "botpose").flatMap(this::parseArr).map(this::toBotPoseEstimate);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Optional<Pose3d> getBotposeBlue() {
       return getArr(root, "botpose_wpiblue").flatMap(this::parseArr);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Optional<BotPoseEstimate> getBotPoseEstimateBlue() {
       return getArr(root, "botpose_wpiblue").flatMap(this::parseArr).map(this::toBotPoseEstimate);
@@ -347,28 +325,29 @@ class RestLimelight implements Limelight {
     /**
      * Gets the position of the robot with the red driverstation as the origin.
      *
-     * @return an Optional containing the robot's Pose3d in red alliance coordinates, or empty if unavailable
+     * @return an Optional containing the robot's Pose3d in red alliance coordinates, or empty if
+     *     unavailable
      */
     @Override
     public Optional<Pose3d> getBotposeRed() {
       return getArr(root, "botpose_wpired").flatMap(this::parseArr);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Optional<BotPoseEstimate> getBotPoseEstimateRed() {
       return getArr(root, "botpose_wpired").flatMap(this::parseArr).map(this::toBotPoseEstimate);
     }
 
     /**
-     * Converts a Pose3d into a BotPoseEstimate with timestamp and visible tag information.
-     * The timestamp is calculated by subtracting the total latency from the response timestamp.
-     * 
+     * Converts a Pose3d into a BotPoseEstimate with timestamp and visible tag information. The
+     * timestamp is calculated by subtracting the total latency from the response timestamp.
+     *
      * @param pose the 3D pose to convert
      * @return a BotPoseEstimate with the 2D pose projection, adjusted timestamp, and visible tags
-     * @see <a href="https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry">Chief Delphi Discussion</a>
+     * @see <a
+     *     href="https://www.chiefdelphi.com/t/timestamp-parameter-when-adding-limelight-vision-to-odometry">Chief
+     *     Delphi Discussion</a>
      */
     private BotPoseEstimate toBotPoseEstimate(Pose3d pose) {
       // See
@@ -381,16 +360,14 @@ class RestLimelight implements Limelight {
 
     /**
      * Gets the ID of the currently targeted AprilTag.
-     * 
+     *
      * @return an OptionalLong containing the tag ID, or empty if no tag is targeted
      */
     OptionalLong getTagID() {
       return unboxLong(getLong(root, "pID"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Set<Integer> getVisibleTags() {
       return getArr(root, "Fiducial")
@@ -408,9 +385,7 @@ class RestLimelight implements Limelight {
           .orElseGet(Set::of);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Map<Integer, Pose3d> getVisibleAprilTagPoses() {
       return getArr(root, "Fiducial")

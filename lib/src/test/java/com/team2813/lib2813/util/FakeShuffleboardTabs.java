@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A fake implementation of {@link ShuffleboardTabs} for testing purposes.
  *
- * <p>Each instance of this class generates a unique prefix so that tab names do not collide
- * with real Shuffleboard tabs during testing. This allows multiple tests to run in parallel
- * without interfering with each other.
+ * <p>Each instance of this class generates a unique prefix so that tab names do not collide with
+ * real Shuffleboard tabs during testing. This allows multiple tests to run in parallel without
+ * interfering with each other.
  */
 public final class FakeShuffleboardTabs implements ShuffleboardTabs {
 

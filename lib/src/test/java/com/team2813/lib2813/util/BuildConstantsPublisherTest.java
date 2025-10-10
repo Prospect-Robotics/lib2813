@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link BuildConstantsPublisher}.
  *
- * <p>This test validates that build constants can be correctly extracted, published to NetworkTables,
- * and logged to the console. It also includes a custom Truth {@link Subject} for verifying that
- * string representations of dates parse as {@link LocalDateTime}.
+ * <p>This test validates that build constants can be correctly extracted, published to
+ * NetworkTables, and logged to the console. It also includes a custom Truth {@link Subject} for
+ * verifying that string representations of dates parse as {@link LocalDateTime}.
  */
 public class BuildConstantsPublisherTest {
 
@@ -65,7 +65,9 @@ public class BuildConstantsPublisherTest {
       this.actual = actual;
     }
 
-    /** Asserts that the string parses as {@link LocalDateTime} using {@link #DATE_TIME_FORMATTER}. */
+    /**
+     * Asserts that the string parses as {@link LocalDateTime} using {@link #DATE_TIME_FORMATTER}.
+     */
     public void parsesAsLocalDateTime() {
       if (actual == null) {
         failWithActual(simpleFact("expected to parse as LocalDateTime, but was null"));
@@ -82,9 +84,7 @@ public class BuildConstantsPublisherTest {
     }
   }
 
-  /**
-   * Returns the string value of a key in a NetworkTable, or empty if the key is not present.
-   */
+  /** Returns the string value of a key in a NetworkTable, or empty if the key is not present. */
   private String getStringEntryOrEmpty(NetworkTable table, String key) {
     return table.getStringTopic(key).getEntry("").get();
   }

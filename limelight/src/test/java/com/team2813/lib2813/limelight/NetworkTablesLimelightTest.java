@@ -9,10 +9,9 @@ import org.junit.After;
 
 /**
  * Unit test class for {@link NetworkTablesLimelight}.
- * <p>
- * This test framework simulates Limelight JSON data being written into NetworkTables and
+ *
+ * <p>This test framework simulates Limelight JSON data being written into NetworkTables and
  * validates how the {@link Limelight} implementation handles pose estimation entries.
- * </p>
  */
 public class NetworkTablesLimelightTest extends LimelightTestCase {
 
@@ -42,10 +41,9 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
 
   /**
    * Resets Limelight NetworkTable entries after each test.
-   * <p>
-   * Clears the JSON entry and all bot pose estimate entries, advancing the fake timestamp
-   * by two half-millisecond steps.
-   * </p>
+   *
+   * <p>Clears the JSON entry and all bot pose estimate entries, advancing the fake timestamp by two
+   * half-millisecond steps.
    */
   @After
   public void resetNetworkTables() {
@@ -70,10 +68,9 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
 
   /**
    * Sets the Limelight JSON data in NetworkTables.
-   * <p>
-   * Copies JSON pose estimation arrays into their corresponding NetworkTable entries
-   * when latency values are available.
-   * </p>
+   *
+   * <p>Copies JSON pose estimation arrays into their corresponding NetworkTable entries when
+   * latency values are available.
    *
    * @param json the simulated Limelight JSON response
    */
@@ -103,8 +100,8 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
   /**
    * Writes a bot pose estimate array into the specified NetworkTables entry.
    *
-   * @param resultsJson   the Limelight "Results" JSON object
-   * @param entryName     the entry name to populate
+   * @param resultsJson the Limelight "Results" JSON object
+   * @param entryName the entry name to populate
    * @param latencyMillis the latency value in milliseconds
    */
   private static void setBotPoseEstimate(
@@ -118,7 +115,7 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
   /**
    * Clears a bot pose estimate entry by setting it to an empty array.
    *
-   * @param entryName      the NetworkTables entry to clear
+   * @param entryName the NetworkTables entry to clear
    * @param timestampMicros the timestamp in microseconds
    */
   private static void clearBotPoseEstimate(String entryName, long timestampMicros) {
@@ -129,19 +126,20 @@ public class NetworkTablesLimelightTest extends LimelightTestCase {
 
   /**
    * Builds a bot pose estimate array from Limelight JSON data.
-   * <p>
-   * The array is structured as:
-   * <ul>
-   *   <li>Indices 0–5: pose data from Limelight</li>
-   *   <li>Index 6: latency in milliseconds</li>
-   *   <li>Index 7: tag count</li>
-   *   <li>Index 8: tag ID</li>
-   * </ul>
-   * Additional indices are reserved for multiple tags.
-   * </p>
    *
-   * @param resultsJson   the Limelight "Results" JSON object
-   * @param entryName     the entry to extract
+   * <p>The array is structured as:
+   *
+   * <ul>
+   *   <li>Indices 0–5: pose data from Limelight
+   *   <li>Index 6: latency in milliseconds
+   *   <li>Index 7: tag count
+   *   <li>Index 8: tag ID
+   * </ul>
+   *
+   * Additional indices are reserved for multiple tags.
+   *
+   * @param resultsJson the Limelight "Results" JSON object
+   * @param entryName the entry to extract
    * @param latencyMillis the latency in milliseconds
    * @return a double array representing the bot pose estimate, or an empty array if not present
    */

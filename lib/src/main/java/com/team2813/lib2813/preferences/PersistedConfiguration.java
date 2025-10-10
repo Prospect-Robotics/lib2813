@@ -14,78 +14,84 @@ import java.util.Map;
 import java.util.function.*;
 
 /**
- * Utility for constructing Java {@link Record} instances whose values are
- * persisted in WPILib's {@link Preferences} system.
+ * Initializes the fields of a Record Class from values stored in {@link Preferences}.
  *
- * <p>This allows robot configuration values to be declared in record types
- * (which are immutable and self-documenting), but automatically backed by
- * NetworkTables Preferences so they can be updated live from Shuffleboard or
- * SmartDashboard. These persisted values will survive robot reboots and be
- * written to flash.
+ * <p>The Preference values can be updated in the Elastic. Updated values will be stored in the
+ * flash storage for the robot.
  *
- * <h2>Supported Component Types</h2>
- * Each record component (field) must be one of the following:
- * <ul>
- *   <li>{@code boolean}, {@link BooleanSupplier}, or {@link Supplier}&lt;{@link Boolean}&gt;</li>
- *   <li>{@code int}, {@link IntSupplier}, or {@link Supplier}&lt;{@link Integer}&gt;</li>
- *   <li>{@code long}, {@link LongSupplier}, or {@link Supplier}&lt;{@link Long}&gt;</li>
- *   <li>{@code double}, {@link DoubleSupplier}, or {@link Supplier}&lt;{@link Double}&gt;</li>
- *   <li>{@code String} or {@link Supplier}&lt;{@link String}&gt;</li>
- *   <li>Another {@code Record}, recursively following these rules</li>
- * </ul>
+ * <p>Example use:
  *
- * <h2>Defaults</h2>
- * <ul>
- *   <li>If a record instance is provided, its values will be used as defaults for missing preferences.</li>
- *   <li>If no defaults are provided, Java primitive defaults are used (e.g. {@code false}, {@code 0}, {@code 0.0}).</li>
- *   <li>If a supplier is used (e.g. {@code DoubleSupplier}), the supplier will be invoked once to provide the default.</li>
- * </ul>
- *
- * <h2>Registry Enforcement</h2>
- * Each preference "namespace" (the {@code preferenceName} parameter) is bound to a single record class.
- * If code later attempts to bind the same namespace to a different record type, an exception is thrown.
- * This prevents accidental reuse of preference keys for incompatible types.
- *
- * <h2>Example Usage</h2>
  * <pre>{@code
  * public final class Drive {
  *
- *   // Define a configuration record for drive parameters.
  *   public record DriveConfiguration(
- *       boolean addVisionMeasurements,
- *       long robotWeight,
- *       DoubleSupplier maxAngularVelocity) {
+ *       boolean addVisionMeasurements, long robotWeight,
+ *       DoubleSupplier powerMultiplier) {
  *
- *     // Load persisted configuration, with default values provided here.
  *     public static DriveConfiguration fromPreferences() {
- *       DriveConfiguration defaults =
- *           new DriveConfiguration(true, 2813, () -> 3.14);
- *       return PersistedConfiguration.fromPreferences("Drive", defaults);
+ *       return PersistedConfiguration.fromPreferences("Drive", DriveConfiguration.class);
  *     }
  *   }
  * }
  * }</pre>
  *
- * <p>Preference keys created will be:
+ * <p>In the above example, {@code fromPreferences()} would return a record instance with the values
+ * populated the "Preferences" NetworkTables table. The keys would be:
+ *
  * <ul>
- *   <li>{@code "Drive/addVisionMeasurements"} (default: {@code true})</li>
- *   <li>{@code "Drive/robotWeight"} (default: {@code 2813})</li>
- *   <li>{@code "Drive/maxAngularVelocity"} (default: {@code 3.14})</li>
+ *   <li>{@code "Drive/addVisionMeasurements"}
+ *   <li>{@code "Drive/robotWeight"}
+ *   <li>{@code "Drive/powerMultiplier"}
  * </ul>
  *
- * <h2>Notes and Gotchas</h2>
+ * <p>If no value is stored in Preferences for a key, the default value returned (and initialized in
+ * Preferences) would be the default value for the type of the record component. In the above
+ * example, if none of the above preference keys existed, preferences will be created with the
+ * following values:
+ *
  * <ul>
- *   <li>Records are immutable; values are read from Preferences each time {@code fromPreferences} is called.
- *       If live updates are needed, use Supplier-based components instead of raw primitives.</li>
- *   <li>Unsupported component types (e.g., {@code List}, {@code Map}, or custom classes) will log a warning,
- *       and the default value (if provided) will be used instead.</li>
- *   <li>Suppliers must not return {@code null}. If they do, a warning is logged and the default supplier is used.</li>
- *   <li>{@link Preferences} keys cannot contain the path separator character (usually {@code '/'});
- *       if they do, an {@link IllegalArgumentException} is thrown.</li>
- *   <li>This class is {@code final} and cannot be instantiated—only static factory methods are provided.</li>
+ *   <li>{@code "Drive/addVisionMeasurements"}: {@code false}
+ *   <li>{@code "Drive/robotWeight"}: {@code 0}
+ *   <li>{@code "Drive/powerMultiplier"}: {@code 0.0}
  * </ul>
  *
- * @author Team 2813
+ * <p>The caller could specify different default values by passing an instance of the record class:
+ *
+ * <pre>{@code
+ * public final class Drive {
+ *
+ *   public record DriveConfiguration(
+ *       boolean addVisionMeasurements, long robotWeight,
+ *       DoubleSupplier maxAngularVelocity) {
+ *
+ *     public static DriveConfiguration fromPreferences() {
+ *       DriveConfiguration defaultConfig = new DriveConfiguration(
+ *           true, 2813, () -> 3.14);
+ *       return PersistedConfiguration.fromPreferences("Drive", defaultConfig);
+ *     }
+ *   }
+ * }
+ * }</pre>
+ *
+ * <p>In the above example, {@code fromPreferences()} would return a record instance with the values
+ * populated the "Preferences" NetworkTables table. The keys and default values would be:
+ *
+ * <ul>
+ *   <li>{@code "Drive/addVisionMeasurements"} (default value: {@code true})
+ *   <li>{@code "Drive/robotWeight"} (default value: {@code 2813})
+ *   <li>{@code "Drive/maxAngularVelocity"} (default value: {@code 3.14})
+ * </ul>
+ *
+ * <p>For record classes with many component values of the same type, it is strongly recommended
+ * that a builder is provided to construct the record, to avoid callers passing the parameters in
+ * the wrong order. To make generation of a builder easier, consider using <a
+ * href="https://github.com/google/auto/blob/main/value/userguide/autobuilder.md">{@code @AutoBuilder}</a>
+ * from Google Auto or <a href="https://projectlombok.org/features/Builder">{@code @Builder}</a>
+ * from Project Lombok. Note that {@code PersistedConfiguration} will use the default record
+ * constructor to create record instances, so any parameter validation should be done in a custom
+ * constructor; see <a href="https://www.baeldung.com/java-records-custom-constructor">Custom
+ * Constructor in Java Records</a> for details.
+ *
  * @since 2.0.0
  */
 public final class PersistedConfiguration {
@@ -100,20 +106,23 @@ public final class PersistedConfiguration {
   static Consumer<String> errorReporter = DataLogManager::log;
 
   /**
-   * Constructs a record instance, populating its components from Preferences, using the provided instance to get default values.
+   * Constructs a record instance, populating its components from Preferences, using the provided
+   * instance to get default values.
    *
    * <p>The provided instance supplies the default values. For each component:
+   *
    * <ul>
-   *   <li>If a corresponding preference already exists, that preference value is used.</li>
+   *   <li>If a corresponding preference already exists, that preference value is used.
    *   <li>If no preference exists, the component value from {@code configWithDefaults} is stored
-   *       into Preferences and used as the returned value.</li>
+   *       into Preferences and used as the returned value.
    * </ul>
    *
    * @param preferenceName Subtable name under Preferences (must not contain '/')
    * @param configWithDefaults Instance containing default values for all record components
    * @return A new record instance populated with Preferences values
    * @throws IllegalArgumentException if {@code preferenceName} is empty or contains '/'
-   * @throws IllegalStateException if {@code preferenceName} was already registered to a different record class
+   * @throws IllegalStateException if {@code preferenceName} was already registered to a different
+   *     record class
    */
   public static <T extends Record> T fromPreferences(String preferenceName, T configWithDefaults) {
     @SuppressWarnings("unchecked")
@@ -122,11 +131,11 @@ public final class PersistedConfiguration {
   }
 
   /**
-   * Construct a record instance with values loaded from Preferences,
-   * using Java defaults if no explicit defaults are provided.
+   * Construct a record instance with values loaded from Preferences, using Java defaults if no
+   * explicit defaults are provided.
    *
-   * <p>For example, an {@code int} component defaults to {@code 0},
-   * and a {@code double} component defaults to {@code 0.0}.
+   * <p>For example, an {@code int} component defaults to {@code 0}, and a {@code double} component
+   * defaults to {@code 0.0}.
    *
    * @param preferenceName Subtable name under Preferences
    * @param recordClass Record type to instantiate
@@ -159,32 +168,28 @@ public final class PersistedConfiguration {
         throw new RuntimeException(e); // For unit tests
       }
       DriverStation.reportWarning(
-          String.format("Could not copy preferences into %s: %s",
-              recordClass.getSimpleName(), e),
+          String.format("Could not copy preferences into %s: %s", recordClass.getSimpleName(), e),
           e.getStackTrace());
       return configWithDefaults;
     }
   }
 
-  /**
-   * Validates that a preference name is legal (non-empty and does not contain path separators).
-   */
+  /** Validates that a preference name is legal (non-empty and does not contain path separators). */
   private static void validatePreferenceName(String name) {
     if (name.isEmpty()) {
       throw new IllegalArgumentException("name cannot be empty");
     }
     if (name.indexOf(PATH_SEPARATOR) >= 0) {
-      throw new IllegalArgumentException(
-          String.format("name cannot contain '%c'", PATH_SEPARATOR));
+      throw new IllegalArgumentException(String.format("name cannot contain '%c'", PATH_SEPARATOR));
     }
   }
 
   /**
    * Ensures the given preference namespace is not already registered to another record class.
    *
-   * <p>Each namespace is stored in a special NetworkTable registry entry. If the namespace
-   * is new, it is bound to the current record type. If it already exists and points to
-   * a different record type, this method throws an exception.
+   * <p>Each namespace is stored in a special NetworkTable registry entry. If the namespace is new,
+   * it is bound to the current record type. If it already exists and points to a different record
+   * type, this method throws an exception.
    */
   private static void verifyNotRegisteredToAnotherClass(
       NetworkTableInstance ntInstance, String name, Class<? extends Record> recordClass) {
@@ -203,15 +208,14 @@ public final class PersistedConfiguration {
       if (!recordName.equals(registeredTo)) {
         throw new IllegalStateException(
             String.format(
-                "Preference with name '%s' already registered to %s",
-                name, registeredTo));
+                "Preference with name '%s' already registered to %s", name, registeredTo));
       }
     }
   }
 
   /**
-   * Core factory logic: instantiate a record using reflection,
-   * reading each component value from Preferences (or defaults).
+   * Core factory logic: instantiate a record using reflection, reading each component value from
+   * Preferences (or defaults).
    */
   private static <T> T createFromPreferences(
       String prefix, Class<? extends T> clazz, T configWithDefaults)
@@ -272,18 +276,14 @@ public final class PersistedConfiguration {
     return constructor.newInstance(params);
   }
 
-  /**
-   * Functional interface mapping a record component into a preference-backed value.
-   */
+  /** Functional interface mapping a record component into a preference-backed value. */
   @FunctionalInterface
   private interface PreferenceFactory {
     Object create(
         RecordComponent component, String key, Object defaultValue, boolean initializePreference);
   }
 
-  /**
-   * Generic variant of {@link PreferenceFactory} with typed defaults.
-   */
+  /** Generic variant of {@link PreferenceFactory} with typed defaults. */
   @FunctionalInterface
   private interface GenericPreferenceFactory<T> {
     T create(RecordComponent component, String key, T defaultValue, boolean initializePreference);
@@ -339,15 +339,17 @@ public final class PersistedConfiguration {
     return Preferences.getBoolean(key, false);
   }
 
+  /** Gets a BooleanSupplier value from Preferences for the given component. */
   private static BooleanSupplier booleanSupplierFactory(
       RecordComponent component,
       String key,
       BooleanSupplier defaultValueSupplier,
       boolean initialize) {
     if (initialize) {
-      boolean defaultValue = defaultValueSupplier != null
-          ? defaultValueSupplier.getAsBoolean()
-          : false;
+      boolean defaultValue =
+          defaultValueSupplier != null
+              ? defaultValueSupplier.getAsBoolean()
+              : false; // ternary java operation for people who don't know
       Preferences.initBoolean(key, defaultValue);
     }
     return () -> Preferences.getBoolean(key, false);
@@ -440,7 +442,8 @@ public final class PersistedConfiguration {
         ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
     Type registeredType = SUPPLIER_TYPE_TO_REGISTERED_TYPE.get(supplierType);
     if (registeredType == null) {
-      warn("Cannot store '%s' in Preferences; type %s is unsupported",
+      warn(
+          "Cannot store '%s' in Preferences; type %s is unsupported",
           component.getName(), component.getGenericType());
       return defaultValueSupplier;
     }
@@ -451,8 +454,7 @@ public final class PersistedConfiguration {
       if (defaultValueSupplier != null) {
         defaultValue = defaultValueSupplier.get();
         if (defaultValue == null) {
-          warn("Cannot store '%s' in Preferences; default value is null",
-              component.getName());
+          warn("Cannot store '%s' in Preferences; default value is null", component.getName());
           return defaultValueSupplier;
         }
       }
@@ -477,9 +479,7 @@ public final class PersistedConfiguration {
     }
   }
 
-  /**
-   * Utility method for reporting warnings. Logs to the configured {@link #errorReporter}.
-   */
+  /** Utility method for reporting warnings. Logs to the configured {@link #errorReporter}. */
   private static void warn(String format, Object... args) {
     String message = String.format("WARNING: " + format, args);
     errorReporter.accept(message);

@@ -55,8 +55,7 @@ final class LimelightClient {
   /**
    * Creates an {@link HttpRequest.Builder} for the Limelight with the given path.
    *
-   * <p>The URI is automatically constructed using the hostname and port configured for this
-   * client.
+   * <p>The URI is automatically constructed using the hostname and port configured for this client.
    *
    * @param path the HTTP path (e.g., "/results" or "/upload-fieldmap")
    * @return an {@link HttpRequest.Builder} ready for further configuration
