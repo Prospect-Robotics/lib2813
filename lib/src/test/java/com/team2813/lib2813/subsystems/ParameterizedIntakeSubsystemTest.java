@@ -88,7 +88,7 @@ public final class ParameterizedIntakeSubsystemTest {
   public void intakeItem(CommandTester commandTester) {
     try (var intake = new ConcreteParameterizedIntakeSubsystem(fakeMotor, params)) {
       Command command = intake.intakeItemCommand();
-      assertMotorIsStopped(); // motor should not yet be running
+      assertMotorIsStopped();
 
       commandTester.runUntilComplete(command); // executes command fully
 
