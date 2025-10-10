@@ -84,7 +84,7 @@ public abstract class ParameterizedIntakeSubsystem extends SubsystemBase impleme
   /**
    * Returns a command that spins the intake wheels in the intake direction.
    *
-   * @return an {@link InstantCommand} that intakes a game piece
+   * @return an {@link Command} that intakes a game piece
    */
   public final Command intakeItemCommand() {
     return new InstantCommand(this::intakeGamePiece, this);
