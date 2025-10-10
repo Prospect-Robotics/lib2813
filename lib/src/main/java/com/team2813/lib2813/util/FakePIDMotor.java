@@ -10,7 +10,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
  * A fake implementation of {@link PIDMotor} used for testing.
  *
  * <p>This class simulates motor behavior by storing the most recent control mode and demand value.
- * Assertions are used (via Truth) to enforce correct expectations in tests.
+ * Assertions are used to enforce correct expectations in tests.
  *
  * <p>Not intended for production use.
  *
