@@ -48,7 +48,7 @@ public abstract class ParameterizedIntakeSubsystem extends SubsystemBase impleme
     /**
      * Constructs a Params record.
      *
-     * @param controlMode the motor control mode, cannot be null
+     * @param controlMode the motor control mode, cannot be {@code null}
      * @param intakeDemand the motor demand for intake, must be non-zero
      * @param outtakeDemand the motor demand for outtake, must be non-zero and opposite sign of intakeDemand
      * @throws IllegalArgumentException if validation fails
