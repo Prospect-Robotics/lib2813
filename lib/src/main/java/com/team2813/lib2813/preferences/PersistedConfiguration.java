@@ -247,7 +247,7 @@ public final class PersistedConfiguration {
 
       Object componentValue = null;
       if (needComponentValue && configWithDefaults != null) {
-        // Reflection trick: get the field value from the default record instance
+        // Use reflection to get the field value from the default record instance
         Field defaultValueField = clazz.getDeclaredField(name);
         defaultValueField.setAccessible(true);
         componentValue = defaultValueField.get(configWithDefaults);
