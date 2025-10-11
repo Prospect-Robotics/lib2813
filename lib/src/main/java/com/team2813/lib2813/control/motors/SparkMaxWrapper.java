@@ -20,7 +20,11 @@ import edu.wpi.first.units.measure.Current;
 import java.util.ArrayList;
 import java.util.List;
 
-@Deprecated(forRemoval = true) // We likely wont use sparkmax's ever again.
+/**
+ * Wrapper class for SparkMax brushed and brushless motor controllers.
+ * Deprecated as we will likely not use SparkMaxes again.
+ */
+@Deprecated(forRemoval = true)
 public class SparkMaxWrapper implements PIDMotor {
   private final List<SparkMax> followers = new ArrayList<>();
   private final SparkBase motor;
@@ -88,7 +92,7 @@ public class SparkMaxWrapper implements PIDMotor {
    */
   @Override
   public void disable() {
-    motor.disable();
+    motor.stopMotor();
   }
 
   @Override

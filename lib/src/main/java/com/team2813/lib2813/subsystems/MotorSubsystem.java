@@ -11,6 +11,7 @@ import java.util.function.Supplier;
  *
  * @see com.team2813.lib2813.subsystems.PositionalMotorSubsystem
  */
+@Deprecated(forRemoval = true)
 public abstract class MotorSubsystem<T extends Supplier<Angle>>
     extends PositionalMotorSubsystem<T> {
 

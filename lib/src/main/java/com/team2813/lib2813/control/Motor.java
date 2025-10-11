@@ -32,4 +32,11 @@ public interface Motor {
 
   /** Stops the motor. */
   void disable();
+
+  /**
+   * Stops the motor.
+   */
+  default void stopMotor() {
+    disable();
+  }
 }
