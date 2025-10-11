@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  *
  * @param <T> the type of the {@link Supplier<Angle>} used to specify setpoints.
  */
-public abstract class MotorSubsystem<T extends Supplier<Angle>> extends SubsystemBase
+public abstract class PositionalMotorSubsystem<T extends Supplier<Angle>> extends SubsystemBase
     implements Motor, Encoder {
 
   protected final Motor motor;
@@ -44,7 +44,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
 
   private boolean isEnabled;
 
-  protected MotorSubsystem(MotorSubsystemConfiguration builder) {
+  protected PositionalMotorSubsystem(PositionalMotorSubsystemConfiguration builder) {
     this.controller = builder.controller;
     this.controller.setTolerance(builder.acceptableError);
     acceptableError = builder.acceptableError;
@@ -136,7 +136,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    */
   public final void disable() {
     isEnabled = false;
-    motor.set(controlMode, 0);
+    motor.disable();
   }
 
   /**
@@ -248,8 +248,8 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     }
   }
 
-  /** A configuration for a MotorSubsystem */
-  public static class MotorSubsystemConfiguration {
+  /** A configuration for a PositionalMotorSubsystem */
+  public static class PositionalMotorSubsystemConfiguration {
     /** The default acceptable position error. */
     public static final double DEFAULT_ERROR = 5.0;
 
@@ -273,7 +273,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      * @param motor the motor to control
      * @param encoder the encoder providing feedback
      */
-    public MotorSubsystemConfiguration(Motor motor, Encoder encoder) {
+    public PositionalMotorSubsystemConfiguration(Motor motor, Encoder encoder) {
       this.motor = Objects.requireNonNull(motor, "motor should not be null");
       this.encoder = Objects.requireNonNull(encoder, "encoder should not be null");
       controller = new PIDController(0, 0, 0);
@@ -290,7 +290,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      *
      * @param motor the integrated motor controller
      */
-    public MotorSubsystemConfiguration(PIDMotor motor) {
+    public PositionalMotorSubsystemConfiguration(PIDMotor motor) {
       this(motor, motor);
     }
 
@@ -300,7 +300,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      * @param controller The PID controller
      * @return {@code this} for chaining
      */
-    public MotorSubsystemConfiguration controller(PIDController controller) {
+    public PositionalMotorSubsystemConfiguration controller(PIDController controller) {
       this.controller = controller;
       return this;
     }
@@ -312,7 +312,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      * @param controlMode The mode to use when controlling the motor
      * @return {@code this} for chaining
      */
-    public MotorSubsystemConfiguration controlMode(ControlMode controlMode) {
+    public PositionalMotorSubsystemConfiguration controlMode(ControlMode controlMode) {
       this.controlMode = controlMode;
       return this;
     }
@@ -325,7 +325,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      * @param d the derivative
      * @return {@code this} for chaining
      */
-    public MotorSubsystemConfiguration PID(double p, double i, double d) {
+    public PositionalMotorSubsystemConfiguration PID(double p, double i, double d) {
       controller.setPID(p, i, d);
       return this;
     }
@@ -336,7 +336,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      * @param startingPosition the initial setpoint
      * @return {@code this} for chaining
      */
-    public MotorSubsystemConfiguration startingPosition(Angle startingPosition) {
+    public PositionalMotorSubsystemConfiguration startingPosition(Angle startingPosition) {
       this.startingPosition = startingPosition.in(this.rotationUnit);
       return this;
     }
@@ -350,12 +350,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      * @param startingPositionSupplier supplier to use to get the initial setpoint
      * @return {@code this} for chaining
      */
-    public MotorSubsystemConfiguration startingPosition(Supplier<Angle> startingPositionSupplier) {
+    public PositionalMotorSubsystemConfiguration startingPosition(Supplier<Angle> startingPositionSupplier) {
       return startingPosition(startingPositionSupplier.get());
     }
 
     /** Sets the acceptable position error. */
-    public MotorSubsystemConfiguration acceptableError(double error) {
+    public PositionalMotorSubsystemConfiguration acceptableError(double error) {
       this.acceptableError = error;
       return this;
     }
@@ -365,13 +365,13 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      *
      * @param rotationUnit The angle unit to use for calculations
      */
-    public MotorSubsystemConfiguration rotationUnit(AngleUnit rotationUnit) {
+    public PositionalMotorSubsystemConfiguration rotationUnit(AngleUnit rotationUnit) {
       startingPosition = rotationUnit.convertFrom(startingPosition, this.rotationUnit);
       this.rotationUnit = rotationUnit;
       return this;
     }
 
-    public MotorSubsystemConfiguration publishTo(NetworkTableInstance ntInstance) {
+    public PositionalMotorSubsystemConfiguration publishTo(NetworkTableInstance ntInstance) {
       this.ntInstance = ntInstance;
       return this;
     }
