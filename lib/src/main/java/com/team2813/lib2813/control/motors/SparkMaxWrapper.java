@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wrapper class for SparkMax brushed and brushless motor controllers.
- * Deprecated as we will likely not use SparkMaxes again.
+ * Wrapper class for SparkMax brushed and brushless motor controllers. Deprecated as we will likely
+ * not use SparkMaxes again.
  */
 @Deprecated(forRemoval = true)
 public class SparkMaxWrapper implements PIDMotor {
