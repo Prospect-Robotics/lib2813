@@ -20,6 +20,7 @@ import edu.wpi.first.units.measure.Current;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated(forRemoval = true) // We likely wont use sparkmax's ever again.
 public class SparkMaxWrapper implements PIDMotor {
   private final List<SparkMax> followers = new ArrayList<>();
   private final SparkBase motor;
@@ -79,6 +80,15 @@ public class SparkMaxWrapper implements PIDMotor {
   @Override
   public Current getAppliedCurrent() {
     return Units.Amps.of(motor.getOutputCurrent());
+  }
+
+  /**
+   * WARNING: due to the end of support of SparkMaxWrapper, there is no evidence that this method will work.
+   *  Proceed with caution!
+   */
+  @Override
+  public void disable() {
+    motor.disable();
   }
 
   @Override
