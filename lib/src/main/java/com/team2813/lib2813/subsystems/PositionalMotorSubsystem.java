@@ -350,7 +350,8 @@ public abstract class PositionalMotorSubsystem<T extends Supplier<Angle>> extend
      * @param startingPositionSupplier supplier to use to get the initial setpoint
      * @return {@code this} for chaining
      */
-    public PositionalMotorSubsystemConfiguration startingPosition(Supplier<Angle> startingPositionSupplier) {
+    public PositionalMotorSubsystemConfiguration startingPosition(
+        Supplier<Angle> startingPositionSupplier) {
       return startingPosition(startingPositionSupplier.get());
     }
 

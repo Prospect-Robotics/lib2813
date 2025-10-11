@@ -30,8 +30,6 @@ public interface Motor {
    */
   Current getAppliedCurrent();
 
-  /**
-   * Stops the motor.
-   */
+  /** Stops the motor. */
   void disable();
 }
