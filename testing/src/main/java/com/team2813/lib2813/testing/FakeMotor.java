@@ -10,6 +10,12 @@ import edu.wpi.first.units.measure.Resistance;
 import edu.wpi.first.units.measure.Voltage;
 import java.util.Objects;
 
+/**
+ * A fake implementation of {@link Motor}; used for testing.
+ *
+ * <p>This class simulates motor behavior by storing the most recent control mode and demand value.
+ * It also includes methods that make it easier to verify the current state of the motor.
+ */
 public class FakeMotor implements Motor {
   private boolean isStopped = true;
   private double feedForward = 0.0f;
@@ -18,6 +24,12 @@ public class FakeMotor implements Motor {
   public Resistance resistance = Resistance.ofBaseUnits(0.025f, Units.Ohms);
   private ControlMode controlMode = ControlMode.VOLTAGE;
 
+  /**
+   * Gets the current voltage being applied to the motor.
+   *
+   * @return applied voltage.
+   * @throws IllegalStateException if the motor's control mode is not {@link ControlMode#VOLTAGE}.
+   */
   public Voltage getMotorVoltage() {
     if (!ControlMode.VOLTAGE.equals(controlMode)) {
       throw new IllegalStateException("Cannot get voltage when controlMode is " + controlMode);
@@ -29,6 +41,7 @@ public class FakeMotor implements Motor {
    * Gets the feedforward that was applied.
    *
    * @return feedforward, in fractional units between -1 and +1.
+   * @throws IllegalStateException if the current control mode does not support feedforward.
    */
   public double getFeedForward() {
     return switch (controlMode) {
@@ -39,6 +52,11 @@ public class FakeMotor implements Motor {
     };
   }
 
+  /**
+   * Assert that the motor is stopped.
+   *
+   * @throws AssertionError if the motor is running.
+   */
   public final void assertIsStopped() {
     assertThat(isStopped).isTrue();
   }
@@ -48,6 +66,11 @@ public class FakeMotor implements Motor {
     set(mode, demand, 0);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws AssertionError if the feedForward is not in the range [-1, 1].
+   */
   @Override
   public void set(ControlMode mode, double demand, double feedForward) {
     Objects.requireNonNull(mode, "mode should not be null");
@@ -65,6 +88,11 @@ public class FakeMotor implements Motor {
     this.feedForward = feedForward;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws IllegalStateException if the current control mode does not support feedforward.
+   */
   @Override
   public final Current getAppliedCurrent() {
     try {
