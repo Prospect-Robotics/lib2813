@@ -11,6 +11,7 @@ import edu.wpi.first.networktables.StructTopic;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.photonvision.EstimatedRobotPose;
@@ -92,8 +93,12 @@ public final class PhotonVisionPosePublisher {
     if (pose.targetsUsed.isEmpty()) {
       return Stream.empty();
     }
-    return aprilTagFieldLayout
-        .getTagPose(pose.targetsUsed.get(0).fiducialId)
+
+    // Find the pose of the "best" AprilTag used for pose estimation and convert it to a timestamped
+    // value.
+    Optional<Pose3d> poseOfBestAprilTag =
+        aprilTagFieldLayout.getTagPose(pose.targetsUsed.get(0).fiducialId);
+    return poseOfBestAprilTag
         .map(
             tagPose ->
                 TimestampedValue.withFpgaTimestamp(pose.timestampSeconds, Units.Seconds, tagPose))
