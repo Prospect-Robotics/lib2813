@@ -2,7 +2,6 @@ package com.team2813.lib2813.vision;
 
 import static com.team2813.lib2813.vision.VisionNetworkTables.APRIL_TAG_POSE_TOPIC;
 import static com.team2813.lib2813.vision.VisionNetworkTables.POSE_ESTIMATE_TOPIC;
-import static com.team2813.lib2813.vision.VisionNetworkTables.getTableForCamera;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 /**
@@ -38,28 +36,28 @@ public final class PhotonVisionPosePublisher {
   private final AprilTagFieldLayout aprilTagFieldLayout;
 
   /**
-   * Creates a publisher for the provided camera and field layout.
+   * Creates a publisher that publishes values under the given table.
    *
-   * @param camera Camera to use to get the Network Tables name to publish to.
-   * @param aprilTagFieldLayout Layout of AprilTags on a field.
+   * @param parentTable Parent table for all topics published by this publisher instance.
+   * @param aprilTagFieldLayout Layout of AprilTags on the field.
    */
-  public PhotonVisionPosePublisher(PhotonCamera camera, AprilTagFieldLayout aprilTagFieldLayout) {
-    this(camera, aprilTagFieldLayout, Timer::getFPGATimestamp);
+  public PhotonVisionPosePublisher(
+      NetworkTable parentTable, AprilTagFieldLayout aprilTagFieldLayout) {
+    this(parentTable, aprilTagFieldLayout, Timer::getFPGATimestamp);
   }
 
   /** Package-scoped constructor (for unit testing). */
   PhotonVisionPosePublisher(
-      PhotonCamera camera,
+      NetworkTable parentTable,
       AprilTagFieldLayout aprilTagFieldLayout,
       Supplier<Double> fpgaTimestampSupplier) {
     this.aprilTagFieldLayout = aprilTagFieldLayout;
-    NetworkTable table = getTableForCamera(camera);
-    StructTopic<Pose3d> topic = table.getStructTopic(POSE_ESTIMATE_TOPIC, Pose3d.struct);
+    StructTopic<Pose3d> topic = parentTable.getStructTopic(POSE_ESTIMATE_TOPIC, Pose3d.struct);
     robotPosePublisher =
         new TimestampedStructPublisher<>(topic, Pose3d.kZero, fpgaTimestampSupplier);
     robotPosePublisher.setTimeUntilStale(
         EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES, Units.Milliseconds);
-    topic = table.getStructTopic(APRIL_TAG_POSE_TOPIC, Pose3d.struct);
+    topic = parentTable.getStructTopic(APRIL_TAG_POSE_TOPIC, Pose3d.struct);
     aprilTagPosePublisher =
         new TimestampedStructPublisher<>(topic, Pose3d.kZero, fpgaTimestampSupplier);
     aprilTagPosePublisher.setTimeUntilStale(
