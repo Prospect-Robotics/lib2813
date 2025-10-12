@@ -16,13 +16,26 @@ import java.util.stream.Stream;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 
-/** Published timestamped pose estimates from a camera. */
+/**
+ * Publishes timestamped pose estimates from a camera.
+ *
+ * <p>This is useful for publishing {@link EstimatedRobotPose} values from a PhotonVision camera in
+ * a way that can be visualized in tools like AdvantageScope without pose locations flickering.
+ * Estimated robot positions are published to NetworkTables using the timestamp in the {@code
+ * EstimatedRobotPose}. If no data is available, a position of (0, 0, 0) is published only when the
+ * previous available value is older than the expected latency of producing vision estimates.
+ */
 public final class PhotonVisionPosePublisher {
   private final TimestampedStructPublisher<Pose3d> publisher;
   private final TimestampedStructPublisher<Pose3d> tagPublisher;
   private final AprilTagFieldLayout aprilTagFieldLayout;
 
-  /** Creates a publisher for the provided camera and field layout. */
+  /**
+   * Creates a publisher for the provided camera and field layout.
+   *
+   * @param camera Camera to use to get the Network Tables name to publish to.
+   * @param aprilTagFieldLayout Layout of AprilTags on a field.
+   */
   public PhotonVisionPosePublisher(PhotonCamera camera, AprilTagFieldLayout aprilTagFieldLayout) {
     this(camera, aprilTagFieldLayout, Timer::getFPGATimestamp);
   }
@@ -42,6 +55,10 @@ public final class PhotonVisionPosePublisher {
 
   /**
    * Publishes the estimated positions to network tables.
+   *
+   * <p>This should be called in a <a
+   * href="https://docs.wpilib.org/en/stable/docs/software/convenience-features/scheduling-functions.html">periodic
+   * method</a> once per loop, even if no data is currently available.
    *
    * @param poseEstimates The estimated locations (with the blue driver station as the origin).
    */
