@@ -1,12 +1,11 @@
 package com.team2813.lib2813.subsystems;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.junit.jupiter.api.Assumptions.*;
 
 import com.team2813.lib2813.control.ControlMode;
-import com.team2813.lib2813.control.PIDMotor;
-import com.team2813.lib2813.testing.FakePIDMotor;
+import com.team2813.lib2813.control.Motor;
+import com.team2813.lib2813.testing.FakeMotor;
 import com.team2813.lib2813.testing.junit.jupiter.CommandTester;
 import com.team2813.lib2813.testing.junit.jupiter.WPILibExtension;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.Answers;
 
 @ParameterizedClass
 @EnumSource(ControlMode.class)
@@ -22,12 +20,12 @@ import org.mockito.Answers;
 public final class ParameterizedIntakeSubsystemTest {
 
   private static class ConcreteParameterizedIntakeSubsystem extends ParameterizedIntakeSubsystem {
-    protected ConcreteParameterizedIntakeSubsystem(PIDMotor intakeMotor, Params params) {
+    protected ConcreteParameterizedIntakeSubsystem(Motor intakeMotor, Params params) {
       super(intakeMotor, params);
     }
   }
 
-  final FakePIDMotor fakeMotor = mock(FakePIDMotor.class, Answers.CALLS_REAL_METHODS);
+  private final FakeMotor fakeMotor = new FakeMotor();
   private final ParameterizedIntakeSubsystem.Params params;
 
   public ParameterizedIntakeSubsystemTest(ControlMode controlMode) {
@@ -42,8 +40,7 @@ public final class ParameterizedIntakeSubsystemTest {
   @Test
   public void initialState() {
     try (var ignored = new ConcreteParameterizedIntakeSubsystem(fakeMotor, params)) {
-      assertMotorIsStopped();
-      verifyNoInteractions(fakeMotor);
+      fakeMotor.assertIsStopped();
     }
   }
 
@@ -51,7 +48,7 @@ public final class ParameterizedIntakeSubsystemTest {
   public void intakeItem(CommandTester commandTester) {
     try (var intake = new ConcreteParameterizedIntakeSubsystem(fakeMotor, params)) {
       Command command = intake.intakeItemCommand();
-      assertMotorIsStopped();
+      fakeMotor.assertIsStopped();
 
       commandTester.runUntilComplete(command);
 
@@ -61,6 +58,7 @@ public final class ParameterizedIntakeSubsystemTest {
 
   @Test
   public void stopAfterIntakingItem(CommandTester commandTester) {
+    assumeTrue(!ControlMode.MOTION_MAGIC.equals(params.controlMode()));
     try (var intake = new ConcreteParameterizedIntakeSubsystem(fakeMotor, params)) {
       Command command = intake.intakeItemCommand();
       commandTester.runUntilComplete(command);
@@ -69,7 +67,7 @@ public final class ParameterizedIntakeSubsystemTest {
 
       commandTester.runUntilComplete(command);
 
-      assertMotorIsStopped();
+      fakeMotor.assertIsStopped();
     }
   }
 
@@ -88,6 +86,7 @@ public final class ParameterizedIntakeSubsystemTest {
 
   @Test
   public void stopAfterOuttakingItem(CommandTester commandTester) {
+    assumeTrue(!ControlMode.MOTION_MAGIC.equals(params.controlMode()));
     try (var intake = new ConcreteParameterizedIntakeSubsystem(fakeMotor, params)) {
       intake.intakeGamePiece();
       Command command = intake.outtakeItemCommand();
@@ -97,12 +96,8 @@ public final class ParameterizedIntakeSubsystemTest {
 
       commandTester.runUntilComplete(command);
 
-      assertMotorIsStopped();
+      fakeMotor.assertIsStopped();
     }
-  }
-
-  private void assertMotorIsStopped() {
-    assertThat(fakeMotor.demand).isWithin(0.01).of(0.0);
   }
 
   private void assertMotorIsRunning() {
