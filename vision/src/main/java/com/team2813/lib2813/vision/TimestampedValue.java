@@ -63,7 +63,17 @@ final class TimestampedValue<T> {
     this.value = Objects.requireNonNull(value);
   }
 
-  static <T> List<TimestampedValue<T>> fromSubscriberQueue(StructSubscriber<T> subscriber) {
+  /**
+   * Reads all valid value changes since the last call to {@code readQueue()}.
+   *
+   * <p>This is a convenience method for use in tests. It calls {@link StructSubscriber#readQueue()}
+   * and converts the values to {@code TimestampedValue} values.
+   *
+   * @param subscriber NetworkTables struct-encoded value subscriber to read from.
+   * @return Timestamped values; empty if no valid new changes have been published since the
+   *     previous call.
+   */
+  public static <T> List<TimestampedValue<T>> readQueue(StructSubscriber<T> subscriber) {
     return Arrays.stream(subscriber.readQueue())
         .map(TimestampedValue::fromTimestampedObject)
         .toList();

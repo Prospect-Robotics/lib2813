@@ -40,7 +40,7 @@ public class TimestampedStructPublisherTest {
 
       // Assert
       List<TimestampedValue<Translation2d>> publishedValues =
-          TimestampedValue.fromSubscriberQueue(subscriber);
+          TimestampedValue.readQueue(subscriber);
       TimestampedValue<Translation2d> expectedValue =
           TimestampedValue.withFpgaTimestampMicros(1, Translation2d.kZero);
       assertThat(publishedValues).containsExactly(expectedValue);
@@ -64,7 +64,7 @@ public class TimestampedStructPublisherTest {
 
       // Assert
       List<TimestampedValue<Translation2d>> publishedValues =
-          TimestampedValue.fromSubscriberQueue(subscriber);
+          TimestampedValue.readQueue(subscriber);
       var expectedValue =
           TimestampedValue.withFpgaTimestampMicros(firstFpgaTimestampMillis * 1_000, value);
       assertThat(publishedValues).containsExactly(expectedValue);
@@ -95,7 +95,7 @@ public class TimestampedStructPublisherTest {
 
       // Assert
       List<TimestampedValue<Translation2d>> publishedValues =
-          TimestampedValue.fromSubscriberQueue(subscriber);
+          TimestampedValue.readQueue(subscriber);
 
       assertThat(publishedValues).containsExactlyElementsIn(valuesToPublish);
     }
@@ -125,7 +125,7 @@ public class TimestampedStructPublisherTest {
 
       // Assert
       List<TimestampedValue<Translation2d>> publishedValues =
-          TimestampedValue.fromSubscriberQueue(subscriber);
+          TimestampedValue.readQueue(subscriber);
       TimestampedValue<Translation2d> expectedValue =
           TimestampedValue.withFpgaTimestampMicros(
               firstFpgaTimestampMicros + EXPECTED_UPDATE_FREQUENCY_MICROS, Translation2d.kZero);
@@ -159,7 +159,7 @@ public class TimestampedStructPublisherTest {
 
       // Assert
       List<TimestampedValue<Translation2d>> publishedValues =
-          TimestampedValue.fromSubscriberQueue(subscriber);
+          TimestampedValue.readQueue(subscriber);
       assertThat(publishedValues).isEmpty();
     }
   }
