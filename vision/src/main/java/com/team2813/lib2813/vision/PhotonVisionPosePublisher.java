@@ -32,8 +32,8 @@ public final class PhotonVisionPosePublisher {
    */
   private static final long EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES = 100;
 
-  private final TimestampedStructPublisher<Pose3d> publisher;
-  private final TimestampedStructPublisher<Pose3d> tagPublisher;
+  private final TimestampedStructPublisher<Pose3d> robotPosePublisher;
+  private final TimestampedStructPublisher<Pose3d> aprilTagPosePublisher;
   private final AprilTagFieldLayout aprilTagFieldLayout;
 
   /**
@@ -54,11 +54,15 @@ public final class PhotonVisionPosePublisher {
     this.aprilTagFieldLayout = aprilTagFieldLayout;
     NetworkTable table = getTableForCamera(camera);
     StructTopic<Pose3d> topic = table.getStructTopic(POSE_ESTIMATE_TOPIC, Pose3d.struct);
-    publisher = new TimestampedStructPublisher<>(topic, Pose3d.kZero, fpgaTimestampSupplier);
-    publisher.setTimeUntilStale(EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES, Units.Milliseconds);
+    robotPosePublisher =
+        new TimestampedStructPublisher<>(topic, Pose3d.kZero, fpgaTimestampSupplier);
+    robotPosePublisher.setTimeUntilStale(
+        EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES, Units.Milliseconds);
     topic = table.getStructTopic(APRIL_TAG_POSE_TOPIC, Pose3d.struct);
-    tagPublisher = new TimestampedStructPublisher<>(topic, Pose3d.kZero, fpgaTimestampSupplier);
-    tagPublisher.setTimeUntilStale(EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES, Units.Milliseconds);
+    aprilTagPosePublisher =
+        new TimestampedStructPublisher<>(topic, Pose3d.kZero, fpgaTimestampSupplier);
+    aprilTagPosePublisher.setTimeUntilStale(
+        EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES, Units.Milliseconds);
   }
 
   /**
@@ -71,11 +75,11 @@ public final class PhotonVisionPosePublisher {
    * @param poseEstimates The estimated locations (with the blue driver station as the origin).
    */
   public void publish(List<EstimatedRobotPose> poseEstimates) {
-    publisher.publish(
+    robotPosePublisher.publish(
         poseEstimates.stream()
             .map(PhotonVisionPosePublisher::toRobotPoseTimestampedValue)
             .toList());
-    tagPublisher.publish(
+    aprilTagPosePublisher.publish(
         poseEstimates.stream().flatMap(this::toAprilTagPoseTimestampedValue).toList());
   }
 
