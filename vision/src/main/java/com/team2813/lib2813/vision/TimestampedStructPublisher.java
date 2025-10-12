@@ -19,6 +19,13 @@ import java.util.function.Supplier;
  */
 final class TimestampedStructPublisher<S> {
   private static final long MICROS_PER_SECOND = 1_000_000;
+
+  /**
+   * Minimum "real" value that can be passed to StructPublisher.set() (per the Javadoc, "0 indicates
+   * current NT time should be used")
+   */
+  private static final long MIN_NETWORK_TABLES_TIMESTAMP = 1;
+
   static final long EXPECTED_UPDATE_FREQUENCY_MICROS =
       (long) (TimedRobot.kDefaultPeriod * MICROS_PER_SECOND);
   static final long DEFAULT_PUBLISHED_VALUE_VALID_MICROS = 2 * EXPECTED_UPDATE_FREQUENCY_MICROS;
@@ -42,7 +49,7 @@ final class TimestampedStructPublisher<S> {
     this.fpgaTimestampSupplier = fpgaTimestampSupplier;
     this.zeroValue = zeroValue;
     this.publisher = topic.publish();
-    this.publisher.set(zeroValue, 1);
+    this.publisher.set(zeroValue, MIN_NETWORK_TABLES_TIMESTAMP);
     publishedZeroValue = true;
   }
 
