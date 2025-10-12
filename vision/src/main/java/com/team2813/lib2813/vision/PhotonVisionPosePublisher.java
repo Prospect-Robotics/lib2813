@@ -26,6 +26,12 @@ import org.photonvision.PhotonCamera;
  * previous available value is older than the expected latency of producing vision estimates.
  */
 public final class PhotonVisionPosePublisher {
+  /**
+   * How much time we expect to pass between receiving pose estimates from PhotonVision when an
+   * AprilTag is visible. Empirically, this is 0.1 seconds.
+   */
+  private static final long EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES = 100;
+
   private final TimestampedStructPublisher<Pose3d> publisher;
   private final TimestampedStructPublisher<Pose3d> tagPublisher;
   private final AprilTagFieldLayout aprilTagFieldLayout;
@@ -49,8 +55,10 @@ public final class PhotonVisionPosePublisher {
     NetworkTable table = getTableForCamera(camera);
     StructTopic<Pose3d> topic = table.getStructTopic(POSE_ESTIMATE_TOPIC, Pose3d.struct);
     publisher = new TimestampedStructPublisher<>(topic, Pose3d.kZero, fpgaTimestampSupplier);
+    publisher.setTimeUntilStale(EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES, Units.Milliseconds);
     topic = table.getStructTopic(APRIL_TAG_POSE_TOPIC, Pose3d.struct);
     tagPublisher = new TimestampedStructPublisher<>(topic, Pose3d.kZero, fpgaTimestampSupplier);
+    tagPublisher.setTimeUntilStale(EXPECTED_MILLIS_BETWEEN_POSE_ESTIMATES, Units.Milliseconds);
   }
 
   /**

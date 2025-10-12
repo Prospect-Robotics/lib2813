@@ -1,8 +1,8 @@
 package com.team2813.lib2813.vision;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.team2813.lib2813.vision.TimestampedStructPublisher.DEFAULT_PUBLISHED_VALUE_VALID_MICROS;
 import static com.team2813.lib2813.vision.TimestampedStructPublisher.EXPECTED_UPDATE_FREQUENCY_MICROS;
-import static com.team2813.lib2813.vision.TimestampedStructPublisher.PUBLISHED_VALUE_VALID_MICROS;
 
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.networktables.*;
@@ -118,7 +118,7 @@ public class TimestampedStructPublisherTest {
       assertThat(subscriber.readQueue()).hasLength(1);
       // Advance the clock so that the previously-published data will be considered stale.
       fakeClock.setFpgaTimestampMicros(firstFpgaTimestampMicros);
-      fakeClock.incrementFpgaTimestampMicros(PUBLISHED_VALUE_VALID_MICROS + 1);
+      fakeClock.incrementFpgaTimestampMicros(DEFAULT_PUBLISHED_VALUE_VALID_MICROS + 1);
 
       // Act
       publisher.publish(List.of());
@@ -152,7 +152,7 @@ public class TimestampedStructPublisherTest {
       // Advance the clock, but not as far so that the previously-published data would be considered
       // stale.
       fakeClock.setFpgaTimestampMicros(firstFpgaTimestampMicros);
-      fakeClock.incrementFpgaTimestampMicros(PUBLISHED_VALUE_VALID_MICROS - 1);
+      fakeClock.incrementFpgaTimestampMicros(DEFAULT_PUBLISHED_VALUE_VALID_MICROS - 1);
 
       // Act
       publisher.publish(List.of());

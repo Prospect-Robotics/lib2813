@@ -2,6 +2,8 @@ package com.team2813.lib2813.vision;
 
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.networktables.StructTopic;
+import edu.wpi.first.units.TimeUnit;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 import java.util.List;
 import java.util.function.Supplier;
@@ -19,8 +21,8 @@ final class TimestampedStructPublisher<S> {
   private static final long MICROS_PER_SECOND = 1_000_000;
   static final long EXPECTED_UPDATE_FREQUENCY_MICROS =
       (long) (TimedRobot.kDefaultPeriod * MICROS_PER_SECOND);
-  // PhotonVision appears to produce estimates every 80ms, so treat values older than 0.1s as stale.
-  static final long PUBLISHED_VALUE_VALID_MICROS = MICROS_PER_SECOND / 10;
+  static final long DEFAULT_PUBLISHED_VALUE_VALID_MICROS = 2 * EXPECTED_UPDATE_FREQUENCY_MICROS;
+  private long publishedValueValidMicros = DEFAULT_PUBLISHED_VALUE_VALID_MICROS;
 
   private final StructPublisher<S> publisher;
   private final Supplier<Double> fpgaTimestampSupplier;
@@ -45,6 +47,16 @@ final class TimestampedStructPublisher<S> {
   }
 
   /**
+   * Sets the maximum amount of time that can pass before a published value can be considered stale.
+   *
+   * @param time Amount of time.
+   * @param timeUnit Units for the time parameter.
+   */
+  public void setTimeUntilStale(long time, TimeUnit timeUnit) {
+    publishedValueValidMicros = (long) Math.floor(Units.Microseconds.convertFrom(time, timeUnit));
+  }
+
+  /**
    * Publishes the values to network tables.
    *
    * <p>This should be called in a <a
@@ -56,7 +68,7 @@ final class TimestampedStructPublisher<S> {
       if (!publishedZeroValue) {
         long currentTimeMicros = currentTimeMicros();
         long microsSinceLastUpdate = currentTimeMicros - lastUpdateTimeMicros;
-        if (microsSinceLastUpdate > PUBLISHED_VALUE_VALID_MICROS) {
+        if (microsSinceLastUpdate > publishedValueValidMicros) {
           long timestamp = lastUpdateTimeMicros + EXPECTED_UPDATE_FREQUENCY_MICROS;
           publisher.set(zeroValue, timestamp);
           publishedZeroValue = true;
