@@ -1,5 +1,7 @@
 package com.team2813.lib2813.util;
 
+import edu.wpi.first.math.MathUtil;
+
 /** Utility class for comon control-related utility functions. */
 public class ControlUtils {
   private ControlUtils() {
@@ -21,7 +23,9 @@ public class ControlUtils {
    * @param deadband The deadband range value, must be in [0.0, 1.0).
    * @return The deadbanded value.
    * @throws IllegalArgumentException If the value or deadband is out of bounds.
+   * @deprecated Use edu.wpi.first.math.MathUtil.applyDeadband instead.
    */
+  @Deprecated(forRemoval = true)
   public static double deadband(double value, double deadband) {
     if (deadband < 0.0 || deadband >= 1.0) {
       throw new IllegalArgumentException(
@@ -30,14 +34,6 @@ public class ControlUtils {
     if (value < -1.0 || value > 1.0) {
       throw new IllegalArgumentException("Value must be in [-1.0, 1.0]. Instead, it was " + value);
     }
-    if (Math.abs(value) <= deadband) {
-      return 0.0;
-    } else {
-      if (value > 0.0) {
-        return (value - deadband) / (1.0 - deadband);
-      } else {
-        return (value + deadband) / (1.0 - deadband);
-      }
-    }
+    return MathUtil.applyDeadband(value, deadband);
   }
 }
