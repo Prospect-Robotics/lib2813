@@ -163,11 +163,14 @@ public class TalonFXWrapper implements PIDMotor {
   }
 
   /**
-   * Sets the behavior the motor should exhibit upon receiving a request to stop: "<i>disable()</i>".
+   * Sets the behavior the motor should exhibit upon receiving a request to stop:
+   * "<i>disable()</i>".
+   *
    * <ul>
-   *   <li>Coast: The motor stops applying an input, but continues to move with its inertia.</li>
-   *   <li>Brake: The motor stops applying an input, and actively opposes its inertia.</li>
+   *   <li>Coast: The motor stops applying an input, but continues to move with its inertia.
+   *   <li>Brake: The motor stops applying an input, and actively opposes its inertia.
    * </ul>
+   *
    * @param mode
    */
   public void setNeutralMode(NeutralModeValue mode) {
@@ -176,6 +179,7 @@ public class TalonFXWrapper implements PIDMotor {
 
   /**
    * Sends a disable command to the motor, placing it in its neutral value.
+   *
    * @see TalonFXWrapper#setNeutralMode(NeutralModeValue)
    */
   @Override
