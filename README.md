@@ -1,3 +1,5 @@
+# User Documentation
+
 ## adding submodule
 In order to use, go to your WPILib project directory (the inner one, where the build.gradle file is), and run the command
 ```
@@ -39,3 +41,11 @@ git submodule update --init --recursive
 This command will recursively initialize all submodules.
 
 This code is still in development, and apis are still subject to change. The most likely thing to get removed is the swerve api, as ctre recently released their own.
+
+## Developer Documentation
+
+To ignore code reformatting when running `git blame` run:
+
+```shell
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
