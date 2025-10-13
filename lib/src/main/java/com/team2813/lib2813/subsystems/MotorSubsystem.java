@@ -136,7 +136,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    */
   public final void disable() {
     isEnabled = false;
-    motor.set(controlMode, 0);
+    motor.disable();
   }
 
   /**

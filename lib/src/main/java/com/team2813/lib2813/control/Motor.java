@@ -29,4 +29,7 @@ public interface Motor {
    * @return The current applied current
    */
   Current getAppliedCurrent();
+
+  /** Stops the motor. */
+  void disable();
 }

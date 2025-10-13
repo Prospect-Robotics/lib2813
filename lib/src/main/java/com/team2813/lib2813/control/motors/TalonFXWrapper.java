@@ -13,6 +13,7 @@ import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.control.PIDMotor;
+import com.team2813.lib2813.subsystems.MotorSubsystem;
 import com.team2813.lib2813.util.InvalidCanIdException;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -162,8 +163,29 @@ public class TalonFXWrapper implements PIDMotor {
     return motor;
   }
 
+  /**
+   * Sets the behavior the motor should exhibit upon receiving a request to stop: {@link
+   * MotorSubsystem#disable()}
+   *
+   * <ul>
+   *   <li>Coast: The motor stops applying an input, but continues to move with its inertia.
+   *   <li>Brake: The motor stops applying an input, and actively opposes its inertia.
+   * </ul>
+   *
+   * @param mode
+   */
   public void setNeutralMode(NeutralModeValue mode) {
     motor.setNeutralMode(mode);
+  }
+
+  /**
+   * Sends a disable command to the motor, placing it in its neutral value.
+   *
+   * @see TalonFXWrapper#setNeutralMode(NeutralModeValue)
+   */
+  @Override
+  public void disable() {
+    motor.disable();
   }
 
   @Override

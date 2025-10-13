@@ -82,6 +82,11 @@ public class SparkMaxWrapper implements PIDMotor {
   }
 
   @Override
+  public void disable() {
+    motor.stopMotor();
+  }
+
+  @Override
   public void setPosition(double position) {
     encoder.setPosition(position);
   }
