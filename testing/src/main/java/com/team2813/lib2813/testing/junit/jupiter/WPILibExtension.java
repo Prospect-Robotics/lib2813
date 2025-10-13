@@ -89,7 +89,7 @@ public final class WPILibExtension
       ParameterContext parameterContext, ExtensionContext extensionContext) {
     return command -> {
       CommandScheduler scheduler = CommandScheduler.getInstance();
-      command.schedule();
+      scheduler.schedule(command);
       do {
         scheduler.run();
       } while (scheduler.isScheduled(command));
