@@ -106,3 +106,14 @@ spotless {
         formatAnnotations()  // fix formatting of type annotations
     }
 }
+
+javadoc {
+    options {
+        // CTRE (Phoenix 5 & 6)
+        links += "https://api.ctr-electronics.com/phoenix6/release/java/"
+        // WPILib
+        links += "https://github.wpilib.org/allwpilib/docs/2027/java/"
+        // REVLib
+        links += "https://codedocs.revrobotics.com/java/"
+    }
+}
