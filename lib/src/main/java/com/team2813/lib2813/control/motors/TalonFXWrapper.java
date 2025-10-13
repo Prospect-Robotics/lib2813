@@ -13,6 +13,7 @@ import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.control.PIDMotor;
+import com.team2813.lib2813.subsystems.MotorSubsystem;
 import com.team2813.lib2813.util.InvalidCanIdException;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -164,7 +165,7 @@ public class TalonFXWrapper implements PIDMotor {
 
   /**
    * Sets the behavior the motor should exhibit upon receiving a request to stop:
-   * "<i>disable()</i>".
+   * {@link MotorSubsystem#disable()}
    *
    * <ul>
    *   <li>Coast: The motor stops applying an input, but continues to move with its inertia.

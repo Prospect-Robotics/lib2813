@@ -81,10 +81,6 @@ public class SparkMaxWrapper implements PIDMotor {
     return Units.Amps.of(motor.getOutputCurrent());
   }
 
-  /**
-   * WARNING: due to the end of support of SparkMaxWrapper, there is no evidence that this method
-   * will work. Proceed with caution!
-   */
   @Override
   public void disable() {
     motor.stopMotor();
