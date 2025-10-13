@@ -18,9 +18,12 @@ dependencies {
     implementation 'org.photonvision:photontargeting-java:v2025.3.2'
     implementation project(':lib')
 
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation(platform('org.junit:junit-bom:5.13.1'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
     testImplementation 'com.google.truth:truth:1.4.4'
     testImplementation project(':testing')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    testRuntimeOnly('org.junit.vintage:junit-vintage-engine')
 
     nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
     nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
@@ -34,6 +37,6 @@ dependencies {
 wpi.java.configureTestTasks(test)
 
 test {
-    // Use JUnit 4 for tests
-    useJUnit()
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }

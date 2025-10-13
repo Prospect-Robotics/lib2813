@@ -4,39 +4,40 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.team2813.lib2813.vision.TimestampedStructPublisher.DEFAULT_PUBLISHED_VALUE_VALID_MICROS;
 import static com.team2813.lib2813.vision.TimestampedStructPublisher.EXPECTED_UPDATE_FREQUENCY_MICROS;
 
+import com.team2813.lib2813.testing.junit.jupiter.IsolatedNetworkTablesExtension;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.units.Units;
 import java.util.*;
 import java.util.function.Supplier;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /** Tests for {@link TimestampedStructPublisher}. */
+@ExtendWith(IsolatedNetworkTablesExtension.class)
 public class TimestampedStructPublisherTest {
   private static final long MICROSECONDS_PER_SECOND = 1_000_000;
   private static final Translation2d DEFAULT_VALUE = new Translation2d(28, 13);
   private static final String TABLE_NAME = "gearHeads";
   private static final String TOPIC_NAME = "championships";
 
-  @Rule public final IsolatedNetworkTable isolatedNetworkTable = new IsolatedNetworkTable();
-
   private final FakeClock fakeClock = new FakeClock();
 
-  private TimestampedStructPublisher<Translation2d> createPublisher() {
-    NetworkTable table = isolatedNetworkTable.getNetworkTableInstance().getTable(TABLE_NAME);
+  private TimestampedStructPublisher<Translation2d> createPublisher(
+      NetworkTableInstance ntInstance) {
+    NetworkTable table = ntInstance.getTable(TABLE_NAME);
     return new TimestampedStructPublisher<>(
         table.getStructTopic(TOPIC_NAME, Translation2d.struct), Translation2d.kZero, fakeClock);
   }
 
   @Test
-  public void constructorPublishesZeroValue() {
+  public void constructorPublishesZeroValue(NetworkTableInstance ntInstance) {
     // Arrange
-    var topic = getTopic();
+    var topic = getTopic(ntInstance);
 
     try (StructSubscriber<Translation2d> subscriber = topic.subscribe(DEFAULT_VALUE)) {
       // Act
-      createPublisher();
+      createPublisher(ntInstance);
 
       // Assert
       List<TimestampedValue<Translation2d>> publishedValues =
@@ -48,12 +49,12 @@ public class TimestampedStructPublisherTest {
   }
 
   @Test
-  public void publish_withOneValue() {
+  public void publish_withOneValue(NetworkTableInstance ntInstance) {
     // Arrange
-    var topic = getTopic();
+    var topic = getTopic(ntInstance);
 
     try (StructSubscriber<Translation2d> subscriber = topic.subscribe(DEFAULT_VALUE)) {
-      TimestampedStructPublisher<Translation2d> publisher = createPublisher();
+      TimestampedStructPublisher<Translation2d> publisher = createPublisher(ntInstance);
       long firstFpgaTimestampMillis = 25;
       Translation2d value = new Translation2d(7.35, 0.708);
       TimestampedValue<Translation2d> valueToPublish =
@@ -72,13 +73,13 @@ public class TimestampedStructPublisherTest {
   }
 
   @Test
-  public void publish_withManyValues() {
+  public void publish_withManyValues(NetworkTableInstance ntInstance) {
     // Arrange
-    var topic = getTopic();
+    var topic = getTopic(ntInstance);
 
     try (StructSubscriber<Translation2d> subscriber =
         topic.subscribe(DEFAULT_VALUE, PubSubOption.pollStorage(5))) {
-      TimestampedStructPublisher<Translation2d> publisher = createPublisher();
+      TimestampedStructPublisher<Translation2d> publisher = createPublisher(ntInstance);
       long firstFpgaTimestampMicros = 25;
 
       List<TimestampedValue<Translation2d>> valuesToPublish = new ArrayList<>(3);
@@ -102,13 +103,13 @@ public class TimestampedStructPublisherTest {
   }
 
   @Test
-  public void publish_withEmptyList_withStalePreviousValue() {
+  public void publish_withEmptyList_withStalePreviousValue(NetworkTableInstance ntInstance) {
     // Arrange
-    var topic = getTopic();
+    var topic = getTopic(ntInstance);
 
     try (StructSubscriber<Translation2d> subscriber =
         topic.subscribe(DEFAULT_VALUE, PubSubOption.pollStorage(5))) {
-      TimestampedStructPublisher<Translation2d> publisher = createPublisher();
+      TimestampedStructPublisher<Translation2d> publisher = createPublisher(ntInstance);
       long firstFpgaTimestampMicros = 25;
       Translation2d value = new Translation2d(7.35, 0.708);
       TimestampedValue<Translation2d> valueToPublish =
@@ -134,13 +135,13 @@ public class TimestampedStructPublisherTest {
   }
 
   @Test
-  public void publish_withEmptyList_withNonStalePreviousValue() {
+  public void publish_withEmptyList_withNonStalePreviousValue(NetworkTableInstance ntInstance) {
     // Arrange
-    var topic = getTopic();
+    var topic = getTopic(ntInstance);
 
     try (StructSubscriber<Translation2d> subscriber =
         topic.subscribe(DEFAULT_VALUE, PubSubOption.pollStorage(5))) {
-      TimestampedStructPublisher<Translation2d> publisher = createPublisher();
+      TimestampedStructPublisher<Translation2d> publisher = createPublisher(ntInstance);
       long firstFpgaTimestampMicros = 25;
 
       Translation2d value = new Translation2d(7.35, 0.708);
@@ -164,8 +165,8 @@ public class TimestampedStructPublisherTest {
     }
   }
 
-  private StructTopic<Translation2d> getTopic() {
-    NetworkTable table = isolatedNetworkTable.getNetworkTableInstance().getTable(TABLE_NAME);
+  private StructTopic<Translation2d> getTopic(NetworkTableInstance ntInstance) {
+    NetworkTable table = ntInstance.getTable(TABLE_NAME);
     return table.getStructTopic(TOPIC_NAME, Translation2d.struct);
   }
 
