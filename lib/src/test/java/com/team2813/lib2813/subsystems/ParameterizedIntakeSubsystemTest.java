@@ -52,7 +52,7 @@ public final class ParameterizedIntakeSubsystemTest {
 
       commandTester.runUntilComplete(command);
 
-      assertThat(fakeMotor.demand).isWithin(0.01).of(params.intakeDemand());
+      assertThat(fakeMotor.getDemand()).isWithin(0.01).of(params.intakeDemand());
     }
   }
 
@@ -80,7 +80,7 @@ public final class ParameterizedIntakeSubsystemTest {
 
       commandTester.runUntilComplete(command);
 
-      assertThat(fakeMotor.demand).isWithin(0.01).of(params.outtakeDemand());
+      assertThat(fakeMotor.getDemand()).isWithin(0.01).of(params.outtakeDemand());
     }
   }
 
@@ -101,6 +101,6 @@ public final class ParameterizedIntakeSubsystemTest {
   }
 
   private void assertMotorIsRunning() {
-    assertThat(fakeMotor.demand).isNotWithin(0.01).of(0.0);
+    assertThat(fakeMotor.getDemand()).isNotWithin(0.01).of(0.0);
   }
 }
