@@ -1,6 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value/1.11.0/d1fd0e74d20e922145c3fede3f05e246bb6be281/auto-value-1.11.0.jar" />
+        </processorPath>
+        <module name="lib2813.lib.main" />
+      </profile>
+    </annotationProcessing>
     <bytecodeTargetLevel target="17" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="lib2813.lib" options="-XDstringConcat=inline" />
+      <module name="lib2813.lib.main" options="-XDstringConcat=inline" />
+      <module name="lib2813.lib.test" options="-XDstringConcat=inline" />
+      <module name="lib2813.limelight" options="-XDstringConcat=inline" />
+      <module name="lib2813.limelight.main" options="-XDstringConcat=inline" />
+      <module name="lib2813.limelight.test" options="-XDstringConcat=inline" />
+      <module name="lib2813.testing" options="-XDstringConcat=inline" />
+      <module name="lib2813.testing.main" options="-XDstringConcat=inline" />
+      <module name="lib2813.testing.test" options="-XDstringConcat=inline" />
+    </option>
   </component>
 </project>
