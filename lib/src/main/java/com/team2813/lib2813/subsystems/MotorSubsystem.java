@@ -311,8 +311,16 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      *
      * @param controlMode The mode to use when controlling the motor
      * @return {@code this} for chaining
+     * @throws IllegalArgumentException If {@code controlMode} is for positional control
      */
     public MotorSubsystemConfiguration controlMode(ControlMode controlMode) {
+      if (controlMode.isPositionalControl()) {
+        throw new IllegalArgumentException(
+            String.format(
+                "Control mode %s is for positional control. This is invalid! Please use a different"
+                    + " control mode",
+                controlMode));
+      }
       this.controlMode = controlMode;
       return this;
     }
