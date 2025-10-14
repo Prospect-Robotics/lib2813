@@ -24,6 +24,19 @@ public class FakeMotor implements Motor {
   public Resistance resistance = Resistance.ofBaseUnits(0.025f, Units.Ohms);
   private ControlMode controlMode = ControlMode.VOLTAGE;
 
+  /** Gets the most recently applied demand value for this motor. */
+  public final double getDemand() {
+    return demand;
+  }
+
+  /**
+   * Gets the control mode used for the most recent time the demand value was updated for this
+   * motor.
+   */
+  public final ControlMode getControlMode() {
+    return controlMode;
+  }
+
   /**
    * Gets the current voltage being applied to the motor.
    *
