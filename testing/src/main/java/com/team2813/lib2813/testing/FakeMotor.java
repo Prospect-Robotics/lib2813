@@ -65,6 +65,14 @@ public class FakeMotor implements Motor {
     };
   }
 
+  @Override
+  public void disable() {
+    if (controlMode != ControlMode.MOTION_MAGIC) {
+      set(controlMode, 0);
+    }
+    isStopped = true;
+  }
+
   /**
    * Assert that the motor is stopped.
    *
