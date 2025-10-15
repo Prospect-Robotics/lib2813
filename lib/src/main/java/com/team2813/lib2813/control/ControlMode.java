@@ -1,20 +1,18 @@
 package com.team2813.lib2813.control;
 
-import com.revrobotics.spark.SparkBase.ControlType;
-
 public enum ControlMode {
-  DUTY_CYCLE(ControlType.kDutyCycle),
-  VELOCITY(ControlType.kVelocity),
-  MOTION_MAGIC(ControlType.kPosition),
-  VOLTAGE(ControlType.kVoltage);
+  DUTY_CYCLE(false),
+  VELOCITY(false),
+  MOTION_MAGIC(true),
+  VOLTAGE(false);
 
-  private final ControlType sparkMode;
+  private final boolean isPositionalControl;
 
-  ControlMode(ControlType sparkMode) {
-    this.sparkMode = sparkMode;
+  ControlMode(boolean isPositionalControl) {
+    this.isPositionalControl = isPositionalControl;
   }
 
-  public ControlType getSparkMode() {
-    return sparkMode;
+  public boolean isPositionalControl() {
+    return isPositionalControl;
   }
 }
