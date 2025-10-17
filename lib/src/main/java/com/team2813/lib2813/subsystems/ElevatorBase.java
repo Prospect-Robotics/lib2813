@@ -63,13 +63,6 @@ public abstract class ElevatorBase extends MotorSubsystem<ElevatorBase.PositionB
         pos = nt.getDoubleTopic("position").publish();
     }
 
-    /** Override this in child to return applied current */
-    @Override
-    public Current getAppliedCurrent() {
-        // TODO stub method
-        return null;
-    }
-
     /** Clamp/control how output is sent to the motor 
      * 
      * @param output - the output sent to the motor
