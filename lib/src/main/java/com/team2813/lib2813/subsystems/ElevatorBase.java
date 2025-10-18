@@ -10,14 +10,12 @@ import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.control.motors.TalonFXWrapper;
 import com.team2813.lib2813.subsystems.ElevatorBase;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Current;
 
 /**
  * Generic configurable elevator base class.
@@ -69,9 +67,9 @@ public abstract class ElevatorBase extends MotorSubsystem<ElevatorBase.PositionB
      * @param setpoint - the PID setpoint of the motor
     */
     @Override
-    protected void useOutput(double output, double setpoint) {
-        // Default clamp [-6,6], can override in child if needed
-        super.useOutput(MathUtil.clamp(output, -6, 6), setpoint);
+    protected double clampOutput(double output) {
+        // TODO Auto-generated method stub
+        return super.clampOutput(output);
     }
 
     /** Telemetry updates */
