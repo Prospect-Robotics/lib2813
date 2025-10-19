@@ -104,6 +104,8 @@ spotless {
         googleJavaFormat('1.24.0').reflowLongStrings()
 
         formatAnnotations()  // fix formatting of type annotations
+
+        licenseHeaderFile("../java-copyright-header.txt")
     }
 }
 
