@@ -225,8 +225,11 @@ public final class PersistedConfiguration {
     NetworkTableInstance ntInstance = Preferences.getNetworkTable().getInstance();
     verifyNotRegisteredToAnotherClass(ntInstance, preferenceName, recordClass);
 
+    ListenerRegistry listenerRegistry = new ListenerRegistry(ntInstance, preferenceName);
+
     try {
-      return createFromPreferences(preferenceName, recordClass, configWithDefaults);
+      return createFromPreferences(
+          preferenceName, recordClass, configWithDefaults, listenerRegistry);
     } catch (ReflectiveOperationException e) {
       if (throwExceptions) {
         throw new RuntimeException(e); // For self-tests.
@@ -284,11 +287,15 @@ public final class PersistedConfiguration {
    * @param prefix String to prepend to record field names to get the Preference key.
    * @param clazz Record class type.
    * @param configWithDefaults Default values to use if there are no values stored in NetworkTables.
+   * @param listenerRegistry Registry that supports adding Preference value listeners.
    * @return An instance of the record class, populated with data from the Preferences table.
    * @throws ReflectiveOperationException If the fields of the class cannot be read via reflection.
    */
   private static <T> T createFromPreferences(
-      String prefix, Class<? extends T> clazz, T configWithDefaults)
+      String prefix,
+      Class<? extends T> clazz,
+      T configWithDefaults,
+      ListenerRegistry listenerRegistry)
       throws ReflectiveOperationException {
     var components = clazz.getRecordComponents();
     Object[] params = new Object[components.length];
@@ -323,14 +330,18 @@ public final class PersistedConfiguration {
       }
 
       if (isRecordField) {
-        params[i] = createFromPreferences(key, type, componentValue);
+        params[i] = createFromPreferences(key, type, componentValue, listenerRegistry);
       } else if (fetcher == null) {
         warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
         params[i] = componentValue;
       } else {
         params[i] =
             fetcher.getValue(
-                component, key, componentValue, /* initializePreference= */ needComponentValue);
+                component,
+                key,
+                componentValue,
+                /* initializePreference= */ needComponentValue,
+                listenerRegistry);
       }
       i++;
     }
@@ -351,9 +362,15 @@ public final class PersistedConfiguration {
      * @param key The Preference key that should be used when initializing the Preference.
      * @param defaultValue The default value that should be used when initializing the Preference.
      * @param initializePreference Whether the preference should be initialized.
+     * @param listenerRegistry Registry that supports adding Preference value listeners.
      * @return The value; will match the type in "component";
      */
-    T getValue(RecordComponent component, String key, T defaultValue, boolean initializePreference);
+    T getValue(
+        RecordComponent component,
+        String key,
+        T defaultValue,
+        boolean initializePreference,
+        ListenerRegistry listenerRegistry);
   }
 
   /**
@@ -370,10 +387,15 @@ public final class PersistedConfiguration {
      * @param key The Preference key that should be used when initializing the Preference.
      * @param defaultValue The default value that should be used when initializing the Preference.
      * @param initializePreference Whether the preference should be initialized.
+     * @param listenerRegistry Registry that supports adding Preference value listeners.
      * @return The value; will match the type in "component";
      */
     Object getValue(
-        RecordComponent component, String key, Object defaultValue, boolean initializePreference);
+        RecordComponent component,
+        String key,
+        Object defaultValue,
+        boolean initializePreference,
+        ListenerRegistry listenerRegistry);
   }
 
   private static final Map<Type, PreferenceFetcher> TYPE_TO_FETCHER = new HashMap<>();
@@ -387,8 +409,9 @@ public final class PersistedConfiguration {
   @SuppressWarnings("unchecked")
   private static <T> void register(Class<T> type, GenericPreferenceFetcher<T> simpleFetcher) {
     PreferenceFetcher fetcher =
-        (component, key, defaultValue, initializePreference) ->
-            simpleFetcher.getValue(component, key, (T) defaultValue, initializePreference);
+        (component, key, defaultValue, initializePreference, listenerConsumers) ->
+            simpleFetcher.getValue(
+                component, key, (T) defaultValue, initializePreference, listenerConsumers);
     TYPE_TO_FETCHER.put(type, fetcher);
   }
 
@@ -407,7 +430,11 @@ public final class PersistedConfiguration {
 
   /** Gets a boolean value from Preferences for the given component. */
   private static boolean booleanFetcher(
-      RecordComponent component, String key, Boolean defaultValue, boolean initialize) {
+      RecordComponent component,
+      String key,
+      Boolean defaultValue,
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
     if (initialize) {
       if (defaultValue == null) {
         defaultValue = Boolean.FALSE;
@@ -423,20 +450,31 @@ public final class PersistedConfiguration {
       RecordComponent component,
       String key,
       BooleanSupplier defaultValueSupplier,
-      boolean initialize) {
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
+    boolean initialValue = false;
     if (initialize) {
-      boolean defaultValue = false;
       if (defaultValueSupplier != null) {
-        defaultValue = defaultValueSupplier.getAsBoolean();
+        initialValue = defaultValueSupplier.getAsBoolean();
       }
-      Preferences.initBoolean(key, defaultValue);
+      Preferences.initBoolean(key, initialValue);
+    } else {
+      initialValue = Preferences.getBoolean(key, false);
     }
-    return () -> Preferences.getBoolean(key, false);
+
+    AtomicBoolean lastestValue = new AtomicBoolean(initialValue);
+    listenerRegistry.addListener(
+        key, (NetworkTableValue tableValue) -> lastestValue.set(tableValue.getBoolean()));
+    return lastestValue::get;
   }
 
   /** Gets an int value from Preferences for the given component. */
   private static int intFetcher(
-      RecordComponent component, String key, Integer defaultValue, boolean initialize) {
+      RecordComponent component,
+      String key,
+      Integer defaultValue,
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
     if (initialize) {
       if (defaultValue == null) {
         defaultValue = 0;
@@ -449,17 +487,39 @@ public final class PersistedConfiguration {
 
   /** Gets a IntSupplier value from Preferences for the given component. */
   private static IntSupplier intSupplierFetcher(
-      RecordComponent component, String key, IntSupplier defaultValueSupplier, boolean initialize) {
+      RecordComponent component,
+      String key,
+      IntSupplier defaultValueSupplier,
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
+    int initialValue = 0;
     if (initialize) {
-      int defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsInt() : 0;
-      initIntegerPreference(key, defaultValue);
+      if (defaultValueSupplier != null) {
+        initialValue = defaultValueSupplier.getAsInt();
+      }
+      initIntegerPreference(key, initialValue);
+    } else {
+      initialValue = getIntegerPreference(key);
     }
-    return () -> getIntegerPreference(key);
+
+    AtomicInteger lastestValue = new AtomicInteger(initialValue);
+    listenerRegistry.addListener(
+        key,
+        (NetworkTableValue tableValue) -> {
+          int value =
+              (int) (tableValue.isInteger() ? tableValue.getInteger() : tableValue.getDouble());
+          lastestValue.set(value);
+        });
+    return lastestValue::get;
   }
 
   /** Gets a long value from Preferences for the given component. */
   private static long longFetcher(
-      RecordComponent component, String key, Long defaultValue, boolean initialize) {
+      RecordComponent component,
+      String key,
+      Long defaultValue,
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
     if (initialize) {
       if (defaultValue == null) {
         defaultValue = 0L;
@@ -475,17 +535,31 @@ public final class PersistedConfiguration {
       RecordComponent component,
       String key,
       LongSupplier defaultValueSupplier,
-      boolean initialize) {
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
+    long initialValue = 0;
     if (initialize) {
-      long defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsLong() : 0;
-      Preferences.initLong(key, defaultValue);
+      if (defaultValueSupplier != null) {
+        initialValue = defaultValueSupplier.getAsLong();
+      }
+      Preferences.initLong(key, initialValue);
+    } else {
+      initialValue = Preferences.getLong(key, 0);
     }
-    return () -> Preferences.getLong(key, 0);
+
+    AtomicLong lastestValue = new AtomicLong(initialValue);
+    listenerRegistry.addListener(
+        key, (NetworkTableValue tableValue) -> lastestValue.set(tableValue.getInteger()));
+    return lastestValue::get;
   }
 
   /** Gets a double value from Preferences for the given component. */
   private static double doubleFetcher(
-      RecordComponent component, String key, Double defaultValue, boolean initialize) {
+      RecordComponent component,
+      String key,
+      Double defaultValue,
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
     if (initialize) {
       if (defaultValue == null) {
         defaultValue = 0.0;
@@ -501,17 +575,31 @@ public final class PersistedConfiguration {
       RecordComponent component,
       String key,
       DoubleSupplier defaultValueSupplier,
-      boolean initialize) {
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
+    double initialValue = 0;
     if (initialize) {
-      double defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsDouble() : 0;
-      Preferences.initDouble(key, defaultValue);
+      if (defaultValueSupplier != null) {
+        initialValue = defaultValueSupplier.getAsDouble();
+      }
+      Preferences.initDouble(key, initialValue);
+    } else {
+      initialValue = Preferences.getDouble(key, 0);
     }
-    return () -> Preferences.getDouble(key, 0);
+
+    AtomicReference<Double> lastestValue = new AtomicReference<>(initialValue);
+    listenerRegistry.addListener(
+        key, (NetworkTableValue tableValue) -> lastestValue.set(tableValue.getDouble()));
+    return lastestValue::get;
   }
 
   /** Gets a String value from Preferences for the given component. */
   private static String stringFetcher(
-      RecordComponent component, String key, String defaultValue, boolean initialize) {
+      RecordComponent component,
+      String key,
+      String defaultValue,
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
     if (initialize) {
       if (defaultValue == null) {
         defaultValue = "";
@@ -530,7 +618,8 @@ public final class PersistedConfiguration {
       RecordComponent component,
       String key,
       Supplier<String> defaultValueSupplier,
-      boolean initialize) {
+      boolean initialize,
+      ListenerRegistry listenerRegistry) {
     Type supplierType =
         ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
     if (!String.class.equals(supplierType)) {
@@ -542,11 +631,20 @@ public final class PersistedConfiguration {
       return defaultValueSupplier;
     }
 
+    String initialValue = "";
     if (initialize) {
-      String defaultValue = defaultValueSupplier != null ? defaultValueSupplier.get() : "";
-      Preferences.initString(key, defaultValue);
+      if (defaultValueSupplier != null) {
+        initialValue = defaultValueSupplier.get();
+      }
+      Preferences.initString(key, initialValue);
+    } else {
+      initialValue = Preferences.getString(key, "");
     }
-    return () -> Preferences.getString(key, "");
+
+    AtomicReference<String> lastestValue = new AtomicReference<>(initialValue);
+    listenerRegistry.addListener(
+        key, (NetworkTableValue tableValue) -> lastestValue.set(tableValue.getString()));
+    return lastestValue::get;
   }
 
   /** Deletes Preferences that were created by older versions of this class. */
@@ -613,5 +711,34 @@ public final class PersistedConfiguration {
 
   private PersistedConfiguration() {
     throw new AssertionError("Not instantiable");
+  }
+
+  /** Registry that supports adding Preference value listeners. */
+  private static class ListenerRegistry {
+    private static final String PREFERENCE_TABLE_NAME = "Preferences";
+    private final Map<Integer, Consumer<NetworkTableValue>> topicToConsumer = new HashMap<>();
+    private final NetworkTable preferencesTable;
+
+    ListenerRegistry(NetworkTableInstance ntInstance, String preferenceName) {
+      this.preferencesTable = ntInstance.getTable(PREFERENCE_TABLE_NAME);
+      String prefix = this.preferencesTable.getPath() + "/" + preferenceName + "/";
+
+      ntInstance.addListener(
+          new String[] {prefix},
+          EnumSet.of(NetworkTableEvent.Kind.kValueAll),
+          event -> {
+            if (event.valueData != null) {
+              var listener = topicToConsumer.get(event.valueData.topic);
+              if (listener != null) {
+                listener.accept(event.valueData.value);
+              }
+            }
+          });
+    }
+
+    void addListener(String key, Consumer<NetworkTableValue> listener) {
+      int handle = preferencesTable.getTopic(key).getHandle();
+      topicToConsumer.put(handle, listener);
+    }
   }
 }

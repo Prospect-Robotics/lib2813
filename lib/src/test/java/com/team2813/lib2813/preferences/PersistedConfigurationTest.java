@@ -231,6 +231,7 @@ public final class PersistedConfigurationTest {
 
       // Arrange: Update preferences
       updatePreferenceValues(ValuesKind.UPDATED_VALUES);
+      flushNetworkTableEvents();
       var preferenceValues = preferenceValues();
 
       // Act
@@ -261,6 +262,7 @@ public final class PersistedConfigurationTest {
 
       // Arrange: Update preferences
       updatePreferenceValues(ValuesKind.UPDATED_VALUES);
+      flushNetworkTableEvents();
       var preferenceValues = preferenceValues();
 
       // Act
@@ -294,6 +296,7 @@ public final class PersistedConfigurationTest {
 
       // Arrange: Update preferences
       updatePreferenceValues(ValuesKind.UPDATED_VALUES);
+      flushNetworkTableEvents();
       preferenceValues = preferenceValues();
 
       // Act
@@ -326,6 +329,7 @@ public final class PersistedConfigurationTest {
 
       // Arrange: Update preferences
       updatePreferenceValues(ValuesKind.UPDATED_VALUES);
+      flushNetworkTableEvents();
       preferenceValues = preferenceValues();
 
       // Act
@@ -338,6 +342,12 @@ public final class PersistedConfigurationTest {
       assertHasNoChangesSince(preferenceValues);
       // Ensure the suppliers return the same value if called multiple times.
       assertHasUpdatedValues(ValuesKind.UPDATED_VALUES, newRecordWithPreferences);
+    }
+
+    private void flushNetworkTableEvents() {
+      NetworkTableInstance ntInstance = isolatedPreferences.getPreferencesTable().getInstance();
+      ntInstance.flush();
+      ntInstance.waitForListenerQueue(10.0);
     }
   }
 
