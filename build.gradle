@@ -13,5 +13,9 @@ allprojects {
             // REV Robotics
             url 'https://maven.revrobotics.com/'
         }
+        maven {
+            name 'photonvisionRepositoryRepository'
+            url 'https://maven.photonvision.org/releases'
+        }
     }
 }

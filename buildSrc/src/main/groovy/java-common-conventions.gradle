@@ -115,5 +115,7 @@ javadoc {
         links += "https://github.wpilib.org/allwpilib/docs/2027/java/"
         // REVLib
         links += "https://codedocs.revrobotics.com/java/"
+        // PhotonVision
+        links += "https://javadocs.photonvision.org/release/"
     }
 }

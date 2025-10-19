@@ -1,0 +1,42 @@
+plugins {
+    id 'java-common-conventions'
+    id 'edu.wpi.first.GradleRIO' version '2025.1.1'
+    id 'idea'
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+dependencies {
+    implementation wpi.java.deps.wpilib()
+    implementation wpi.java.vendor.java()
+    implementation 'org.photonvision:photonlib-java:v2025.3.2'
+    implementation 'org.photonvision:photontargeting-java:v2025.3.2'
+    implementation project(':lib')
+
+    testImplementation(platform('org.junit:junit-bom:5.13.1'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testImplementation 'com.google.truth:truth:1.4.4'
+    testImplementation project(':testing')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    testRuntimeOnly('org.junit.vintage:junit-vintage-engine')
+
+    nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
+    nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
+    simulationDebug wpi.sim.enableDebug()
+
+    nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
+    nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
+    simulationRelease wpi.sim.enableRelease()
+}
+
+wpi.java.configureTestTasks(test)
+
+test {
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+}
