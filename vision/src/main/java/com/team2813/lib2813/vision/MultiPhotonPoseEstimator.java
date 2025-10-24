@@ -305,13 +305,6 @@ public class MultiPhotonPoseEstimator implements AutoCloseable {
    * @param pose 2D field-centric (relative to blue origin) pose.
    */
   public void publishCameraPosesRelativeTo(Pose2d pose) {
-    // TODO(vdikov): This method sits very counter-intuitively in this class. The class is all about
-    // estimating pose and feeding it to the drive train pose estimation. Yet, this method is
-    // feeding a drive-train `pose` back to it. The MultiPhotonPoseEstimator API would become
-    // cleaner if we remove this method and find other ways to report Camera poses. kcooney@ has
-    // provided several some ideas on how we can address that with a better class/interfaces
-    // architecture here:
-    // https://github.com/Prospect-Robotics/Robot2025/pull/157#discussion_r2282753534
     Pose3d pose3d = new Pose3d(pose);
     for (PhotonCameraWrapper cameraWrapper : cameraWrappers) {
       cameraWrapper.publishCameraPose(pose3d);
