@@ -34,7 +34,7 @@ import org.photonvision.simulation.VisionSystemSim;
  * <p>This class manages one or more PhotonVision cameras, and provides an API ({@link
  * #processAllUnreadResults(PoseEstimateConsumer)}) to provide an updated estimated robot pose by
  * combining readings from AprilTags visible from the cameras. It also supports adding the cameras
- * to * PhotonVision's simulated vision system.
+ * to PhotonVision's simulated vision system.
  *
  * <p>Note that, when we are dealing with 2D and 3D poses, we follow <a
  * href="https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/coordinate-systems.html"
