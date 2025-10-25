@@ -6,14 +6,30 @@ import com.revrobotics.REVLibError;
 import edu.wpi.first.wpilibj.DriverStation;
 import java.util.function.Supplier;
 
+/**
+ * Utility class for safely applying motor controller configurations (REV, Phoenix 6, CTRE).
+ *
+ * <p>Each configuration method retries up to a fixed number of attempts to ensure reliability,
+ * reporting warnings and errors to the {@link DriverStation}.
+ *
+ * <p>This class is non-instantiable and provides only static methods.
+ *
+ * @author Team 2813
+ */
 public class ConfigUtils {
   private static final int ATTEMPTS = 10;
 
-  // make class non-instantiable
+  // Make class non-instantiable
   private ConfigUtils() {
     throw new AssertionError("cannot create ConfigUtils instance");
   }
 
+  /**
+   * Applies a configuration to a REV device with retry attempts.
+   *
+   * @param configMethod Supplier that applies a REV configuration and returns a {@link
+   *     REVLibError}.
+   */
   public static void revConfig(Supplier<REVLibError> configMethod) {
     REVLibError errorCode = configMethod.get();
     for (int i = 1; i <= ATTEMPTS && errorCode != REVLibError.kOk; i++) {
@@ -26,6 +42,12 @@ public class ConfigUtils {
     }
   }
 
+  /**
+   * Applies a configuration to a Phoenix 6 device with retry attempts.
+   *
+   * @param configMethod Supplier that applies a Phoenix 6 configuration and returns a {@link
+   *     StatusCode}.
+   */
   public static void phoenix6Config(Supplier<StatusCode> configMethod) {
     StatusCode errorCode = configMethod.get();
     for (int i = 1; i <= ATTEMPTS && errorCode != StatusCode.OK; i++) {
@@ -38,6 +60,12 @@ public class ConfigUtils {
     }
   }
 
+  /**
+   * Applies a configuration to a CTRE device with retry attempts.
+   *
+   * @param configMethod Supplier that applies a CTRE configuration and returns an {@link
+   *     ErrorCode}.
+   */
   public static void ctreConfig(Supplier<ErrorCode> configMethod) {
     ErrorCode errorCode = configMethod.get();
     if (errorCode != ErrorCode.OK) {

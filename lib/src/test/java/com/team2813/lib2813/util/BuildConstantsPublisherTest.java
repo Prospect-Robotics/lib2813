@@ -19,13 +19,24 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit tests for {@link BuildConstantsPublisher}.
+ *
+ * <p>This test validates that build constants can be correctly extracted, published to
+ * NetworkTables, and logged to the console. It also includes a custom Truth {@link Subject} for
+ * verifying that string representations of dates parse as {@link LocalDateTime}.
+ */
 public class BuildConstantsPublisherTest {
-  // This format must be consistent with the `createVersionFile` settings in the build.gradle.
+
+  /** Date format used to parse and verify build and git dates. */
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
 
-  // Fake constants copied and adapted from this article
-  // https://docs.wpilib.org/en/stable/docs/software/advanced-gradlerio/deploy-git-data.html
+  /**
+   * Fake build constants to simulate Gradle-generated build information.
+   *
+   * <p>Values are adapted from WPILib documentation examples.
+   */
   public final class FakeBuildConstants {
     public static final String MAVEN_GROUP = "";
     public static final String MAVEN_NAME = "2813Robot";
@@ -42,10 +53,9 @@ public class BuildConstantsPublisherTest {
   }
 
   /**
-   * A Truth {@link Subject} for asserting properties of strings that should parse as {@link
-   * LocalDateTime}.
+   * Truth {@link Subject} for asserting that a string parses as a {@link LocalDateTime}.
    *
-   * <p>Composed with the help of Gemini: https://g.co/gemini/share/d8db68a8fbaf
+   * <p>Useful for validating build and git date formats in tests.
    */
   private class DateTimeStringSubject extends Subject {
     private final String actual;
@@ -55,6 +65,9 @@ public class BuildConstantsPublisherTest {
       this.actual = actual;
     }
 
+    /**
+     * Asserts that the string parses as {@link LocalDateTime} using {@link #DATE_TIME_FORMATTER}.
+     */
     public void parsesAsLocalDateTime() {
       if (actual == null) {
         failWithActual(simpleFact("expected to parse as LocalDateTime, but was null"));
@@ -71,38 +84,37 @@ public class BuildConstantsPublisherTest {
     }
   }
 
-  /**
-   * Returns the value of the given key in the given table, or an empty string if the key is not
-   * present.
-   */
+  /** Returns the string value of a key in a NetworkTable, or empty if the key is not present. */
   private String getStringEntryOrEmpty(NetworkTable table, String key) {
     return table.getStringTopic(key).getEntry("").get();
   }
 
   /**
-   * Returns the value of the given key in the given table, or the given default value if the key is
-   * not present.
+   * Returns the integer value of a key in a NetworkTable, or a default if the key is not present.
    */
   private Long getIntegerEntryOrDefault(NetworkTable table, String key, long defaultValue) {
     return table.getIntegerTopic(key).getEntry(defaultValue).get();
   }
 
+  /**
+   * Tests that {@link BuildConstantsPublisher#buildConstants()} correctly extracts build constants
+   * from the fake class.
+   */
   @Test
   public void extractsBuildConstants() {
-    // Arrange.
     BuildConstantsPublisher publisher = new BuildConstantsPublisher(FakeBuildConstants.class);
 
-    // Act.
     var constants = publisher.buildConstants();
 
-    // Assert.
     ZonedDateTime expectedBuildTime =
         ZonedDateTime.ofInstant(
                 Instant.ofEpochMilli(FakeBuildConstants.BUILD_UNIX_TIME),
                 ZoneId.of("America/New_York"))
             .withNano(0);
+
     ZonedDateTime expectedGitCommitTime =
         ZonedDateTime.parse(FakeBuildConstants.GIT_DATE, DATE_TIME_FORMATTER);
+
     var expectedRecord =
         new BuildConstantsRecord(
             FakeBuildConstants.MAVEN_NAME,
@@ -117,17 +129,18 @@ public class BuildConstantsPublisherTest {
     assertThat(constants).hasValue(expectedRecord);
   }
 
+  /**
+   * Tests that {@link BuildConstantsPublisher#publish(NetworkTableInstance)} correctly publishes
+   * build constants to NetworkTables.
+   */
   @Test
   public void publishesBuildConstantsToNetworkTables() {
-    // Arrange.
     NetworkTableInstance ntInstance = NetworkTableInstance.create();
     BuildConstantsPublisher publisher = new BuildConstantsPublisher(FakeBuildConstants.class);
     NetworkTable table = ntInstance.getTable(BuildConstantsPublisher.METADATA_TABLE_NAME);
 
-    // Act.
     publisher.publish(ntInstance);
 
-    // Assert.
     assertThat(table).isNotNull();
     assertThat(table.getKeys())
         .containsExactly(
@@ -139,62 +152,50 @@ public class BuildConstantsPublisherTest {
             "BuildUnixTime",
             "BuildDate",
             "Dirty");
-    assertThat(getStringEntryOrEmpty(table, "MavenName")).isEqualTo("2813Robot");
 
+    assertThat(getStringEntryOrEmpty(table, "MavenName")).isEqualTo("2813Robot");
     assertThat(getIntegerEntryOrDefault(table, "GitRevision", 0)).isGreaterThan(0);
     assertThat(getStringEntryOrEmpty(table, "GitSha")).isNotEmpty();
     assertThat(getStringEntryOrEmpty(table, "GitDate")).isNotEmpty();
     assertThat(getStringEntryOrEmpty(table, "GitBranch")).isNotEmpty();
-
     assertThat(getIntegerEntryOrDefault(table, "BuildUnixTime", 0)).isNotEqualTo(0);
     assertThat(getStringEntryOrEmpty(table, "BuildDate")).isNotEmpty();
+
     assertAbout(DateTimeStringSubject::new)
         .that(getStringEntryOrEmpty(table, "BuildDate"))
         .parsesAsLocalDateTime();
+
     assertThat(getIntegerEntryOrDefault(table, "Dirty", -1)).isAnyOf(0L, 1L);
 
     ntInstance.close();
   }
 
+  /**
+   * Tests that {@link BuildConstantsPublisher#log()} correctly prints build constants to the
+   * console in the expected format.
+   */
   @Test
   public void logsBuildConstantsToConsole() {
-    // Arrange.
-
     BuildConstantsPublisher publisher = new BuildConstantsPublisher(FakeBuildConstants.class);
 
-    // Keep the original System.out
     PrintStream originalOut = System.out;
-
-    // Redirect System.out to a ByteArrayOutputStream
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outputStream));
 
-    // Act.
-    publisher.log();
-
-    // Assert.
     try {
+      publisher.log();
+
       assertThat(outputStream.toString())
           .containsMatch(
-              // NOTE that \r?\n is used to match both Windows (\r\n) and Unix (\n) line endings.
               "MavenName:     2813Robot\r?\n"
-                  // Matches a Git revision number, e.g., "121"
                   + "GitRevision:   [0-9]+\r?\n"
-                  // Matches a Git revision hash, e.g., "08205a25fe10c6c6c1ea4db2deabb4aaf4617637"
-                  // Accepts "NA" for users that have no git installed.
                   + "GitSha:        (NA|[0-9a-f]{40})\r?\n"
-                  // Matches a Git date, e.g., "2023-10-01 12:34:56 PDT"
                   + "GitDate:       \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.+\r?\n"
-                  // Matches a Git branch name, e.g., "main"
                   + "GitBranch:     .+\r?\n"
-                  // Matches a build date, e.g., "2023-10-01 12:34:56 PDT"
                   + "BuildDate:     \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.+\r?\n"
-                  // Matches a Unix timestamp, e.g., "1696175696"
                   + "BuildUnixTime: \\d+\r?\n"
-                  // Matches a dirty flag, e.g., "0" or "1"
                   + "Dirty:         [01]\r?\n");
     } finally {
-      // Restore System.out
       System.setOut(originalOut);
     }
   }

@@ -2,7 +2,6 @@ package com.team2813.lib2813.testing.junit.jupiter;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.team2813.lib2813.testing.junit.jupiter.ExtensionAssertions.assertHasNoFailures;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 import edu.wpi.first.hal.HAL;
@@ -21,10 +20,23 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
+import org.junit.platform.testkit.engine.Events;
 
-/** Tests for {@link WPILibExtension}. */
+/**
+ * Unit tests for the {@link WPILibExtension} JUnit 5 extension.
+ *
+ * <p>This class ensures that WPILib-specific functionality (like {@link CommandScheduler} and
+ * {@link DriverStation}) behaves correctly when used with the extension. It verifies that:
+ *
+ * <ul>
+ *   <li>Commands are not scheduled unexpectedly before or after tests
+ *   <li>{@link DriverStation} is properly enabled during tests
+ *   <li>{@link CommandTester} can execute and verify commands
+ * </ul>
+ */
 public class WPILibExtensionTest {
 
+  /** A fake command used for scheduling tests. */
   static final Command FAKE_COMMAND = new Command() {};
 
   @BeforeAll
@@ -34,6 +46,12 @@ public class WPILibExtensionTest {
     }
   }
 
+  /**
+   * Sample test class demonstrating usage of {@link WPILibExtension} with JUnit 5.
+   *
+   * <p>Uses {@link TestMethodOrder} to enforce ordering and {@link Tag} to mark it as special
+   * testkit-only.
+   */
   @ExtendWith(WPILibExtension.class)
   @Tag("ignore-outside-testkit")
   @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -52,6 +70,7 @@ public class WPILibExtensionTest {
       assertThat(DriverStation.isEnabled()).isTrue();
     }
 
+    /** Verifies that FAKE_COMMAND is not scheduled before the first test, then schedules it. */
     @Test
     @Order(1)
     public void verifyFakeCommandNotScheduledBeforeTest() {
@@ -64,6 +83,7 @@ public class WPILibExtensionTest {
       assertThat(commandScheduler.isScheduled(FAKE_COMMAND));
     }
 
+    /** Verifies that FAKE_COMMAND is not scheduled before the second test, then schedules it. */
     @Test
     @Order(2)
     public void verifyFakeCommandNotScheduledAfterTest(CommandTester commandTester) {
@@ -76,6 +96,7 @@ public class WPILibExtensionTest {
       assertThat(commandScheduler.isScheduled(FAKE_COMMAND));
     }
 
+    /** Verifies that {@link CommandTester} runs and correctly verifies a command. */
     @Test
     @Order(3)
     public void verifyCommandTester(CommandTester commandTester) {
@@ -93,12 +114,11 @@ public class WPILibExtensionTest {
     }
   } // end SampleTest
 
+  /** Verifies that {@link WPILibExtension} executes SampleTest correctly and without failures. */
   @Test
   void verifyExtension() {
-    // Arrange
     withDriverStationTemporarilyEnabled(
         () -> {
-          // Schedule FAKE_COMMAND
           CommandScheduler commandScheduler = CommandScheduler.getInstance();
           commandScheduler.enable();
           commandScheduler.schedule(FAKE_COMMAND);
@@ -107,14 +127,16 @@ public class WPILibExtensionTest {
           assertThat(isScheduled).isTrue();
         });
 
-    // Act
     EngineExecutionResults results =
         EngineTestKit.engine("junit-jupiter").selectors(selectClass(SampleTest.class)).execute();
 
-    // Assert
     assertHasNoFailures(results);
   }
 
+  /**
+   * Temporarily enables the driver station for the duration of {@code runnable}, restoring its
+   * previous state afterwards.
+   */
   private void withDriverStationTemporarilyEnabled(Runnable runnable) {
     assertThat(RobotState.isDisabled()).isTrue();
     DriverStationSim.setEnabled(true);
@@ -129,11 +151,30 @@ public class WPILibExtensionTest {
     }
   }
 
+  private void assertHasNoFailures(EngineExecutionResults results) {
+    assertHasNoFailures(results.containerEvents());
+    assertHasNoFailures(results.testEvents());
+  }
+
+  private void assertHasNoFailures(Events events) {
+    events.assertStatistics(
+        stats -> {
+          stats.skipped(0);
+          stats.failed(0);
+        });
+  }
+
+  /**
+   * A test command used for verifying {@link CommandTester}.
+   *
+   * <p>Tracks initialize() and execute() calls, and allows validation of expected behavior.
+   */
   private static class VerifiableCommand extends Command {
     private static final int EXPECTED_EXECUTION_COUNT = 4;
     private int initializedCount = 0;
     private int executionCount = 0;
 
+    /** Verifies that initialize and execute were called as expected. */
     void verify() {
       assertWithMessage("initialize() should be called").that(initializedCount).isGreaterThan(0);
       assertWithMessage("initialize() should not be called more than once")

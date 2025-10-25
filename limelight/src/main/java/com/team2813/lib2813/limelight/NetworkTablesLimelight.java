@@ -9,17 +9,26 @@ import edu.wpi.first.math.geometry.Pose3d;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 import org.json.JSONObject;
 
+/**
+ * Implementation of {@link Limelight} that retrieves data from the NetworkTables interface of a
+ * Limelight camera.
+ */
 class NetworkTablesLimelight implements Limelight {
+
+  /** Sentinel array of zeros used to detect uninitialized poses. */
   private static final double[] ZEROS = new double[6];
+
   private final String limelightName;
   private final AprilTagMapPoseHelper aprilTagMapPoseHelper;
 
+  /**
+   * Constructs a NetworkTablesLimelight instance.
+   *
+   * @param limelightName The hostname or NetworkTables name of the Limelight.
+   */
   NetworkTablesLimelight(String limelightName) {
     this.limelightName = limelightName;
     aprilTagMapPoseHelper = new AprilTagMapPoseHelper(new LimelightClient(limelightName));
@@ -37,8 +46,7 @@ class NetworkTablesLimelight implements Limelight {
 
   @Override
   public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
-    // The updateLimelight assumes we have the hostname of the limelight, which we don't. For now,
-    // this won't update the limelight.
+    // For NT-based Limelight, we do not support uploading field maps over the network yet.
     aprilTagMapPoseHelper.setFieldMap(stream, false);
   }
 
@@ -49,6 +57,7 @@ class NetworkTablesLimelight implements Limelight {
 
   @Override
   public Optional<JSONObject> getJsonDump() {
+    // This implementation does not provide raw JSON dumps
     return Optional.empty();
   }
 
@@ -59,9 +68,11 @@ class NetworkTablesLimelight implements Limelight {
 
   @Override
   public LocationalData getLocationalData() {
-    LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
+    LimelightResults results = LimelightHelpers.getLatestResults(limelightName);
+
     if (results.error == null && results.valid) {
       Map<Integer, Pose3d> aprilTags = getVisibleAprilTagPoses(results);
+
       var poseEstimate =
           toBotPoseEstimate(LimelightHelpers.getBotPoseEstimate(limelightName), aprilTags.keySet());
       var redPoseEstimate =
@@ -70,9 +81,11 @@ class NetworkTablesLimelight implements Limelight {
       var bluePoseEstimate =
           toBotPoseEstimate(
               LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName), aprilTags.keySet());
+
       return new NTLocationalData(
           results, poseEstimate, redPoseEstimate, bluePoseEstimate, aprilTags);
     }
+
     return StubLocationalData.INVALID;
   }
 
@@ -94,7 +107,9 @@ class NetworkTablesLimelight implements Limelight {
     return unmodifiableMap(map);
   }
 
+  /** Inner class implementing {@link LocationalData} backed by NetworkTables results. */
   private class NTLocationalData implements LocationalData {
+
     private final LimelightResults results;
     private final Optional<BotPoseEstimate> poseEstimate;
     private final Optional<BotPoseEstimate> redPoseEstimate;

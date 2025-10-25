@@ -95,38 +95,34 @@ import java.util.function.*;
  * @since 2.0.0
  */
 public final class PersistedConfiguration {
+  /** Key used to track which record classes are bound to preference namespaces. */
   static final String REGISTERED_CLASSES_NETWORK_TABLE_KEY = "PersistedConfiguration/registry";
+
+  /** Whether legacy keys have already been cleaned once per program run. */
   private static boolean deletedLegacyKeys = false;
 
-  // The below package-scope fields are for the self-tests.
+  // Package-private fields for self-tests.
   static boolean throwExceptions = false;
   static Consumer<String> errorReporter = DataLogManager::log;
 
   /**
-   * Creates a record class instance with fields populated from Preferences, using the provided
-   * defaults.
+   * Constructs a record instance, populating its components from Preferences, using the provided
+   * instance to get default values.
    *
-   * <p>To be stored in preferences, the type of the record components can be any of the following:
+   * <p>The provided instance supplies the default values. For each component:
    *
    * <ul>
-   *   <li>{@code boolean} or {@code BooleanSupplier} or {@code Supplier<Boolean>}
-   *   <li>{@code int} or {@code IntSupplier} or {@code Supplier<Integer>}
-   *   <li>{@code long} or {@code LongSupplier} or {@code Supplier<Long>}
-   *   <li>{@code double} or {@code DoubleSupplier} or {@code Supplier<Double>}
-   *   <li>{@code String} or {@code Supplier<String>}
-   *   <li>{@code Record} following the above rules
+   *   <li>If a corresponding preference already exists, that preference value is used.
+   *   <li>If no preference exists, the component value from {@code configWithDefaults} is stored
+   *       into Preferences and used as the returned value.
    * </ul>
    *
-   * <p>The values for the components for the passed-in instance will be used as the default value
-   * for the preference. If a component is a supplier, the supplier will be called at most once to
-   * get the default instance. Suppliers cannot return {@code null}.
-   *
-   * @param preferenceName Preference subtable to use to get the values.
-   * @param configWithDefaults Record instance with all values set to their preferred default
-   *     values.
-   * @return An instance of the record class, populated with data from the Preferences table.
-   * @throws IllegalArgumentException If {@code preferenceName} is empty or contains a {@code '/'}.
-   * @throws IllegalStateException If {@code preferenceName} was used for a different record class.
+   * @param preferenceName Subtable name under Preferences (must not contain '/')
+   * @param configWithDefaults Instance containing default values for all record components
+   * @return A new record instance populated with Preferences values
+   * @throws IllegalArgumentException if {@code preferenceName} is empty or contains '/'
+   * @throws IllegalStateException if {@code preferenceName} was already registered to a different
+   *     record class
    */
   public static <T extends Record> T fromPreferences(String preferenceName, T configWithDefaults) {
     @SuppressWarnings("unchecked")
@@ -135,55 +131,41 @@ public final class PersistedConfiguration {
   }
 
   /**
-   * Creates a record class instance of the provided type, with fields populated from Preferences.
+   * Construct a record instance with values loaded from Preferences, using Java defaults if no
+   * explicit defaults are provided.
    *
-   * <p>To be stored in preferences, the type of the record components can be any of the following:
+   * <p>For example, an {@code int} component defaults to {@code 0}, and a {@code double} component
+   * defaults to {@code 0.0}.
    *
-   * <ul>
-   *   <li>{@code boolean} or {@code BooleanSupplier} or {@code Supplier<Boolean>}
-   *   <li>{@code int} or {@code IntSupplier} or {@code Supplier<Integer>}
-   *   <li>{@code long} or {@code LongSupplier} or {@code Supplier<Long>}
-   *   <li>{@code double} or {@code DoubleSupplier} or {@code Supplier<Double>}
-   *   <li>{@code String} or {@code Supplier<String>}
-   *   <li>{@code Record} following the above rules
-   * </ul>
-   *
-   * <p>The default values for the preferences will be Java defaults (for example, zero for
-   * integers).
-   *
-   * @param preferenceName Preference subtable to use to get the values.
-   * @param recordClass Type of the record instance to populate from preferences.
-   * @return An instance of the record class, populated with data from the Preferences table.
-   * @throws IllegalArgumentException If {@code preferenceName} is empty or contains a {@code '/'}.
-   * @throws IllegalStateException If {@code preferenceName} was used for a different record class.
+   * @param preferenceName Subtable name under Preferences
+   * @param recordClass Record type to instantiate
+   * @return A new record instance populated with Preferences values
+   * @throws IllegalArgumentException if {@code preferenceName} is invalid
+   * @throws IllegalStateException if namespace was registered to another class
    */
   public static <T extends Record> T fromPreferences(String preferenceName, Class<T> recordClass) {
     return fromPreferences(preferenceName, recordClass, null);
   }
 
   /**
-   * Creates a record class instance of the provided type, with fields populated from Preferences.
+   * Internal shared implementation for record construction.
    *
-   * @param preferenceName Preference subtable to use to get the values.
-   * @param recordClass Type of the record instance to populate from preferences.
-   * @param configWithDefaults Record instance with all values set to their preferred default values
-   *     (can be {@code null}).
-   * @return An instance of the record class, populated with data from the Preferences table.
+   * @param preferenceName Preference subtable name
+   * @param recordClass Record type
+   * @param configWithDefaults Optional default instance (may be null)
    */
   private static <T extends Record> T fromPreferences(
       String preferenceName, Class<T> recordClass, T configWithDefaults) {
     deleteLegacyKeys();
-    validatePreferenceName(preferenceName);
-
-    // TODO: Use Preferences.getNetworkTable() once there is a release of WPILib that includes it.
     NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
+    validatePreferenceName(preferenceName);
     verifyNotRegisteredToAnotherClass(ntInstance, preferenceName, recordClass);
 
     try {
       return createFromPreferences(preferenceName, recordClass, configWithDefaults);
     } catch (ReflectiveOperationException e) {
       if (throwExceptions) {
-        throw new RuntimeException(e); // For self-tests.
+        throw new RuntimeException(e); // For unit tests
       }
       DriverStation.reportWarning(
           String.format("Could not copy preferences into %s: %s", recordClass.getSimpleName(), e),
@@ -192,6 +174,7 @@ public final class PersistedConfiguration {
     }
   }
 
+  /** Validates that a preference name is legal (non-empty and does not contain path separators). */
   private static void validatePreferenceName(String name) {
     if (name.isEmpty()) {
       throw new IllegalArgumentException("name cannot be empty");
@@ -202,19 +185,17 @@ public final class PersistedConfiguration {
   }
 
   /**
-   * Throws an exception if the given record class has been registered under a different name.
+   * Ensures the given preference namespace is not already registered to another record class.
    *
-   * @param ntInstance The network table instance that the preference is published to.
-   * @param name Preference subtable that will be used to get the values.
-   * @param recordClass Type of the record instance to populate from preferences.
-   * @throws IllegalStateException If the subtable of the given name was registered to a different
-   *     class.
+   * <p>Each namespace is stored in a special NetworkTable registry entry. If the namespace is new,
+   * it is bound to the current record type. If it already exists and points to a different record
+   * type, this method throws an exception.
    */
   private static void verifyNotRegisteredToAnotherClass(
       NetworkTableInstance ntInstance, String name, Class<? extends Record> recordClass) {
     String recordName = recordClass.getCanonicalName();
     if (recordName == null) {
-      recordName = recordClass.getName();
+      recordName = recordClass.getName(); // fallback if canonical name unavailable
     }
 
     NetworkTable registeredClassesTable = ntInstance.getTable(REGISTERED_CLASSES_NETWORK_TABLE_KEY);
@@ -233,13 +214,8 @@ public final class PersistedConfiguration {
   }
 
   /**
-   * Creates an instance of the given type using the provided default values.
-   *
-   * @param prefix String to prepend to record field names to get the Preference key.
-   * @param clazz Record class type.
-   * @param configWithDefaults Default values to use if there are no values stored in NetworkTables.
-   * @return An instance of the record class, populated with data from the Preferences table.
-   * @throws ReflectiveOperationException If the fields of the class cannot be read via reflection.
+   * Core factory logic: instantiate a record using reflection, reading each component value from
+   * Preferences (or defaults).
    */
   private static <T> T createFromPreferences(
       String prefix, Class<? extends T> clazz, T configWithDefaults)
@@ -247,35 +223,38 @@ public final class PersistedConfiguration {
     var components = clazz.getRecordComponents();
     Object[] params = new Object[components.length];
     Class<?>[] types = new Class[components.length];
+
     int i = 0;
     for (RecordComponent component : components) {
       String name = component.getName();
-      String key = prefix + PATH_SEPARATOR + name;
+      String key = prefix + PATH_SEPARATOR + name; // Preference key = namespace/componentName
       Class<?> type = component.getType();
       types[i] = type;
 
       boolean needComponentValue;
       PreferenceFactory factory = null;
       boolean isRecordField = Record.class.isAssignableFrom(type);
+
       if (isRecordField) {
+        // Nested record: recurse into sub-record
         needComponentValue = true;
       } else {
         factory = TYPE_TO_FACTORY.get(type);
         if (factory == null) {
-          // Cannot get value from Preferences; copy over the value from the input record.
+          // Unsupported type: fall back to copying default value
           needComponentValue = true;
         } else {
+          // If no key exists, we need the component value for initialization
           needComponentValue = !Preferences.containsKey(key);
         }
       }
 
       Object componentValue = null;
-      if (needComponentValue) {
-        if (configWithDefaults != null) {
-          Field defaultValueField = clazz.getDeclaredField(name);
-          defaultValueField.setAccessible(true);
-          componentValue = defaultValueField.get(configWithDefaults);
-        }
+      if (needComponentValue && configWithDefaults != null) {
+        // Use reflection to get the field value from the default record instance
+        Field defaultValueField = clazz.getDeclaredField(name);
+        defaultValueField.setAccessible(true);
+        componentValue = defaultValueField.get(configWithDefaults);
       }
 
       if (isRecordField) {
@@ -284,63 +263,35 @@ public final class PersistedConfiguration {
         warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
         params[i] = componentValue;
       } else {
-        // Fetch the value from Preferences
+        // Use registered factory to create the value (from Preferences or defaults)
         params[i] =
             factory.create(
                 component, key, componentValue, /* initializePreference= */ needComponentValue);
       }
       i++;
     }
+
     Constructor<? extends T> constructor = clazz.getDeclaredConstructor(types);
     constructor.setAccessible(true);
     return constructor.newInstance(params);
   }
 
-  /**
-   * Type-safe functional interface for creating an instance of a type using data in Preferences.
-   */
-  @FunctionalInterface
-  private interface GenericPreferenceFactory<T> {
-    /**
-     * Gets a value from Preferences for the given component.
-     *
-     * @param component Provides dynamic access to the component of the record class.
-     * @param key The Preference key that should be used when initializing the Preference.
-     * @param defaultValue The default value that should be used when initializing the Preference.
-     * @param initializePreference Whether the preference should be initialized.
-     * @return The value; will match the type in "component";
-     */
-    T create(RecordComponent component, String key, T defaultValue, boolean initializePreference);
-  }
-
-  /**
-   * Functional interface for creating an instance of a type using data in Preferences.
-   *
-   * <p>Note: this interface exists to avoid ugly casts in the code that uses the reflection APIs.
-   */
+  /** Functional interface mapping a record component into a preference-backed value. */
   @FunctionalInterface
   private interface PreferenceFactory {
-    /**
-     * Gets a value from Preferences for the given component.
-     *
-     * @param component Provides dynamic access to the component of the record class.
-     * @param key The Preference key that should be used when initializing the Preference.
-     * @param defaultValue The default value that should be used when initializing the Preference.
-     * @param initializePreference Whether the preference should be initialized.
-     * @return The value; will match the type in "component";
-     */
     Object create(
         RecordComponent component, String key, Object defaultValue, boolean initializePreference);
   }
 
+  /** Generic variant of {@link PreferenceFactory} with typed defaults. */
+  @FunctionalInterface
+  private interface GenericPreferenceFactory<T> {
+    T create(RecordComponent component, String key, T defaultValue, boolean initializePreference);
+  }
+
+  /** Registry of supported record component types to their corresponding factories. */
   private static final Map<Type, PreferenceFactory> TYPE_TO_FACTORY = new HashMap<>();
 
-  /**
-   * Registers a preference factory with a type.
-   *
-   * @param type The type to register.
-   * @param simpleFactory The factory that should be used to create values of the given type.
-   */
   @SuppressWarnings("unchecked")
   private static <T> void register(Class<T> type, GenericPreferenceFactory<T> simpleFactory) {
     PreferenceFactory factory =
@@ -349,6 +300,7 @@ public final class PersistedConfiguration {
     TYPE_TO_FACTORY.put(type, factory);
   }
 
+  // Static initialization: register supported primitive and supplier types
   static {
     register(Boolean.TYPE, PersistedConfiguration::booleanFactory);
     register(BooleanSupplier.class, PersistedConfiguration::booleanSupplierFactory);
@@ -362,7 +314,7 @@ public final class PersistedConfiguration {
     register(Supplier.class, PersistedConfiguration::supplierFactory);
   }
 
-  /** Maps the generic types supported by Preferences to their primitive types. */
+  /** Maps boxed types to the primitive/supported type used for preferences. */
   private static final Map<Type, Type> SUPPLIER_TYPE_TO_REGISTERED_TYPE =
       Map.of(
           Boolean.class, Boolean.TYPE,
@@ -371,7 +323,10 @@ public final class PersistedConfiguration {
           Double.class, Double.TYPE,
           String.class, String.class);
 
-  /** Gets a boolean value from Preferences for the given component. */
+  // ===============================
+  // FACTORY IMPLEMENTATIONS
+  // ===============================
+
   private static boolean booleanFactory(
       RecordComponent component, String key, Boolean defaultValue, boolean initialize) {
     if (initialize) {
@@ -391,16 +346,15 @@ public final class PersistedConfiguration {
       BooleanSupplier defaultValueSupplier,
       boolean initialize) {
     if (initialize) {
-      boolean defaultValue = false;
-      if (defaultValueSupplier != null) {
-        defaultValue = defaultValueSupplier.getAsBoolean();
-      }
+      boolean defaultValue =
+          defaultValueSupplier != null
+              ? defaultValueSupplier.getAsBoolean()
+              : false; // ternary java operation for people who don't know
       Preferences.initBoolean(key, defaultValue);
     }
     return () -> Preferences.getBoolean(key, false);
   }
 
-  /** Gets an int value from Preferences for the given component. */
   private static int intFactory(
       RecordComponent component, String key, Integer defaultValue, boolean initialize) {
     if (initialize) {
@@ -413,7 +367,6 @@ public final class PersistedConfiguration {
     return Preferences.getInt(key, 0);
   }
 
-  /** Gets a IntSupplier value from Preferences for the given component. */
   private static IntSupplier intSupplierFactory(
       RecordComponent component, String key, IntSupplier defaultValueSupplier, boolean initialize) {
     if (initialize) {
@@ -423,7 +376,6 @@ public final class PersistedConfiguration {
     return () -> Preferences.getInt(key, 0);
   }
 
-  /** Gets a long value from Preferences for the given component. */
   private static long longFactory(
       RecordComponent component, String key, Long defaultValue, boolean initialize) {
     if (initialize) {
@@ -436,7 +388,6 @@ public final class PersistedConfiguration {
     return Preferences.getLong(key, 0);
   }
 
-  /** Gets a LongSupplier value from Preferences for the given component. */
   private static LongSupplier longSupplierFactory(
       RecordComponent component,
       String key,
@@ -449,7 +400,6 @@ public final class PersistedConfiguration {
     return () -> Preferences.getLong(key, 0);
   }
 
-  /** Gets a double value from Preferences for the given component. */
   private static double doubleFactory(
       RecordComponent component, String key, Double defaultValue, boolean initialize) {
     if (initialize) {
@@ -462,7 +412,6 @@ public final class PersistedConfiguration {
     return Preferences.getDouble(key, 0);
   }
 
-  /** Gets a DoubleSupplier value from Preferences for the given component. */
   private static DoubleSupplier doubleSupplierFactory(
       RecordComponent component,
       String key,
@@ -475,7 +424,6 @@ public final class PersistedConfiguration {
     return () -> Preferences.getDouble(key, 0);
   }
 
-  /** Gets a String value from Preferences for the given component. */
   private static String stringFactory(
       RecordComponent component, String key, String defaultValue, boolean initialize) {
     if (initialize) {
@@ -488,10 +436,6 @@ public final class PersistedConfiguration {
     return Preferences.getString(key, "");
   }
 
-  /**
-   * Gets a Supplier value from Preferences for the given component. Supports String, long, int,
-   * boolean and float values.
-   */
   private static Supplier<?> supplierFactory(
       RecordComponent component, String key, Supplier<?> defaultValueSupplier, boolean initialize) {
     Type supplierType =
@@ -514,19 +458,18 @@ public final class PersistedConfiguration {
           return defaultValueSupplier;
         }
       }
-      factory.create(
-          component, key, defaultValue, true); // Call Preferences.init{String,Double,etc}()
+      factory.create(component, key, defaultValue, true);
     }
 
     return () -> factory.create(component, key, null, false);
   }
 
-  /** Deletes Preferences that were created by older versions of this class. */
+  /**
+   * Removes legacy ".registeredTo" keys from Preferences (used by older versions of this class).
+   * Ensures backward compatibility without polluting the Preferences namespace.
+   */
   private static void deleteLegacyKeys() {
     if (!deletedLegacyKeys) {
-      // Preferences installs a listener that makes all new topics persistent. The ".registeredTo"
-      // topics used to be placed under /Preferences, so could have been persisted. They are now
-      // written under a different top-level table. Delete the topics created by the previous code.
       for (var key : Preferences.getKeys()) {
         if (key.endsWith(".registeredTo")) {
           Preferences.remove(key);
@@ -536,17 +479,13 @@ public final class PersistedConfiguration {
     }
   }
 
-  /**
-   * Emits a warning, usually via {@link DataLogManager}.
-   *
-   * @param format A format string as described in {@link java.util.Formatter Formatter}.
-   * @param args Arguments referenced by the format specifiers in the format string.
-   */
+  /** Utility method for reporting warnings. Logs to the configured {@link #errorReporter}. */
   private static void warn(String format, Object... args) {
     String message = String.format("WARNING: " + format, args);
     errorReporter.accept(message);
   }
 
+  /** Private constructor to prevent instantiation. */
   private PersistedConfiguration() {
     throw new AssertionError("Not instantiable");
   }

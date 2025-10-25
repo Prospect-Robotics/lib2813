@@ -9,45 +9,64 @@ import java.util.OptionalDouble;
 import java.util.Set;
 import org.json.JSONObject;
 
+/**
+ * Interface for interacting with a Limelight vision camera.
+ *
+ * <p>Provides methods for retrieving locational data, working with field maps, and accessing raw
+ * JSON output. Some legacy methods are marked {@link Deprecated} in favor of {@link
+ * LocationalData}-based APIs.
+ */
 public interface Limelight {
 
   /**
-   * Gets the limelight with the default name.
+   * Gets the Limelight with the default name.
    *
-   * @return the {@link Limelight} object for interfacing with the limelight
+   * @return the {@link Limelight} object for interfacing with the default camera
    */
   static Limelight getDefaultLimelight() {
     return RestLimelight.getDefaultLimelight();
   }
 
   /**
-   * @deprecated use methods in {@link LocationalData} that return a {@link BotPoseEstimate}.
+   * Returns the timestamp of the most recent capture, in seconds.
+   *
+   * @deprecated Use methods in {@link LocationalData} that return a {@link BotPoseEstimate}.
+   * @return an {@link OptionalDouble} containing the timestamp if available
    */
   @Deprecated
   OptionalDouble getTimestamp();
 
   /**
-   * Returns {@code true} if the limelight has identified a target.
+   * Returns true if the Limelight currently has a valid target.
    *
-   * @deprecated use {@link LocationalData#hasTarget()}
+   * @deprecated Use {@link LocationalData#hasTarget()} instead.
+   * @return true if a target is detected
    */
   @Deprecated
   boolean hasTarget();
 
-  /** Gets an object for getting locational data. */
+  /** Gets an object for retrieving locational data from the Limelight. */
   LocationalData getLocationalData();
 
+  /**
+   * Sets the field map for the Limelight from an input stream. Optionally, this can upload the map
+   * to the Limelight.
+   *
+   * @param stream the input stream containing the field map
+   * @param updateLimelight whether to update the Limelight with this map
+   * @throws IOException if reading from the stream fails
+   */
   void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException;
 
   /**
-   * Sets the field map for the limelight with a file in the deploy directory. Additionally, this
-   * may also upload the field map to the Limelight if desired. This will likely be a slow
-   * operation, and should not be regularly called.
+   * Sets the field map for the Limelight using a file in the deploy directory.
    *
-   * @param filepath The path to the file from the deploy directory (using UNIX file seperators)
-   * @param updateLimelight If the limelight should be updated with this field map
-   * @throws IOException If the given filepath does not exist in the deploy directory or could not
-   *     be read
+   * <p>This method opens the file and delegates to {@link #setFieldMap(InputStream, boolean)}.
+   * Uploading the map to the Limelight can be slow and should not be called frequently.
+   *
+   * @param filepath path to the file relative to the deploy directory (use UNIX file separators)
+   * @param updateLimelight whether to update the Limelight with this map
+   * @throws IOException if the file does not exist or cannot be read
    */
   default void setFieldMap(String filepath, boolean updateLimelight) throws IOException {
     File file = new File(Filesystem.getDeployDirectory(), filepath);
@@ -57,23 +76,30 @@ public interface Limelight {
   }
 
   /**
-   * Gets the locations of the given AprilTags.
+   * Returns the 3D poses of the specified visible AprilTags.
    *
-   * @deprecated use {@link LocationalData#getVisibleAprilTagPoses()}
+   * @deprecated Use {@link LocationalData#getVisibleAprilTagPoses()} instead.
+   * @param visibleTags a set of AprilTag IDs to locate
+   * @return a list of {@link Pose3d} objects representing each tag's position
    */
   @Deprecated
   List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags);
 
   /**
-   * @deprecated use {@link LocationalData#getCaptureLatency()}
+   * Returns the capture latency for the most recent Limelight frame, in seconds.
+   *
+   * @deprecated Use {@link LocationalData#getCaptureLatency()} instead.
+   * @return an {@link OptionalDouble} containing the latency if available
    */
   @Deprecated
   OptionalDouble getCaptureLatency();
 
   /**
-   * Gets the most recent JSON from the Limelight. Does not work for all implementations.
+   * Returns the most recent raw JSON dump from the Limelight.
    *
-   * @deprecated use {@link LocationalData#isValid()}.
+   * @deprecated Use {@link LocationalData#isValid()} instead. Not all Limelight implementations
+   *     support this method.
+   * @return an {@link Optional} containing the JSON object if available
    */
   @Deprecated
   Optional<JSONObject> getJsonDump();
