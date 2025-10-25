@@ -2,9 +2,8 @@ package com.team2813.lib2813.control;
 
 import edu.wpi.first.units.measure.Current;
 
+/** Basic motor control interface for command-based control and telemetry. */
 public interface Motor {
-  // motor control
-
   /**
    * Sets the motor to run with a specified mode of control.
    *

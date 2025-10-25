@@ -6,6 +6,23 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * Unified inversion semantics across different motor controller families.
+ *
+ * <p>This enum provides two distinct inversion modes:
+ *
+ * <ul>
+ *   <li><b>Absolute direction:</b> CLOCKWISE/COUNTER_CLOCKWISE define motor direction independent
+ *       of leader state. Used for standalone motors or when precise control over follower direction
+ *       is needed.
+ *   <li><b>Relative direction:</b> FOLLOW_MASTER/OPPOSE_MASTER define direction relative to the
+ *       leader motor. Simplifies configuration when followers should mirror or oppose leader
+ *       behavior regardless of leader inversion.
+ * </ul>
+ *
+ * <p>The lazy-initialized Maps class uses a holder pattern to defer reverse-mapping construction
+ * until first use, avoiding unnecessary computation if conversions are never needed.
+ */
 public enum InvertType {
   CLOCKWISE(InvertedValue.Clockwise_Positive, true),
   COUNTER_CLOCKWISE(InvertedValue.CounterClockwise_Positive, false),
@@ -22,11 +39,18 @@ public enum InvertType {
   private final Optional<InvertedValue> phoenixInvert;
   private final Optional<Boolean> sparkMaxInvert;
 
+  /** Constructor for relative inversion types (no hardware mapping). */
   InvertType() {
     phoenixInvert = Optional.empty();
     sparkMaxInvert = Optional.empty();
   }
 
+  /**
+   * Constructor for absolute direction types.
+   *
+   * @param phoenixInvert CTRE Phoenix 6 inversion value
+   * @param sparkMaxInvert REV Spark Max inversion boolean
+   */
   InvertType(InvertedValue phoenixInvert, boolean sparkMaxInvert) {
     this.phoenixInvert = Optional.of(phoenixInvert);
     this.sparkMaxInvert = Optional.of(sparkMaxInvert);
@@ -54,26 +78,40 @@ public enum InvertType {
     return Optional.of(Maps.sparkMaxMap.get(v));
   }
 
+  /**
+   * @return Phoenix inversion value if this is an absolute direction type
+   */
   public Optional<InvertedValue> phoenixInvert() {
     return phoenixInvert;
   }
 
+  /**
+   * @return Phoenix inversion, throwing if not present (internal use only)
+   */
   private InvertedValue forcePhoenixInvert() {
     return phoenixInvert.orElseThrow();
   }
 
+  /**
+   * @return Spark Max inversion value if this is an absolute direction type
+   */
   public Optional<Boolean> sparkMaxInvert() {
     return sparkMaxInvert;
   }
 
+  /**
+   * @return Spark Max inversion, throwing if not present (internal use only)
+   */
   private boolean forceSparkMaxInvert() {
     return sparkMaxInvert.orElseThrow();
   }
 
   /**
-   * Contains the maps for {@link InvertType#fromPhoenixInvert(InvertedValue)} and {@link
-   * InvertType#fromSparkMaxInvert(boolean)}. In a static class so that they will only be
-   * initialized if they are needed.
+   * Lazy-initialized reverse lookup maps using the holder pattern.
+   *
+   * <p>Maps are constructed only when first accessed, avoiding overhead if
+   * fromPhoenixInvert/fromSparkMaxInvert are never called. The merge function (a, b) -> null
+   * handles the impossible case of duplicate keys, which cannot occur given the enum definition.
    */
   private static final class Maps {
     private static final Map<InvertedValue, InvertType> phoenixMap =
