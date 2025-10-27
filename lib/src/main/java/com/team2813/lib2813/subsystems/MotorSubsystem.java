@@ -64,7 +64,6 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   private final DoublePublisher appliedCurrentPublisher;
   private final DoublePublisher setpointPublisher;
 
-
   /** A configuration for a MotorSubsystem */
   public static class MotorSubsystemConfiguration {
     /** The default acceptable position error. */
