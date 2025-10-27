@@ -31,222 +31,18 @@ import java.util.function.Supplier;
 public abstract class MotorSubsystem<T extends Supplier<Angle>> extends SubsystemBase
     implements Motor, Encoder {
 
-  protected final Motor motor;
-  protected final Encoder encoder;
-  protected final ControlMode controlMode;
-  protected final AngleUnit rotationUnit;
-  protected final double acceptableError;
-  protected final PIDController controller;
-  private final DoublePublisher positionPublisher;
-  private final BooleanPublisher atPositionPublisher;
-  private final DoublePublisher appliedCurrentPublisher;
-  private final DoublePublisher setpointPublisher;
+  protected final Motor m_motor;
+  protected final Encoder m_encoder;
+  protected final ControlMode m_controlMode;
+  protected final AngleUnit m_rotationUnit;
+  protected final double m_acceptableError;
+  protected final PIDController m_pidController;
+  private final DoublePublisher m_positionPublisher;
+  private final BooleanPublisher m_atPositionPublisher;
+  private final DoublePublisher m_appliedCurrentPublisher;
+  private final DoublePublisher m_setpointPublisher;
 
-  private boolean isEnabled;
-
-  protected MotorSubsystem(MotorSubsystemConfiguration builder) {
-    this.controller = builder.controller;
-    this.controller.setTolerance(builder.acceptableError);
-    acceptableError = builder.acceptableError;
-    motor = builder.motor;
-    encoder = builder.encoder;
-    controlMode = builder.controlMode;
-    rotationUnit = builder.rotationUnit;
-    if (builder.ntInstance != null) {
-      NetworkTable networkTable = builder.ntInstance.getTable(getName());
-      positionPublisher = networkTable.getDoubleTopic("position").publish();
-      atPositionPublisher = networkTable.getBooleanTopic("at position").publish();
-      appliedCurrentPublisher = networkTable.getDoubleTopic("applied current").publish();
-      setpointPublisher = networkTable.getDoubleTopic("setpoint").publish();
-    } else {
-      positionPublisher = null;
-      atPositionPublisher = null;
-      appliedCurrentPublisher = null;
-      setpointPublisher = null;
-    }
-
-    this.controller.setSetpoint(builder.startingPosition);
-  }
-
-  /**
-   * Sets the desired setpoint to the provided value, and enables the PID control.
-   *
-   * @param position the position to go to.
-   */
-  public final void setSetpoint(T position) {
-    if (!isEnabled()) {
-      enable();
-    }
-    double setpoint = position.get().in(rotationUnit);
-    controller.setSetpoint(setpoint);
-  }
-
-  /**
-   * Returns a command that sets the desired setpoint to the provided value.
-   *
-   * @param setpoint the position to go to.
-   */
-  public final Command setSetpointCommand(T setpoint) {
-    return new InstantCommand(() -> this.setSetpoint(setpoint), this);
-  }
-
-  /** Returns the current setpoint as an angle. */
-  public final Angle getSetpoint() {
-    return rotationUnit.of(controller.getSetpoint());
-  }
-
-  /** Determines if the motor is at the current setpoint, within the acceptable error. */
-  public final boolean atPosition() {
-    return Math.abs(getMeasurement() - controller.getSetpoint()) <= acceptableError;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * <p>Additionally, this method disables PID control of the subsystem
-   */
-  @Override
-  public final void set(ControlMode mode, double demand, double feedForward) {
-    if (isEnabled()) {
-      disable();
-    }
-    motor.set(mode, demand, feedForward);
-  }
-
-  @Override
-  public final Current getAppliedCurrent() {
-    return motor.getAppliedCurrent();
-  }
-
-  /**
-   * Enables the motor
-   *
-   * <p>The motor voltage will be periodically updated to move the motor towards the current
-   * setupoint.
-   */
-  public final void enable() {
-    isEnabled = true;
-  }
-
-  /**
-   * Stops the motor.
-   *
-   * <p>The motor voltage will be set to zero, and the motor will not adjust to move towards the
-   * current setpoint.
-   */
-  public final void disable() {
-    isEnabled = false;
-    motor.disable();
-  }
-
-  /**
-   * Returns whether the controller is enabled. If this is enabled, then PID control will be used.
-   *
-   * @return Whether the controller is enabled.
-   */
-  public final boolean isEnabled() {
-    return isEnabled;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * <p>Additionally, this method disables PID control of the subsystem. It <em>does not</em> clamp
-   * the provided value.
-   */
-  @Override
-  public final void set(ControlMode mode, double demand) {
-    isEnabled = false;
-    motor.set(mode, demand);
-  }
-
-  /**
-   * Clamps the given output value and provides it to the motor.
-   *
-   * <p>This was protected and non-final to allow subclasses to clamp the output. Subclasses should
-   * override {@link #clampOutput(double)}.
-   *
-   * @param output The output calculated by the PID algorithm.
-   * @param setpoint Ignored.
-   * @deprecated Subclasses should override {@link #clampOutput(double)}.
-   */
-  @Deprecated
-  protected void useOutput(double output, double setpoint) {
-    motor.set(controlMode, clampOutput(output));
-  }
-
-  /**
-   * Clamps the given output value and provides it to the motor.
-   *
-   * <p>This is called by {@link #periodic()} if this subsystem is enabled.
-   */
-  private void useOutput(double output) {
-    useOutput(output, controller.getSetpoint());
-  }
-
-  /**
-   * Extension point that allows subclasses to clamp the output.
-   *
-   * <p>The default implementation returns the provided value.
-   *
-   * @param output Output provided by the PID controller.
-   * @return Output to provide to the motor.
-   * @see edu.wpi.first.math.MathUtil#clamp(double, double, double)
-   */
-  protected double clampOutput(double output) {
-    return output;
-  }
-
-  protected final double getMeasurement() {
-    return encoder.getPositionMeasure().in(rotationUnit);
-  }
-
-  @Override
-  @Deprecated(forRemoval = true)
-  public double position() {
-    return encoder.position();
-  }
-
-  @Override
-  public final Angle getPositionMeasure() {
-    return encoder.getPositionMeasure();
-  }
-
-  @Override
-  @Deprecated(forRemoval = true)
-  public void setPosition(double position) {
-    encoder.setPosition(position);
-  }
-
-  @Override
-  public final void setPosition(Angle position) {
-    encoder.setPosition(position);
-  }
-
-  @Override
-  @Deprecated(forRemoval = true)
-  public double getVelocity() {
-    return encoder.getVelocity();
-  }
-
-  @Override
-  public final AngularVelocity getVelocityMeasure() {
-    return encoder.getVelocityMeasure();
-  }
-
-  /** Applies the PID output to the motor if this subsystem is enabled. */
-  @Override
-  public void periodic() {
-    if (isEnabled) {
-      useOutput(controller.calculate(getMeasurement()));
-    }
-    if (positionPublisher != null) {
-      positionPublisher.set(getPositionMeasure().in(Rotations));
-      setpointPublisher.set(getSetpoint().in(Rotations));
-      atPositionPublisher.set(atPosition());
-      appliedCurrentPublisher.set(getAppliedCurrent().in(Amps));
-    }
-  }
+  private boolean m_isEnabled;
 
   /** A configuration for a MotorSubsystem */
   public static class MotorSubsystemConfiguration {
@@ -256,8 +52,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     /** The default starting position if one is not provided. */
     public static final double DEFAULT_STARTING_POSITION = 0.0;
 
+    /** Control mode for the MotorSubsystem motor. */
     private ControlMode controlMode;
+
+    /** */
     private AngleUnit rotationUnit;
+
     private final Motor motor;
     private final Encoder encoder;
     private PIDController controller;
@@ -382,6 +182,220 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     public MotorSubsystemConfiguration publishTo(NetworkTableInstance ntInstance) {
       this.ntInstance = ntInstance;
       return this;
+    }
+  }
+
+  protected MotorSubsystem(MotorSubsystemConfiguration builder) {
+    m_pidController = builder.controller;
+    m_pidController.setTolerance(builder.acceptableError);
+    m_acceptableError = builder.acceptableError;
+    m_motor = builder.motor;
+    m_encoder = builder.encoder;
+    m_controlMode = builder.controlMode;
+    m_rotationUnit = builder.rotationUnit;
+    if (builder.ntInstance != null) {
+      NetworkTable networkTable = builder.ntInstance.getTable(getName());
+      m_positionPublisher = networkTable.getDoubleTopic("position").publish();
+      m_atPositionPublisher = networkTable.getBooleanTopic("at position").publish();
+      m_appliedCurrentPublisher = networkTable.getDoubleTopic("applied current").publish();
+      m_setpointPublisher = networkTable.getDoubleTopic("setpoint").publish();
+    } else {
+      m_positionPublisher = null;
+      m_atPositionPublisher = null;
+      m_appliedCurrentPublisher = null;
+      m_setpointPublisher = null;
+    }
+
+    m_pidController.setSetpoint(builder.startingPosition);
+  }
+
+  /**
+   * Sets the desired setpoint to the provided value, and enables the PID control.
+   *
+   * @param position the position to go to.
+   */
+  public final void setSetpoint(T position) {
+    if (!m_isEnabled) {
+      enable();
+    }
+    double setpoint = position.get().in(m_rotationUnit);
+    m_pidController.setSetpoint(setpoint);
+  }
+
+  /**
+   * Returns a command that sets the desired setpoint to the provided value.
+   *
+   * @param setpoint the position to go to.
+   */
+  public final Command setSetpointCommand(T setpoint) {
+    return new InstantCommand(() -> this.setSetpoint(setpoint), this);
+  }
+
+  /** Returns the current setpoint as an angle. */
+  public final Angle getSetpoint() {
+    return m_rotationUnit.of(m_pidController.getSetpoint());
+  }
+
+  /** Determines if the motor is at the current setpoint, within the acceptable error. */
+  public final boolean atPosition() {
+    return Math.abs(getMeasurement() - m_pidController.getSetpoint()) <= m_acceptableError;
+  }
+
+  /**
+   * Enables the motor
+   *
+   * <p>The motor voltage will be periodically updated to move the motor towards the current
+   * setupoint.
+   */
+  public final void enable() {
+    m_isEnabled = true;
+  }
+
+  /**
+   * Stops the motor.
+   *
+   * <p>The motor voltage will be set to zero, and the motor will not adjust to move towards the
+   * current setpoint.
+   */
+  public final void disable() {
+    m_isEnabled = false;
+    m_motor.set(m_controlMode, 0);
+  }
+
+  /**
+   * Returns whether the controller is enabled. If this is enabled, then PID control will be used.
+   *
+   * @return Whether the controller is enabled.
+   */
+  public final boolean isEnabled() {
+    return m_isEnabled;
+  }
+
+  /**
+   * Clamps the given output value and provides it to the motor.
+   *
+   * <p>This was protected and non-final to allow subclasses to clamp the output. Subclasses should
+   * override {@link #clampOutput(double)}.
+   *
+   * @param output The output calculated by the PID algorithm.
+   * @param setpoint Ignored.
+   * @deprecated Subclasses should override {@link #clampOutput(double)}.
+   */
+  @Deprecated
+  protected void useOutput(double output, double setpoint) {
+    m_motor.set(m_controlMode, clampOutput(output));
+  }
+
+  /**
+   * Clamps the given output value and provides it to the motor.
+   *
+   * <p>This is called by {@link #periodic()} if this subsystem is enabled.
+   */
+  private void useOutput(double output) {
+    useOutput(output, m_pidController.getSetpoint());
+  }
+
+  /**
+   * Extension point that allows subclasses to clamp the output.
+   *
+   * <p>The default implementation returns the provided value.
+   *
+   * @param output Output provided by the PID controller.
+   * @return Output to provide to the motor.
+   * @see edu.wpi.first.math.MathUtil#clamp(double, double, double)
+   */
+  protected double clampOutput(double output) {
+    return output;
+  }
+
+  protected final double getMeasurement() {
+    return m_encoder.getPositionMeasure().in(m_rotationUnit);
+  }
+
+  // `Motor` method overrides.
+  // -------------------------
+
+  /**
+   * {@inheritDoc}
+   *
+   * <p>Additionally, this method disables PID control of the subsystem
+   */
+  @Override
+  public final void set(ControlMode mode, double demand, double feedForward) {
+    if (m_isEnabled) {
+      disable();
+    }
+    m_motor.set(mode, demand, feedForward);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * <p>Additionally, this method disables PID control of the subsystem. It <em>does not</em> clamp
+   * the provided value.
+   */
+  @Override
+  public final void set(ControlMode mode, double demand) {
+    m_isEnabled = false;
+    m_motor.set(mode, demand);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final Current getAppliedCurrent() {
+    return m_motor.getAppliedCurrent();
+  }
+
+  // `Encoder` method overrides.
+  // ---------------------------
+
+  @Override
+  @Deprecated(forRemoval = true)
+  public double position() {
+    return m_encoder.position();
+  }
+
+  @Override
+  public final Angle getPositionMeasure() {
+    return m_encoder.getPositionMeasure();
+  }
+
+  @Override
+  @Deprecated(forRemoval = true)
+  public void setPosition(double position) {
+    m_encoder.setPosition(position);
+  }
+
+  @Override
+  public final void setPosition(Angle position) {
+    m_encoder.setPosition(position);
+  }
+
+  @Override
+  @Deprecated(forRemoval = true)
+  public double getVelocity() {
+    return m_encoder.getVelocity();
+  }
+
+  @Override
+  public final AngularVelocity getVelocityMeasure() {
+    return m_encoder.getVelocityMeasure();
+  }
+
+  // `Subsystem` method overrides.
+  // -----------------------------
+
+  /** Applies the PID output to the motor if this subsystem is enabled. */
+  @Override
+  public void periodic() {
+    if (m_isEnabled) {
+      useOutput(m_pidController.calculate(getMeasurement()));
+    }
+    if (m_positionPublisher != null) {
+      m_positionPublisher.set(getPositionMeasure().in(Rotations));
+      m_setpointPublisher.set(getSetpoint().in(Rotations));
+      m_atPositionPublisher.set(atPosition());
+      m_appliedCurrentPublisher.set(getAppliedCurrent().in(Amps));
     }
   }
 }
