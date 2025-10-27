@@ -24,7 +24,27 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Defines PID control over a motor, with values specified by an encoder
+ * Defines a generic subsystem comprising a motor and encoder.
+ *
+ * <p>The MotorSybsystem supports a dual operation mode:
+ *
+ * <ul>
+ *   <li><b>PID Mode</b> - the user set a destination position (aka "setpoint") and the motor
+ *       subsystem engages a PID Controller to drive the motor to that setpoint.
+ *   <li><b>Direct User Input Mode</b> - the subsystem responds to direct input from the user (i.e.,
+ *       voltage or duty cycle).
+ * </ul>
+ *
+ * <p>The <b>PID Mode</b> is enabled by calling {@link setSetpoint(T)}. The subsystem starts moving
+ * toward the setpoint and maintains position at the setpoint under the control of the PID
+ * controller. The motor system's {@link isEnabled()} returns {@code true}.
+ *
+ * <p>The <b>Direct User Input Mode</b> is activated when the user calls the {@link
+ * set(ControlType,double,double)} or {@link set(ControlType,double)} method, where the user
+ * provides direct input of type ControlType (specified via {@link
+ * MotorSubsystemConfiguration#controlMode(ControlType)}). The PID Mode is interrupted and
+ * disengaged, and {@link isEnabled()} returns {@code false}. It can be re-engaged with the {@link
+ * enable()} method and will resume movement toward setpoint.
  *
  * @param <T> the type of the {@link Supplier<Angle>} used to specify setpoints.
  */
@@ -52,12 +72,9 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     /** The default starting position if one is not provided. */
     public static final double DEFAULT_STARTING_POSITION = 0.0;
 
-    /** Control mode for the MotorSubsystem motor. */
+    // See setter methods for descriptions of these member variables.
     private ControlMode controlMode;
-
-    /** */
     private AngleUnit rotationUnit;
-
     private final Motor motor;
     private final Encoder encoder;
     private PIDController controller;
@@ -95,7 +112,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     }
 
     /**
-     * Sets the controller used to calculate the next value
+     * Sets the controller that drives the motor to a user-specified setpoint.
      *
      * @param controller The PID controller
      * @return {@code this} for chaining
@@ -126,7 +143,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     }
 
     /**
-     * Sets the PID constants for the controller
+     * Sets the PID constants for the controller.
      *
      * @param p the proportional
      * @param i the integral
@@ -139,7 +156,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     }
 
     /**
-     * Sets the initial setpoint of the controller
+     * Sets the initial setpoint of the controller.
      *
      * @param startingPosition the initial setpoint
      * @return {@code this} for chaining
@@ -162,14 +179,19 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       return startingPosition(startingPositionSupplier.get());
     }
 
-    /** Sets the acceptable position error. */
+    /**
+     * Sets the acceptable position error.
+     *
+     * <p>This is the acceptable delta between the user-specified setpoint and the actual subsystem
+     * position where the system is reporting to be "in position" (see {@link atPosition}).
+     */
     public MotorSubsystemConfiguration acceptableError(double error) {
       this.acceptableError = error;
       return this;
     }
 
     /**
-     * Sets the unit to use for PID calculations
+     * Sets the unit to use for PID calculations.
      *
      * @param rotationUnit The angle unit to use for calculations
      */
@@ -179,6 +201,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       return this;
     }
 
+    /** Sets the network table instance to report subsystem internal state to. */
     public MotorSubsystemConfiguration publishTo(NetworkTableInstance ntInstance) {
       this.ntInstance = ntInstance;
       return this;
@@ -242,10 +265,13 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   /**
-   * Enables the motor
+   * Engages the PID Controller.
    *
    * <p>The motor voltage will be periodically updated to move the motor towards the current
    * setupoint.
+   *
+   * <p>If this method is called after the motor drive toward setpoint was interrupted by user
+   * interruption, the motor will resume its movement towards the last set setpoint.
    */
   public final void enable() {
     m_isEnabled = true;
@@ -263,9 +289,13 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   /**
-   * Returns whether the controller is enabled. If this is enabled, then PID control will be used.
+   * Returns whether the PID controller is engaged.
    *
-   * @return Whether the controller is enabled.
+   * <p>When the PID controller is engaged, the motor system is moving toward the user-specified
+   * setpoint position (set via {@link setSetpoint(T)}), or, if it has already reached the setpoint,
+   * is maintaining that position.
+   *
+   * @return Whether the PID controller is engaged.
    */
   public final boolean isEnabled() {
     return m_isEnabled;
@@ -308,6 +338,9 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     return output;
   }
 
+  // Returns the current position of the motor subsystem in the units specified by m_rotationUnit.
+  // This position is used by the PID controller (when it is enabled) to determine if it is already
+  // at position or needs to adjust the subsystem position to reach a user-specified setpoint.
   protected final double getMeasurement() {
     return m_encoder.getPositionMeasure().in(m_rotationUnit);
   }
@@ -318,7 +351,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /**
    * {@inheritDoc}
    *
-   * <p>Additionally, this method disables PID control of the subsystem
+   * <p>Additionally, this method disengages PID control of the subsystem.
    */
   @Override
   public final void set(ControlMode mode, double demand, double feedForward) {
@@ -349,34 +382,40 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   // `Encoder` method overrides.
   // ---------------------------
 
+  /** {@inheritDoc} */
   @Override
   @Deprecated(forRemoval = true)
   public double position() {
     return m_encoder.position();
   }
 
+  /** {@inheritDoc} */
   @Override
   public final Angle getPositionMeasure() {
     return m_encoder.getPositionMeasure();
   }
 
+  /** {@inheritDoc} */
   @Override
   @Deprecated(forRemoval = true)
   public void setPosition(double position) {
     m_encoder.setPosition(position);
   }
 
+  /** {@inheritDoc} */
   @Override
   public final void setPosition(Angle position) {
     m_encoder.setPosition(position);
   }
 
+  /** {@inheritDoc} */
   @Override
   @Deprecated(forRemoval = true)
   public double getVelocity() {
     return m_encoder.getVelocity();
   }
 
+  /** {@inheritDoc} */
   @Override
   public final AngularVelocity getVelocityMeasure() {
     return m_encoder.getVelocityMeasure();
