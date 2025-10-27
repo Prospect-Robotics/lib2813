@@ -51,18 +51,19 @@ import java.util.function.Supplier;
 public abstract class MotorSubsystem<T extends Supplier<Angle>> extends SubsystemBase
     implements Motor, Encoder {
 
-  protected final Motor m_motor;
-  protected final Encoder m_encoder;
-  protected final ControlMode m_controlMode;
-  protected final AngleUnit m_rotationUnit;
-  protected final double m_acceptableError;
-  protected final PIDController m_pidController;
-  private final DoublePublisher m_positionPublisher;
-  private final BooleanPublisher m_atPositionPublisher;
-  private final DoublePublisher m_appliedCurrentPublisher;
-  private final DoublePublisher m_setpointPublisher;
-
+  protected final Motor motor;
+  protected final Encoder encoder;
+  // Specifies if the mechanism is currently under the control of the PID controller.
   private boolean m_isEnabled;
+  protected final ControlMode controlMode;
+  protected final AngleUnit rotationUnit;
+  protected final double acceptableError;
+  protected final PIDController pidController;
+  private final DoublePublisher positionPublisher;
+  private final BooleanPublisher atPositionPublisher;
+  private final DoublePublisher appliedCurrentPublisher;
+  private final DoublePublisher setpointPublisher;
+
 
   /** A configuration for a MotorSubsystem */
   public static class MotorSubsystemConfiguration {
@@ -209,27 +210,27 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   protected MotorSubsystem(MotorSubsystemConfiguration builder) {
-    m_pidController = builder.controller;
-    m_pidController.setTolerance(builder.acceptableError);
-    m_acceptableError = builder.acceptableError;
-    m_motor = builder.motor;
-    m_encoder = builder.encoder;
-    m_controlMode = builder.controlMode;
-    m_rotationUnit = builder.rotationUnit;
+    pidController = builder.controller;
+    pidController.setTolerance(builder.acceptableError);
+    acceptableError = builder.acceptableError;
+    motor = builder.motor;
+    encoder = builder.encoder;
+    controlMode = builder.controlMode;
+    rotationUnit = builder.rotationUnit;
     if (builder.ntInstance != null) {
       NetworkTable networkTable = builder.ntInstance.getTable(getName());
-      m_positionPublisher = networkTable.getDoubleTopic("position").publish();
-      m_atPositionPublisher = networkTable.getBooleanTopic("at position").publish();
-      m_appliedCurrentPublisher = networkTable.getDoubleTopic("applied current").publish();
-      m_setpointPublisher = networkTable.getDoubleTopic("setpoint").publish();
+      positionPublisher = networkTable.getDoubleTopic("position").publish();
+      atPositionPublisher = networkTable.getBooleanTopic("at position").publish();
+      appliedCurrentPublisher = networkTable.getDoubleTopic("applied current").publish();
+      setpointPublisher = networkTable.getDoubleTopic("setpoint").publish();
     } else {
-      m_positionPublisher = null;
-      m_atPositionPublisher = null;
-      m_appliedCurrentPublisher = null;
-      m_setpointPublisher = null;
+      positionPublisher = null;
+      atPositionPublisher = null;
+      appliedCurrentPublisher = null;
+      setpointPublisher = null;
     }
 
-    m_pidController.setSetpoint(builder.startingPosition);
+    pidController.setSetpoint(builder.startingPosition);
   }
 
   /**
@@ -241,8 +242,8 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     if (!m_isEnabled) {
       enable();
     }
-    double setpoint = position.get().in(m_rotationUnit);
-    m_pidController.setSetpoint(setpoint);
+    double setpoint = position.get().in(rotationUnit);
+    pidController.setSetpoint(setpoint);
   }
 
   /**
@@ -256,12 +257,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
 
   /** Returns the current setpoint as an angle. */
   public final Angle getSetpoint() {
-    return m_rotationUnit.of(m_pidController.getSetpoint());
+    return rotationUnit.of(pidController.getSetpoint());
   }
 
   /** Determines if the motor is at the current setpoint, within the acceptable error. */
   public final boolean atPosition() {
-    return Math.abs(getMeasurement() - m_pidController.getSetpoint()) <= m_acceptableError;
+    return Math.abs(getMeasurement() - pidController.getSetpoint()) <= acceptableError;
   }
 
   /**
@@ -285,7 +286,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    */
   public final void disable() {
     m_isEnabled = false;
-    m_motor.set(m_controlMode, 0);
+    motor.set(controlMode, 0);
   }
 
   /**
@@ -313,7 +314,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    */
   @Deprecated
   protected void useOutput(double output, double setpoint) {
-    m_motor.set(m_controlMode, clampOutput(output));
+    motor.set(controlMode, clampOutput(output));
   }
 
   /**
@@ -322,7 +323,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * <p>This is called by {@link #periodic()} if this subsystem is enabled.
    */
   private void useOutput(double output) {
-    useOutput(output, m_pidController.getSetpoint());
+    useOutput(output, pidController.getSetpoint());
   }
 
   /**
@@ -342,7 +343,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   // This position is used by the PID controller (when it is enabled) to determine if it is already
   // at position or needs to adjust the subsystem position to reach a user-specified setpoint.
   protected final double getMeasurement() {
-    return m_encoder.getPositionMeasure().in(m_rotationUnit);
+    return encoder.getPositionMeasure().in(rotationUnit);
   }
 
   // `Motor` method overrides.
@@ -358,7 +359,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     if (m_isEnabled) {
       disable();
     }
-    m_motor.set(mode, demand, feedForward);
+    motor.set(mode, demand, feedForward);
   }
 
   /**
@@ -370,13 +371,13 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   @Override
   public final void set(ControlMode mode, double demand) {
     m_isEnabled = false;
-    m_motor.set(mode, demand);
+    motor.set(mode, demand);
   }
 
   /** {@inheritDoc} */
   @Override
   public final Current getAppliedCurrent() {
-    return m_motor.getAppliedCurrent();
+    return motor.getAppliedCurrent();
   }
 
   // `Encoder` method overrides.
@@ -386,39 +387,39 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   @Override
   @Deprecated(forRemoval = true)
   public double position() {
-    return m_encoder.position();
+    return encoder.position();
   }
 
   /** {@inheritDoc} */
   @Override
   public final Angle getPositionMeasure() {
-    return m_encoder.getPositionMeasure();
+    return encoder.getPositionMeasure();
   }
 
   /** {@inheritDoc} */
   @Override
   @Deprecated(forRemoval = true)
   public void setPosition(double position) {
-    m_encoder.setPosition(position);
+    encoder.setPosition(position);
   }
 
   /** {@inheritDoc} */
   @Override
   public final void setPosition(Angle position) {
-    m_encoder.setPosition(position);
+    encoder.setPosition(position);
   }
 
   /** {@inheritDoc} */
   @Override
   @Deprecated(forRemoval = true)
   public double getVelocity() {
-    return m_encoder.getVelocity();
+    return encoder.getVelocity();
   }
 
   /** {@inheritDoc} */
   @Override
   public final AngularVelocity getVelocityMeasure() {
-    return m_encoder.getVelocityMeasure();
+    return encoder.getVelocityMeasure();
   }
 
   // `Subsystem` method overrides.
@@ -428,13 +429,13 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   @Override
   public void periodic() {
     if (m_isEnabled) {
-      useOutput(m_pidController.calculate(getMeasurement()));
+      useOutput(pidController.calculate(getMeasurement()));
     }
-    if (m_positionPublisher != null) {
-      m_positionPublisher.set(getPositionMeasure().in(Rotations));
-      m_setpointPublisher.set(getSetpoint().in(Rotations));
-      m_atPositionPublisher.set(atPosition());
-      m_appliedCurrentPublisher.set(getAppliedCurrent().in(Amps));
+    if (positionPublisher != null) {
+      positionPublisher.set(getPositionMeasure().in(Rotations));
+      setpointPublisher.set(getSetpoint().in(Rotations));
+      atPositionPublisher.set(atPosition());
+      appliedCurrentPublisher.set(getAppliedCurrent().in(Amps));
     }
   }
 }
