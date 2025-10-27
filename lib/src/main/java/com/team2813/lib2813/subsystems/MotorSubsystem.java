@@ -238,7 +238,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * @param position the position to go to.
    */
   public final void setSetpoint(T position) {
-    if (!isEnabled) {
+    if (!isEnabled()) {
       enable();
     }
     double setpoint = position.get().in(rotationUnit);
@@ -285,7 +285,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    */
   public final void disable() {
     isEnabled = false;
-    motor.set(controlMode, 0);
+    motor.disable();
   }
 
   /**
@@ -355,7 +355,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    */
   @Override
   public final void set(ControlMode mode, double demand, double feedForward) {
-    if (isEnabled) {
+    if (isEnabled()) {
       disable();
     }
     motor.set(mode, demand, feedForward);
@@ -427,7 +427,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /** Applies the PID output to the motor if this subsystem is enabled. */
   @Override
   public void periodic() {
-    if (isEnabled) {
+    if (isEnabled()) {
       useOutput(controller.calculate(getMeasurement()));
     }
     if (positionPublisher != null) {
