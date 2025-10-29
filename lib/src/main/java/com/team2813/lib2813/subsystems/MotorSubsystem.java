@@ -73,7 +73,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * @param position the position to go to.
    */
-  public void setSetpoint(T position) {
+  protected void setSetpoint(T position) {
     if (!isEnabled()) {
       enable();
     }
@@ -86,7 +86,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * @param setpoint the position to go to.
    */
-  public Command setSetpointCommand(T setpoint) {
+  protected Command setSetpointCommand(T setpoint) {
     return new InstantCommand(() -> this.setSetpoint(setpoint), this);
   }
 
