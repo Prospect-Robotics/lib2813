@@ -31,27 +31,13 @@ import java.util.function.Supplier;
 import org.apiguardian.api.API;
 
 /**
- * A wrapper around a motor and a controller that supports predefined positions.
+ * A wrapper around a motor and a PID controller that supports predefined positions.
  *
- * <p>The motor supports a dual operation mode:
+ * <p>The creator is responsible for calling {@link #periodic()} periodically.
  *
- * <ul>
- *   <li><b>PID Mode</b> - the user set a destination position (aka "setpoint") and the motor
- *       engages a PID Controller to drive the motor to that setpoint.
- *   <li><b>Direct User Input Mode</b> - the motor responds to direct input from the user (i.e.,
- *       voltage or duty cycle).
- * </ul>
- *
- * <p>The <b>PID Mode</b> is enabled by calling {@link #setSetpoint(P)}. The motor starts moving
- * toward the setpoint and maintains position at the setpoint under the control of the PID
- * controller.
- *
- * <p>The <b>Direct User Input Mode</b> is activated when the user calls the {@link
- * #setDemand(ControlMode,double,double)} or {@link #setDemand(ControlMode, double)} method, where
- * the user provides direct input of type ControlType (specified via {@link
- * PositionalMotor.Builder#controlMode(ControlMode)}). The PID Mode is interrupted and disengaged,
- * and {@link #isPIDControlEnabled()} returns {@code false}. It can be re-engaged with the {@link
- * #enablePIDControl()} method and will resume movement toward setpoint.
+ * <p>When the motor is created, PID control is disabled. To enable PID control, call {@link
+ * #setSetpoint(P)}; the motor will moving toward the setpoint and maintains position at the
+ * setpoint under the control of the PID controller. To stop the motor, call {@link #stopMotor()}.
  *
  * @param <P> an enum implementing {@link Supplier<Angle>} used to specify setpoints.
  */
@@ -216,7 +202,9 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
 
     controller.setTolerance(builder.acceptableError);
     controller.setSetpoint(builder.initialPosition);
-    controller.calculate(builder.initialPosition);
+
+    // TODO: Should we update the position of the controller using controller.calculate()?
+    // TODO: Should we update the position of the encoder using encoder.setPosition()?
   }
 
   /**
@@ -231,34 +219,6 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
     }
     double setpoint = position.get().in(ROTATION_UNIT);
     controller.setSetpoint(setpoint);
-  }
-
-  /**
-   * Sets the motor to run with a specified mode of control.
-   *
-   * <p>Additionally, this method disables PID control of the motor. It <em>does not</em> clamp the
-   * provided value.
-   *
-   * @param mode The mode to control the motor with
-   * @param demand The demand of the motor. differentiating meaning with each control mode
-   */
-  public void setDemand(ControlMode mode, double demand) {
-    isPIDControlEnabled = false;
-    motor.set(mode, demand);
-  }
-
-  /**
-   * Sets the motor to run with a specified mode of control and feedForward.
-   *
-   * <p>Additionally, this method disables PID control of the motor. It <em>does not</em> clamp the
-   * provided value.
-   *
-   * @param mode The mode to control the motor with
-   * @param demand The demand of the motor. differentiating meaning with each control mode
-   */
-  public void setDemand(ControlMode mode, double demand, double feedForward) {
-    isPIDControlEnabled = false;
-    motor.set(mode, demand, feedForward);
   }
 
   /**
