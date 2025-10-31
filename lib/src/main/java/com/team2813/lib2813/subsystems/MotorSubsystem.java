@@ -86,7 +86,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * @param setpoint the position to go to.
    */
-  protected Command setSetpointCommand(T setpoint) {
+  public final Command setSetpointCommand(T setpoint) {
     return new InstantCommand(() -> this.setSetpoint(setpoint), this);
   }
 
@@ -96,7 +96,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   /** Determines if the motor is at the current setpoint, within the acceptable error. */
-  public boolean atPosition() {
+  public final boolean atPosition() {
     return Math.abs(getMeasurement() - controller.getSetpoint()) <= acceptableError;
   }
 
