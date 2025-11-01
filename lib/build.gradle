@@ -7,6 +7,8 @@ plugins {
 version = '2.0.0-alpha.1'
 
 dependencies {
+    compileOnlyApi("org.apiguardian:apiguardian-api:1.1.2")
+
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 
