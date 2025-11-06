@@ -46,13 +46,13 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
   /** The default acceptable position error. */
   public static final double DEFAULT_ERROR = 5.0;
 
-  private static final AngleUnit ROTATION_UNIT = Units.Rotations;
   private final Motor motor;
   private final Encoder encoder;
   private final PIDController controller;
   private final Clamper clamper;
   private final Publishers publishers;
   private final ControlMode controlMode;
+  private final AngleUnit rotationUnit;
   private final double acceptableError;
   private boolean isPIDControlEnabled;
 
@@ -93,8 +93,9 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
     private final PeriodicRegistry periodicRegistry;
     private final Motor motor;
     private final Encoder encoder;
-    private final double initialPosition;
+    private double initialPosition;
     private ControlMode controlMode = ControlMode.DUTY_CYCLE;
+    private AngleUnit rotationUnit = Units.Rotations;
     private PIDController controller;
     private double acceptableError = DEFAULT_ERROR;
     private Clamper clamper = value -> value;
@@ -107,7 +108,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
       this.motor = Objects.requireNonNull(motor, "motor should not be null");
       this.encoder = Objects.requireNonNull(encoder, "encoder should not be null");
       Objects.requireNonNull(initialPosition, "initialPosition should not be null");
-      this.initialPosition = initialPosition.get().in(ROTATION_UNIT);
+      this.initialPosition = initialPosition.get().in(rotationUnit);
       controller = new PIDController(0, 0, 0);
     }
 
@@ -177,6 +178,17 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
     }
 
     /**
+     * Sets the unit to use for PID calculations
+     *
+     * @param rotationUnit The angle unit to use for calculations
+     */
+    public Builder<P> rotationUnit(AngleUnit rotationUnit) {
+      initialPosition = rotationUnit.convertFrom(initialPosition, this.rotationUnit);
+      this.rotationUnit = rotationUnit;
+      return this;
+    }
+
+    /**
      * Publish metrics about the motor and controller to the provided table.
      *
      * @param networkTable Table to publish to
@@ -199,7 +211,9 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
     motor = builder.motor;
     encoder = builder.encoder;
     controlMode = builder.controlMode;
+    rotationUnit = builder.rotationUnit;
     clamper = builder.clamper;
+
     if (builder.networkTable != null) {
       publishers = new Publishers(builder.networkTable);
     } else {
@@ -208,9 +222,9 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
 
     controller.setTolerance(builder.acceptableError);
     controller.setSetpoint(builder.initialPosition);
+    encoder.setPosition(rotationUnit.of(builder.initialPosition));
 
     // TODO: Should we update the position of the controller using controller.calculate()?
-    // TODO: Should we update the position of the encoder using encoder.setPosition()?
 
     builder.periodicRegistry.addPeriodic(this::periodic);
   }
@@ -225,8 +239,19 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
     if (!isPIDControlEnabled) {
       enablePIDControl();
     }
-    double setpoint = position.get().in(ROTATION_UNIT);
+    double setpoint = position.get().in(rotationUnit);
     controller.setSetpoint(setpoint);
+  }
+
+  /**
+   * Sets the motor to run with a specified mode of control and disables PID control.
+   *
+   * @param mode The mode to control the motor with
+   * @param demand The demand of the motor. differentiating meaning with each control mode
+   */
+  public void setDemand(ControlMode mode, double demand) {
+    isPIDControlEnabled = false;
+    motor.set(mode, demand);
   }
 
   /**
@@ -264,7 +289,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
 
   /** Returns the current setpoint as an angle. */
   public Angle getSetpoint() {
-    return ROTATION_UNIT.of(controller.getSetpoint());
+    return rotationUnit.of(controller.getSetpoint());
   }
 
   /**
@@ -288,8 +313,8 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
       motor.set(controlMode, clamper.clampValue(nextOutput));
     }
     if (publishers != null) {
-      publishers.positionPublisher.set(getPositionMeasure().in(ROTATION_UNIT));
-      publishers.setpointPublisher.set(getSetpoint().in(ROTATION_UNIT));
+      publishers.positionPublisher.set(getPositionMeasure().in(rotationUnit));
+      publishers.setpointPublisher.set(getSetpoint().in(rotationUnit));
       publishers.atPositionPublisher.set(atPosition());
       publishers.appliedCurrentPublisher.set(motor.getAppliedCurrent().in(Units.Amps));
     }
@@ -303,7 +328,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
   }
 
   private double getMeasurement() {
-    return encoder.getPositionMeasure().in(ROTATION_UNIT);
+    return encoder.getPositionMeasure().in(rotationUnit);
   }
 
   private record Publishers(
