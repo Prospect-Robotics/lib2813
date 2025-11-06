@@ -59,41 +59,38 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
   /**
    * Creates a new builder for a {@code PositionalMotor}.
    *
-   * <p>The default acceptable error is {@value #DEFAULT_ERROR} and the PID constants are set to 0.
+   * <p>The default acceptable error is {@value #DEFAULT_ERROR}, the PID constants are set to 0, and
+   * the rotational unit is set to {@link Units#Rotations}.
    *
    * @param periodicRegistry periodic registry that the motor should use
    * @param motor the motor to control
    * @param encoder the encoder providing feedback
-   * @param initialPosition the initial position of the controller
    * @return builder instance
    */
-  public static <P extends Enum<P> & Supplier<Angle>> Builder<P> builder(
-      PeriodicRegistry periodicRegistry, Motor motor, Encoder encoder, P initialPosition) {
-    return new Builder<>(periodicRegistry, motor, encoder, initialPosition);
+  public static Builder builder(PeriodicRegistry periodicRegistry, Motor motor, Encoder encoder) {
+    return new Builder(periodicRegistry, motor, encoder);
   }
 
   /**
    * Creates a new builder for a {@code PositionalMotor} using a motor that has a built-in encoder.
    *
-   * <p>The default acceptable error is {@value #DEFAULT_ERROR} and the PID constants are set to 0.
+   * <p>The default acceptable error is {@value #DEFAULT_ERROR},the PID constants are set to 0, and
+   * the rotational unit is set to {@link Units#Rotations}.
    *
    * @param periodicRegistry periodic registry that the motor should use
    * @param motor the integrated motor controller
-   * @param initialPosition the initial position of the controller
    * @return builder instance
    */
-  public static <P extends Enum<P> & Supplier<Angle>> Builder<P> builder(
-      PeriodicRegistry periodicRegistry, PIDMotor motor, P initialPosition) {
-    return new Builder<>(periodicRegistry, motor, motor, initialPosition);
+  public static Builder builder(PeriodicRegistry periodicRegistry, PIDMotor motor) {
+    return new Builder(periodicRegistry, motor, motor);
   }
 
   /** A builder for a {@code PositionalMotor}. */
-  public static class Builder<P extends Enum<P> & Supplier<Angle>> {
+  public static class Builder {
 
     private final PeriodicRegistry periodicRegistry;
     private final Motor motor;
     private final Encoder encoder;
-    private double initialPosition;
     private ControlMode controlMode = ControlMode.DUTY_CYCLE;
     private AngleUnit rotationUnit = Units.Rotations;
     private PIDController controller;
@@ -101,15 +98,11 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
     private Clamper clamper = value -> value;
     private NetworkTable networkTable;
 
-    private Builder(
-        PeriodicRegistry periodicRegistry, Motor motor, Encoder encoder, P initialPosition) {
+    private Builder(PeriodicRegistry periodicRegistry, Motor motor, Encoder encoder) {
       this.periodicRegistry =
           Objects.requireNonNull(periodicRegistry, "periodicRegistry should not be null");
       this.motor = Objects.requireNonNull(motor, "motor should not be null");
       this.encoder = Objects.requireNonNull(encoder, "encoder should not be null");
-      Objects.requireNonNull(initialPosition, "initialPosition should not be null");
-      this.initialPosition = initialPosition.get().in(rotationUnit);
-      controller = new PIDController(0, 0, 0);
     }
 
     /**
@@ -118,8 +111,12 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
      * @param controller The PID controller
      * @return {@code this} for chaining
      */
-    public Builder<P> controller(PIDController controller) {
-      this.controller = Objects.requireNonNull(controller, "controller should not be null");
+    public Builder controller(PIDController controller) {
+      Objects.requireNonNull(controller, "controller should not be null");
+      if (this.controller != null) {
+        this.controller.close();
+      }
+      this.controller = controller;
       return this;
     }
 
@@ -131,7 +128,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
      * @return {@code this} for chaining
      * @throws IllegalArgumentException If {@code controlMode} is for positional control
      */
-    public Builder<P> controlMode(ControlMode controlMode) {
+    public Builder controlMode(ControlMode controlMode) {
       if (controlMode.isPositionalControl()) {
         throw new IllegalArgumentException(
             String.format(
@@ -151,8 +148,12 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
      * @param d the derivative
      * @return {@code this} for chaining
      */
-    public Builder<P> PID(double p, double i, double d) {
-      controller.setPID(p, i, d);
+    public Builder PID(double p, double i, double d) {
+      if (controller == null) {
+        controller = new PIDController(p, i, d);
+      } else {
+        controller.setPID(p, i, d);
+      }
       return this;
     }
 
@@ -161,7 +162,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
      *
      * @return {@code this} for chaining
      */
-    public Builder<P> acceptableError(double error) {
+    public Builder acceptableError(double error) {
       this.acceptableError = error;
       return this;
     }
@@ -172,7 +173,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
      * @param clamper Function to use to clamp output values
      * @return {@code this} for chaining
      */
-    public Builder<P> clamper(Clamper clamper) {
+    public Builder clamper(Clamper clamper) {
       this.clamper = Objects.requireNonNull(clamper, "clamper should not be null");
       return this;
     }
@@ -182,8 +183,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
      *
      * @param rotationUnit The angle unit to use for calculations
      */
-    public Builder<P> rotationUnit(AngleUnit rotationUnit) {
-      initialPosition = rotationUnit.convertFrom(initialPosition, this.rotationUnit);
+    public Builder rotationUnit(AngleUnit rotationUnit) {
       this.rotationUnit = rotationUnit;
       return this;
     }
@@ -194,18 +194,26 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
      * @param networkTable Table to publish to
      * @return {@code this} for chaining
      */
-    public Builder<P> publishTo(NetworkTable networkTable) {
+    public Builder publishTo(NetworkTable networkTable) {
       this.networkTable = Objects.requireNonNull(networkTable, "networkTable should not be null");
       return this;
     }
 
-    /** Builds a {@code PositionalMotor} using the current values of this builder. */
-    public PositionalMotor<P> build() {
-      return new PositionalMotor<>(this);
+    /**
+     * Builds a {@code PositionalMotor} using the current values of this builder.
+     *
+     * @param initialPosition the initial position of the controller
+     */
+    public <P extends Enum<P> & Supplier<Angle>> PositionalMotor<P> build(P initialPosition) {
+      Objects.requireNonNull(initialPosition, "initialPosition should not be null");
+      if (controller == null) {
+        controller = new PIDController(0, 0, 0);
+      }
+      return new PositionalMotor<>(this, initialPosition);
     }
   }
 
-  private PositionalMotor(Builder<P> builder) {
+  private PositionalMotor(Builder builder, P initialPosition) {
     controller = builder.controller;
     acceptableError = builder.acceptableError;
     motor = builder.motor;
@@ -220,11 +228,10 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
       publishers = null;
     }
 
-    controller.setTolerance(builder.acceptableError);
-    controller.setSetpoint(builder.initialPosition);
-    encoder.setPosition(rotationUnit.of(builder.initialPosition));
-
-    // TODO: Should we update the position of the controller using controller.calculate()?
+    controller.setTolerance(acceptableError);
+    double initialPositionAsDouble = initialPosition.get().in(rotationUnit);
+    controller.setSetpoint(initialPositionAsDouble);
+    encoder.setPosition(rotationUnit.of(initialPositionAsDouble));
 
     builder.periodicRegistry.addPeriodic(this::periodic);
   }
