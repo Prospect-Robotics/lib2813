@@ -35,9 +35,26 @@ import org.apiguardian.api.API;
 /**
  * A wrapper around a motor and a PID controller that supports predefined positions.
  *
- * <p>When the motor is created, PID control is disabled. To enable PID control, call {@link
- * #setSetpoint(P)}; the motor will moving toward the setpoint and maintains position at the
- * setpoint under the control of the PID controller. To stop the motor, call {@link #stopMotor()}.
+ * <p>{@code PositionalMotor} supports a dual operation mode:
+ *
+ * <ul>
+ *   <li><b>PID Control Mode</b> - the user set a destination position (aka "setpoint") and the
+ *       motor moves towards the setpoint under the control of the PID controller.
+ *   <li><b>Direct User Input Mode</b> - the subsystem responds to direct input from the user (i.e.,
+ *       voltage or duty cycle).
+ * </ul>
+ *
+ * <p>When the motor is created, PID control is disabled. The current mode of the motor can be
+ * determined by calling {@link #isPIDControlEnabled()}.
+ *
+ * <p>To enable <b>PID Control Mode</b> call {@link #setSetpoint(P)}; the motor will move toward the
+ * setpoint and then maintain position at the setpoint under the control of the PID controller.
+ *
+ * <p>The <b>Direct User Input Mode</b> is activated when the user calls the {@link
+ * #setDemand(ControlMode, double)}. The PID Mode is interrupted and disengaged, and the provided
+ * demand will be directly sent to the motor.
+ *
+ * <p>To stop the motor, call {@link #stopMotor()}.
  *
  * @param <P> an enum implementing {@link Supplier<Angle>} used to specify setpoints.
  */
