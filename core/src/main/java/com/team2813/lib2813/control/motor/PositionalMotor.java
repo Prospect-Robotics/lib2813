@@ -19,6 +19,8 @@ import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.Encoder;
 import com.team2813.lib2813.control.Motor;
 import com.team2813.lib2813.control.PIDMotor;
+import com.team2813.lib2813.robot.PeriodicRegistry;
+import com.team2813.lib2813.robot.RobotState;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
@@ -32,8 +34,6 @@ import org.apiguardian.api.API;
 
 /**
  * A wrapper around a motor and a PID controller that supports predefined positions.
- *
- * <p>The creator is responsible for calling {@link #periodic()} periodically.
  *
  * <p>When the motor is created, PID control is disabled. To enable PID control, call {@link
  * #setSetpoint(P)}; the motor will moving toward the setpoint and maintains position at the
@@ -61,14 +61,15 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
    *
    * <p>The default acceptable error is {@value #DEFAULT_ERROR} and the PID constants are set to 0.
    *
+   * @param periodicRegistry periodic registry that the motor should use
    * @param motor the motor to control
    * @param encoder the encoder providing feedback
    * @param initialPosition the initial position of the controller
    * @return builder instance
    */
   public static <P extends Enum<P> & Supplier<Angle>> Builder<P> builder(
-      Motor motor, Encoder encoder, P initialPosition) {
-    return new Builder<>(motor, encoder, initialPosition);
+      PeriodicRegistry periodicRegistry, Motor motor, Encoder encoder, P initialPosition) {
+    return new Builder<>(periodicRegistry, motor, encoder, initialPosition);
   }
 
   /**
@@ -76,18 +77,20 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
    *
    * <p>The default acceptable error is {@value #DEFAULT_ERROR} and the PID constants are set to 0.
    *
+   * @param periodicRegistry periodic registry that the motor should use
    * @param motor the integrated motor controller
    * @param initialPosition the initial position of the controller
    * @return builder instance
    */
   public static <P extends Enum<P> & Supplier<Angle>> Builder<P> builder(
-      PIDMotor motor, P initialPosition) {
-    return new Builder<>(motor, motor, initialPosition);
+      PeriodicRegistry periodicRegistry, PIDMotor motor, P initialPosition) {
+    return new Builder<>(periodicRegistry, motor, motor, initialPosition);
   }
 
   /** A builder for a {@code PositionalMotor}. */
   public static class Builder<P extends Enum<P> & Supplier<Angle>> {
 
+    private final PeriodicRegistry periodicRegistry;
     private final Motor motor;
     private final Encoder encoder;
     private final double initialPosition;
@@ -97,7 +100,10 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
     private Clamper clamper = value -> value;
     private NetworkTable networkTable;
 
-    private Builder(Motor motor, Encoder encoder, P initialPosition) {
+    private Builder(
+        PeriodicRegistry periodicRegistry, Motor motor, Encoder encoder, P initialPosition) {
+      this.periodicRegistry =
+          Objects.requireNonNull(periodicRegistry, "periodicRegistry should not be null");
       this.motor = Objects.requireNonNull(motor, "motor should not be null");
       this.encoder = Objects.requireNonNull(encoder, "encoder should not be null");
       Objects.requireNonNull(initialPosition, "initialPosition should not be null");
@@ -205,6 +211,8 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
 
     // TODO: Should we update the position of the controller using controller.calculate()?
     // TODO: Should we update the position of the encoder using encoder.setPosition()?
+
+    builder.periodicRegistry.addPeriodic(this::periodic);
   }
 
   /**
@@ -273,12 +281,8 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
     return Math.abs(getMeasurement() - controller.getSetpoint()) <= acceptableError;
   }
 
-  /**
-   * Applies the PID output to the motor if this motor is enabled.
-   *
-   * <p>Should be called from {@link edu.wpi.first.wpilibj2.command.Subsystem#periodic()}.
-   */
-  public void periodic() {
+  /** Applies the PID output to the motor if this motor is enabled. */
+  private void periodic(RobotState robotState) {
     if (isPIDControlEnabled) {
       double nextOutput = controller.calculate(getMeasurement());
       motor.set(controlMode, clamper.clampValue(nextOutput));
