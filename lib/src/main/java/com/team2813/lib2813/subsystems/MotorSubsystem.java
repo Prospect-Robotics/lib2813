@@ -108,7 +108,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * @param position the position to go to.
    */
-  public void setSetpoint(T position) {
+  public final void setSetpoint(T position) {
     if (!isEnabled()) {
       enable();
     }
@@ -126,7 +126,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   /** Returns the current setpoint as an angle. */
-  public Angle getSetpoint() {
+  public final Angle getSetpoint() {
     return rotationUnit.of(controller.getSetpoint());
   }
 
@@ -141,13 +141,13 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * <p>Additionally, this method disables PID control of the subsystem
    */
   @Override
-  public void set(ControlMode mode, double demand, double feedForward) {
+  public final void set(ControlMode mode, double demand, double feedForward) {
     isEnabled = false;
     motor.set(mode, demand, feedForward);
   }
 
   @Override
-  public Current getAppliedCurrent() {
+  public final Current getAppliedCurrent() {
     return motor.getAppliedCurrent();
   }
 
@@ -160,7 +160,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * <p>If this method is called after the motor drive toward setpoint was interrupted by user
    * interruption, the motor will resume its movement towards the last set setpoint.
    */
-  public void enable() {
+  public final void enable() {
     isEnabled = true;
   }
 
@@ -171,7 +171,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * current setpoint.
    */
   @Override
-  public void stopMotor() {
+  public final void stopMotor() {
     isEnabled = false;
     motor.stopMotor();
   }
@@ -185,7 +185,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * @return Whether the PID controller is engaged.
    */
-  public boolean isEnabled() {
+  public final boolean isEnabled() {
     return isEnabled;
   }
 
@@ -196,7 +196,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * the provided value.
    */
   @Override
-  public void set(ControlMode mode, double demand) {
+  public final void set(ControlMode mode, double demand) {
     isEnabled = false;
     motor.set(mode, demand);
   }
@@ -248,17 +248,17 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public Angle getPositionMeasure() {
+  public final Angle getPositionMeasure() {
     return encoder.getPositionMeasure();
   }
 
   @Override
-  public void setPosition(Angle position) {
+  public final void setPosition(Angle position) {
     encoder.setPosition(position);
   }
 
   @Override
-  public AngularVelocity getVelocityMeasure() {
+  public final AngularVelocity getVelocityMeasure() {
     return encoder.getVelocityMeasure();
   }
 
