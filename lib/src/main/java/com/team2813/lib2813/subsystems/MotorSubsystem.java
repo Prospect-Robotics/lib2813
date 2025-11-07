@@ -91,14 +91,43 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /**
    * Sets the desired setpoint to the provided value, and enables the PID control.
    *
+   * <p>This method will call {@link #isValidatePosition(Angle)} before it makes any changes to this
+   * subsystem. If that method call returns {@code false} then this method will silently do nothing.
+   *
    * @param position the position to go to.
    */
   public final void setSetpoint(T position) {
+    if (!isValidateSetpoint(position)) {
+      return;
+    }
+
     if (!isEnabled()) {
       enable();
     }
     double setpoint = position.get().in(rotationUnit);
     controller.setSetpoint(setpoint);
+  }
+
+  /**
+   * Determines if the given position is a valid setpoint, given the current state of the subsystem.
+   *
+   * <p>This is an extension point that allows subclasses to prevent unsafe movements. This method
+   * is called by {@link #setSetpoint(Supplier)} before that method makes any changes to the
+   * subsystem. Subclasses that want to prevent movement to positions that are unsafe can override
+   * this method and have it return {@code false} to indicate that {@link #setSetpoint(Supplier)}
+   * should silently ignore the request to change the setpoint.
+   *
+   * <p>Subclasses that override this method <em>may</em> choose to report a warning to the user
+   * before returning {@code false}, but <em>should not</em> perform any actions that would lead to
+   * an observable behavior change on this subsystem.
+   *
+   * <p>The default implementation returns {@code true}.
+   *
+   * @param position the position passed to {@link #setSetpoint(Supplier)}.
+   * @return {@code true} if the position should be considered valid, otherwise {@code false}.
+   */
+  protected boolean isValidateSetpoint(T position) {
+    return true;
   }
 
   /**
@@ -253,6 +282,22 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   @Override
   public final void setPosition(Angle position) {
     encoder.setPosition(position);
+  }
+
+  /**
+   * Determines if the given position is valid, given the current state of the subsystem.
+   *
+   * <p>Ths is an extension point that allows subclasses to prevent unsafe movements. This method is
+   * called by {@link #setPosition(Angle)}, and if it returns {@code false}, that method will not
+   *
+   * <p>The default implementation returns the provided value.
+   *
+   * @param output Output provided by the PID controller.
+   * @return Output to provide to the motor.
+   * @see edu.wpi.first.math.MathUtil#clamp(double, double, double)
+   */
+  protected boolean isValidatePosition(Angle position) {
+    return true;
   }
 
   @Override
