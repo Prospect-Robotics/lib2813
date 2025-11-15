@@ -28,6 +28,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.apiguardian.api.API;
@@ -51,15 +52,16 @@ import org.apiguardian.api.API;
  * setpoint and then maintain position at the setpoint under the control of the PID controller.
  *
  * <p>The <b>Direct User Input Mode</b> is activated when the user calls the {@link
- * #setDemand(ControlMode, double)}. The PID Mode is interrupted and disengaged, and the provided
- * demand will be directly sent to the motor.
+ * #set(ControlMode, double)}. The PID Mode is interrupted and disengaged, and the provided demand
+ * will be directly sent to the motor.
  *
- * <p>To stop the motor, call {@link #stopMotor()}.
+ * <p>To stop the motor, call {@link #disable()}.
  *
  * @param <P> an enum implementing {@link Supplier<Angle>} used to specify setpoints.
  */
 @API(status = API.Status.EXPERIMENTAL)
-public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implements AutoCloseable {
+public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
+    implements AutoCloseable, Motor {
   /** The default acceptable position error. */
   public static final double DEFAULT_ERROR = 5.0;
 
@@ -268,14 +270,30 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
   }
 
   /**
-   * Sets the motor to run with a specified mode of control and disables PID control.
+   * {@inheritDoc}
    *
-   * @param mode The mode to control the motor with
-   * @param demand The demand of the motor. differentiating meaning with each control mode
+   * <p>Additionally, this method disables PID control of the subsystem
    */
-  public void setDemand(ControlMode mode, double demand) {
+  @Override
+  public void set(ControlMode mode, double demand) {
     isPIDControlEnabled = false;
     motor.set(mode, demand);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * <p>Additionally, this method disables PID control of the subsystem
+   */
+  @Override
+  public void set(ControlMode mode, double demand, double feedForward) {
+    isPIDControlEnabled = false;
+    motor.set(mode, demand, feedForward);
+  }
+
+  @Override
+  public Current getAppliedCurrent() {
+    return motor.getAppliedCurrent();
   }
 
   /**
@@ -306,7 +324,8 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>> implemen
    * <p>The motor voltage will be set to zero, and the motor will not adjust to move towards the
    * current setpoint.
    */
-  public void stopMotor() {
+  @Override
+  public void disable() {
     isPIDControlEnabled = false;
     motor.stopMotor();
   }
