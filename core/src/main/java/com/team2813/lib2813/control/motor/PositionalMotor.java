@@ -76,6 +76,20 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
   private boolean isPIDControlEnabled;
 
   /**
+   * Creates a new builder for a {@code PositionalMotor} using a motor that has a built-in encoder.
+   *
+   * <p>The default acceptable error is {@value #DEFAULT_ERROR}, the PID constants are set to 0, and
+   * the rotational unit is set to {@link Units#Rotations}.
+   *
+   * @param periodicRegistry periodic registry that the motor should use
+   * @param motor the integrated motor controller
+   * @return builder instance
+   */
+  public static Builder builder(PeriodicRegistry periodicRegistry, PIDMotor motor) {
+    return new Builder(periodicRegistry, motor, motor);
+  }
+
+  /**
    * Creates a new builder for a {@code PositionalMotor}.
    *
    * <p>The default acceptable error is {@value #DEFAULT_ERROR}, the PID constants are set to 0, and
@@ -88,20 +102,6 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
    */
   public static Builder builder(PeriodicRegistry periodicRegistry, Motor motor, Encoder encoder) {
     return new Builder(periodicRegistry, motor, encoder);
-  }
-
-  /**
-   * Creates a new builder for a {@code PositionalMotor} using a motor that has a built-in encoder.
-   *
-   * <p>The default acceptable error is {@value #DEFAULT_ERROR},the PID constants are set to 0, and
-   * the rotational unit is set to {@link Units#Rotations}.
-   *
-   * @param periodicRegistry periodic registry that the motor should use
-   * @param motor the integrated motor controller
-   * @return builder instance
-   */
-  public static Builder builder(PeriodicRegistry periodicRegistry, PIDMotor motor) {
-    return new Builder(periodicRegistry, motor, motor);
   }
 
   /** A builder for a {@code PositionalMotor}. */
@@ -162,9 +162,9 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
     /**
      * Sets the PID constants for the controller
      *
-     * @param p the proportional
-     * @param i the integral
-     * @param d the derivative
+     * @param p the proportional coefficient
+     * @param i the integral coefficient
+     * @param d the derivative coefficient
      * @return {@code this} for chaining
      */
     public Builder PID(double p, double i, double d) {
