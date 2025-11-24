@@ -62,8 +62,8 @@ import org.apiguardian.api.API;
 @API(status = API.Status.EXPERIMENTAL)
 public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
     implements AutoCloseable, Motor {
-  /** The default acceptable position error. */
-  public static final double DEFAULT_ERROR = 5.0;
+  /** The default error tolerance for the controller. */
+  public static final double DEFAULT_TOLERANCE = 0.05;
 
   private final Motor motor;
   private final Encoder encoder;
@@ -72,14 +72,13 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
   private final Publishers publishers;
   private final ControlMode controlMode;
   private final AngleUnit rotationUnit;
-  private final double acceptableError;
   private boolean isPIDControlEnabled;
 
   /**
    * Creates a new builder for a {@code PositionalMotor} using a motor that has a built-in encoder.
    *
-   * <p>The default acceptable error is {@value #DEFAULT_ERROR}, the PID constants are set to 0, and
-   * the rotational unit is set to {@link Units#Rotations}.
+   * <p>The default error tolerance is {@value #DEFAULT_TOLERANCE}, the PID constants are set to 0,
+   * and the rotational unit is set to {@link Units#Rotations}.
    *
    * @param periodicRegistry periodic registry that the motor should use
    * @param motor the integrated motor controller
@@ -92,8 +91,8 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
   /**
    * Creates a new builder for a {@code PositionalMotor}.
    *
-   * <p>The default acceptable error is {@value #DEFAULT_ERROR}, the PID constants are set to 0, and
-   * the rotational unit is set to {@link Units#Rotations}.
+   * <p>The default error tolerance is {@value #DEFAULT_TOLERANCE}, the PID constants are set to 0,
+   * and the rotational unit is set to {@link Units#Rotations}.
    *
    * @param periodicRegistry periodic registry that the motor should use
    * @param motor the motor to control
@@ -110,10 +109,9 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
     private final PeriodicRegistry periodicRegistry;
     private final Motor motor;
     private final Encoder encoder;
+    private final PIDController controller;
     private ControlMode controlMode = ControlMode.DUTY_CYCLE;
     private AngleUnit rotationUnit = Units.Rotations;
-    private PIDController controller;
-    private double acceptableError = DEFAULT_ERROR;
     private Clamper clamper = value -> value;
     private NetworkTable networkTable;
 
@@ -122,21 +120,8 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
           Objects.requireNonNull(periodicRegistry, "periodicRegistry should not be null");
       this.motor = Objects.requireNonNull(motor, "motor should not be null");
       this.encoder = Objects.requireNonNull(encoder, "encoder should not be null");
-    }
-
-    /**
-     * Sets the controller used to calculate the next value.
-     *
-     * @param controller The PID controller
-     * @return {@code this} for chaining
-     */
-    public Builder controller(PIDController controller) {
-      Objects.requireNonNull(controller, "controller should not be null");
-      if (this.controller != null) {
-        this.controller.close();
-      }
-      this.controller = controller;
-      return this;
+      controller = new PIDController(0, 0, 0);
+      controller.setTolerance(DEFAULT_TOLERANCE);
     }
 
     /**
@@ -168,21 +153,30 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
      * @return {@code this} for chaining
      */
     public Builder PID(double p, double i, double d) {
-      if (controller == null) {
-        controller = new PIDController(p, i, d);
-      } else {
-        controller.setPID(p, i, d);
-      }
+      controller.setPID(p, i, d);
       return this;
     }
 
     /**
-     * Sets the acceptable position error.
+     * Sets the error which is considered tolerable for use with {@link #atSetpoint()}.
      *
+     * @param errorTolerance Error which is tolerable
      * @return {@code this} for chaining
      */
-    public Builder acceptableError(double error) {
-      this.acceptableError = error;
+    public Builder tolerance(double errorTolerance) {
+      controller.setTolerance(errorTolerance);
+      return this;
+    }
+
+    /**
+     * Sets the error values which are considered tolerable for use with {@link #atSetpoint()}.
+     *
+     * @param errorTolerance Error which is tolerable
+     * @param errorDerivativeTolerance Error derivative which is tolerable
+     * @return {@code this} for chaining
+     */
+    public Builder tolerance(double errorTolerance, double errorDerivativeTolerance) {
+      controller.setTolerance(errorTolerance, errorDerivativeTolerance);
       return this;
     }
 
@@ -225,16 +219,12 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
      */
     public <P extends Enum<P> & Supplier<Angle>> PositionalMotor<P> build(P initialPosition) {
       Objects.requireNonNull(initialPosition, "initialPosition should not be null");
-      if (controller == null) {
-        controller = new PIDController(0, 0, 0);
-      }
       return new PositionalMotor<>(this, initialPosition);
     }
   }
 
   private PositionalMotor(Builder builder, P initialPosition) {
     controller = builder.controller;
-    acceptableError = builder.acceptableError;
     motor = builder.motor;
     encoder = builder.encoder;
     controlMode = builder.controlMode;
@@ -247,7 +237,6 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
       publishers = null;
     }
 
-    controller.setTolerance(acceptableError);
     double initialPositionAsDouble = initialPosition.get().in(rotationUnit);
     controller.setSetpoint(initialPositionAsDouble);
     encoder.setPosition(rotationUnit.of(initialPositionAsDouble));
@@ -345,8 +334,8 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
   }
 
   /** Determines if the motor is at the current setpoint, within the acceptable error. */
-  public boolean atPosition() {
-    return Math.abs(getMeasurement() - controller.getSetpoint()) <= acceptableError;
+  public boolean atSetpoint() {
+    return controller.atSetpoint();
   }
 
   /** Applies the PID output to the motor if this motor is enabled. */
@@ -358,7 +347,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
     if (publishers != null) {
       publishers.positionPublisher.set(getPositionMeasure().in(rotationUnit));
       publishers.setpointPublisher.set(getSetpoint().in(rotationUnit));
-      publishers.atPositionPublisher.set(atPosition());
+      publishers.atSetpointPublisher.set(atSetpoint());
       publishers.appliedCurrentPublisher.set(motor.getAppliedCurrent().in(Units.Amps));
     }
   }
@@ -376,21 +365,21 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
 
   private record Publishers(
       DoublePublisher positionPublisher,
-      BooleanPublisher atPositionPublisher,
+      BooleanPublisher atSetpointPublisher,
       DoublePublisher appliedCurrentPublisher,
       DoublePublisher setpointPublisher) {
 
     Publishers(NetworkTable networkTable) {
       this(
           networkTable.getDoubleTopic("position").publish(),
-          networkTable.getBooleanTopic("at position").publish(),
+          networkTable.getBooleanTopic("at setpoint").publish(),
           networkTable.getDoubleTopic("applied current").publish(),
           networkTable.getDoubleTopic("setpoint").publish());
     }
 
     void close() {
       positionPublisher.close();
-      atPositionPublisher.close();
+      atSetpointPublisher.close();
       appliedCurrentPublisher.close();
       setpointPublisher.close();
     }
