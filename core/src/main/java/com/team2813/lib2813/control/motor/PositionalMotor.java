@@ -21,6 +21,7 @@ import com.team2813.lib2813.control.Motor;
 import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.robot.PeriodicRegistry;
 import com.team2813.lib2813.robot.RobotState;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
@@ -177,6 +178,21 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
      */
     public Builder tolerance(double errorTolerance, double errorDerivativeTolerance) {
       controller.setTolerance(errorTolerance, errorDerivativeTolerance);
+      return this;
+    }
+
+    /**
+     * Sets the low and high values for the output.
+     *
+     * @param low The lower boundary to which to clamp output values.
+     * @param high The higher boundary to which to clamp output values.
+     * @return {@code this} for chaining
+     */
+    public Builder limits(double low, double high) {
+      if (low >= high) {
+        throw new IllegalArgumentException("Low value must be smaller than high value");
+      }
+      clamper = output -> MathUtil.clamp(output, low, high);
       return this;
     }
 
