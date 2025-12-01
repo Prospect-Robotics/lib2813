@@ -1,7 +1,10 @@
 package com.team2813.lib2813.testing.junit.jupiter;
 
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.wpilibj.RuntimeType;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
+import edu.wpi.first.wpilibj.simulation.SimHooks;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
@@ -48,6 +51,7 @@ public final class WPILibExtension
         AfterEachCallback,
         BeforeAllCallback,
         ParameterResolver {
+  private static final double NANOS_PER_SECOND = 1_000_000_000d;
 
   @Override
   public void beforeAll(ExtensionContext context) {
@@ -57,22 +61,27 @@ public final class WPILibExtension
     }
     DriverStationSim.setEnabled(true);
     DriverStationSim.notifyNewData();
-    CommandScheduler.getInstance().enable();
-    CommandScheduler.getInstance().cancelAll();
-    CommandScheduler.getInstance().unregisterAllSubsystems();
+    SimHooks.setHALRuntimeType(RuntimeType.kSimulation.value);
+
+    CommandScheduler commandScheduler = CommandScheduler.getInstance();
+    commandScheduler.enable();
+    commandScheduler.cancelAll();
+    commandScheduler.unregisterAllSubsystems();
   }
 
   @Override
   public void afterEach(ExtensionContext context) {
-    CommandScheduler.getInstance().cancelAll();
-    CommandScheduler.getInstance().unregisterAllSubsystems();
+    CommandScheduler commandScheduler = CommandScheduler.getInstance();
+    commandScheduler.cancelAll();
+    commandScheduler.unregisterAllSubsystems();
   }
 
   @Override
   public void afterAll(ExtensionContext context) {
-    CommandScheduler.getInstance().cancelAll();
-    CommandScheduler.getInstance().unregisterAllSubsystems();
-    CommandScheduler.getInstance().disable();
+    CommandScheduler commandScheduler = CommandScheduler.getInstance();
+    commandScheduler.cancelAll();
+    commandScheduler.unregisterAllSubsystems();
+    commandScheduler.disable();
     DriverStationSim.setEnabled(false);
     DriverStationSim.notifyNewData();
   }
@@ -87,12 +96,23 @@ public final class WPILibExtension
   @Override
   public CommandTester resolveParameter(
       ParameterContext parameterContext, ExtensionContext extensionContext) {
+    CommandScheduler scheduler = CommandScheduler.getInstance();
+
     return command -> {
-      CommandScheduler scheduler = CommandScheduler.getInstance();
-      scheduler.schedule(command);
-      do {
-        scheduler.run();
-      } while (scheduler.isScheduled(command));
+      SimHooks.pauseTiming();
+      try {
+        scheduler.schedule(command);
+        do {
+          long startTimeNanos = System.nanoTime();
+          scheduler.run();
+          long runTimeNanos = System.nanoTime() - startTimeNanos;
+          double simSleepSeconds =
+              Math.max(TimedRobot.kDefaultPeriod - (runTimeNanos / NANOS_PER_SECOND), 0.0);
+          SimHooks.stepTiming(simSleepSeconds);
+        } while (scheduler.isScheduled(command));
+      } finally {
+        SimHooks.resumeTiming();
+      }
     };
   }
 }
