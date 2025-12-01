@@ -18,6 +18,7 @@ package com.team2813.lib2813.subsystems;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Rotations;
 
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.Encoder;
 import com.team2813.lib2813.control.Motor;
@@ -39,7 +40,27 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Defines PID control over a motor, with values specified by an encoder
+ * Defines a generic subsystem comprising a motor and encoder.
+ *
+ * <p>The MotorSybsystem supports a dual operation mode:
+ *
+ * <ul>
+ *   <li><b>PID Mode</b> - the user set a destination position (aka "setpoint") and the motor
+ *       subsystem engages a PID Controller to drive the motor to that setpoint.
+ *   <li><b>Direct User Input Mode</b> - the subsystem responds to direct input from the user (i.e.,
+ *       voltage or duty cycle).
+ * </ul>
+ *
+ * <p>The <b>PID Mode</b> is enabled by calling {@link setSetpoint(T)}. The subsystem starts moving
+ * toward the setpoint and maintains position at the setpoint under the control of the PID
+ * controller. The motor system's {@link isEnabled()} returns {@code true}.
+ *
+ * <p>The <b>Direct User Input Mode</b> is activated when the user calls the {@link
+ * set(ControlType,double,double)} or {@link set(ControlType,double)} method, where the user
+ * provides direct input of type ControlType (specified via {@link
+ * MotorSubsystemConfiguration#controlMode(ControlType)}). The PID Mode is interrupted and
+ * disengaged, and {@link isEnabled()} returns {@code false}. It can be re-engaged with the {@link
+ * enable()} method and will resume movement toward setpoint.
  *
  * @param <T> the type of the {@link Supplier<Angle>} used to specify setpoints.
  */
@@ -60,8 +81,9 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   private boolean isEnabled;
 
   protected MotorSubsystem(MotorSubsystemConfiguration builder) {
-    this.controller = builder.controller;
-    this.controller.setTolerance(builder.acceptableError);
+    controller = builder.controller;
+    controller.setTolerance(builder.acceptableError);
+    controller.setSetpoint(builder.startingPosition);
     acceptableError = builder.acceptableError;
     motor = builder.motor;
     encoder = builder.encoder;
@@ -79,8 +101,6 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       appliedCurrentPublisher = null;
       setpointPublisher = null;
     }
-
-    this.controller.setSetpoint(builder.startingPosition);
   }
 
   /**
@@ -88,7 +108,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * @param position the position to go to.
    */
-  public final void setSetpoint(T position) {
+  public void setSetpoint(T position) {
     if (!isEnabled()) {
       enable();
     }
@@ -106,7 +126,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   /** Returns the current setpoint as an angle. */
-  public final Angle getSetpoint() {
+  public Angle getSetpoint() {
     return rotationUnit.of(controller.getSetpoint());
   }
 
@@ -121,7 +141,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * <p>Additionally, this method disables PID control of the subsystem
    */
   @Override
-  public final void set(ControlMode mode, double demand, double feedForward) {
+  public void set(ControlMode mode, double demand, double feedForward) {
     if (isEnabled()) {
       disable();
     }
@@ -129,17 +149,20 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public final Current getAppliedCurrent() {
+  public Current getAppliedCurrent() {
     return motor.getAppliedCurrent();
   }
 
   /**
-   * Enables the motor
+   * Engages the PID Controller.
    *
    * <p>The motor voltage will be periodically updated to move the motor towards the current
-   * setupoint.
+   * setpoint.
+   *
+   * <p>If this method is called after the motor drive toward setpoint was interrupted by user
+   * interruption, the motor will resume its movement towards the last set setpoint.
    */
-  public final void enable() {
+  public void enable() {
     isEnabled = true;
   }
 
@@ -149,17 +172,21 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * <p>The motor voltage will be set to zero, and the motor will not adjust to move towards the
    * current setpoint.
    */
-  public final void disable() {
+  public void disable() {
     isEnabled = false;
     motor.disable();
   }
 
   /**
-   * Returns whether the controller is enabled. If this is enabled, then PID control will be used.
+   * Returns whether the PID controller is engaged.
    *
-   * @return Whether the controller is enabled.
+   * <p>When the PID controller is engaged, the motor system is moving toward the user-specified
+   * setpoint position (set via {@link setSetpoint(T)}), or, if it has already reached the setpoint,
+   * is maintaining that position.
+   *
+   * @return Whether the PID controller is engaged.
    */
-  public final boolean isEnabled() {
+  public boolean isEnabled() {
     return isEnabled;
   }
 
@@ -170,7 +197,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * the provided value.
    */
   @Override
-  public final void set(ControlMode mode, double demand) {
+  public void set(ControlMode mode, double demand) {
     isEnabled = false;
     motor.set(mode, demand);
   }
@@ -212,6 +239,11 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     return output;
   }
 
+  /**
+   * Returns the current position of the motor subsystem in the units specified by rotationUnit.
+   * This position is used by the PID controller (when it is enabled) to determine if it is already
+   * at position or needs to adjust the subsystem position to reach a user-specified setpoint.
+   */
   protected final double getMeasurement() {
     return encoder.getPositionMeasure().in(rotationUnit);
   }
@@ -223,7 +255,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public final Angle getPositionMeasure() {
+  public Angle getPositionMeasure() {
     return encoder.getPositionMeasure();
   }
 
@@ -234,7 +266,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public final void setPosition(Angle position) {
+  public void setPosition(Angle position) {
     encoder.setPosition(position);
   }
 
@@ -245,7 +277,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   @Override
-  public final AngularVelocity getVelocityMeasure() {
+  public AngularVelocity getVelocityMeasure() {
     return encoder.getVelocityMeasure();
   }
 
