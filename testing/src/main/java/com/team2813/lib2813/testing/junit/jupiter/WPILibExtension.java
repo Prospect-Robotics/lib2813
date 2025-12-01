@@ -103,12 +103,8 @@ public final class WPILibExtension
       try {
         scheduler.schedule(command);
         do {
-          long startTimeNanos = System.nanoTime();
           scheduler.run();
-          long runTimeNanos = System.nanoTime() - startTimeNanos;
-          double simSleepSeconds =
-              Math.max(TimedRobot.kDefaultPeriod - (runTimeNanos / NANOS_PER_SECOND), 0.0);
-          SimHooks.stepTiming(simSleepSeconds);
+          SimHooks.stepTiming(TimedRobot.kDefaultPeriod);
         } while (scheduler.isScheduled(command));
       } finally {
         SimHooks.resumeTiming();
