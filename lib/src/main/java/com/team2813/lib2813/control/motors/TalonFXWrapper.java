@@ -17,12 +17,14 @@ package com.team2813.lib2813.control.motors;
 
 import static com.team2813.lib2813.util.InputValidation.checkCanId;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.DeviceInformation;
@@ -37,6 +39,7 @@ import edu.wpi.first.units.measure.Current;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class TalonFXWrapper implements PIDMotor {
   /** A list of followers, so that they aren't garbage collected */
@@ -225,31 +228,45 @@ public class TalonFXWrapper implements PIDMotor {
     configPIDF(0, p, i, d, 0);
   }
 
+  @Deprecated(forRemoval = true)
   public void addFollower(int deviceNumber, String canbus, InvertType invertType) {
+    addFollower(deviceNumber, new CANBus(canbus), invertType);
+  }
+
+  public void addFollower(int deviceNumber, CANBus canbus, InvertType invertType) {
     TalonFX follower = new TalonFX(checkCanId(deviceNumber), canbus);
-    if (InvertType.rotationValues.contains(invertType)) {
+    Optional<MotorAlignmentValue> alignmentValue = toMotorAlignmentValue(invertType);
+    if (alignmentValue.isEmpty()) {
       TalonFXConfiguration conf = new TalonFXConfiguration();
       // guaranteed to succeed
       conf.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
       follower.setControl(new StrictFollower(information.id()));
     } else {
-      follower.setControl(
-          new Follower(information.id(), invertType.equals(InvertType.OPPOSE_MASTER)));
+      follower.setControl(new Follower(information.id(), alignmentValue.get()));
     }
     followers.add(follower); // add to follower list so TalonFX follower object is preserved
   }
 
   public void addFollower(int deviceNumber, InvertType invertType) {
     TalonFX follower = new TalonFX(checkCanId(deviceNumber));
-    if (InvertType.rotationValues.contains(invertType)) {
+    Optional<MotorAlignmentValue> alignmentValue = toMotorAlignmentValue(invertType);
+    if (alignmentValue.isEmpty()) {
       TalonFXConfiguration conf = new TalonFXConfiguration();
       // guaranteed to succeed
       conf.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
       follower.setControl(new StrictFollower(information.id()));
     } else {
-      follower.setControl(
-          new Follower(information.id(), invertType.equals(InvertType.OPPOSE_MASTER)));
+      follower.setControl(new Follower(information.id(), alignmentValue.get()));
     }
     followers.add(follower); // add to follower list so TalonFX follower object is preserved
+  }
+
+  private static Optional<MotorAlignmentValue> toMotorAlignmentValue(InvertType invertType) {
+    if (InvertType.rotationValues.contains(invertType)) {
+      return Optional.empty();
+    }
+    return invertType.equals(InvertType.FOLLOW_MASTER)
+        ? Optional.of(MotorAlignmentValue.Aligned)
+        : Optional.of(MotorAlignmentValue.Opposed);
   }
 }
