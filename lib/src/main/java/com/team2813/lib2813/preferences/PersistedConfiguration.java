@@ -191,7 +191,7 @@ public final class PersistedConfiguration {
     validatePreferenceName(preferenceName);
 
     // TODO: Use Preferences.getNetworkTable() once there is a release of WPILib that includes it.
-    NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
+    NetworkTableInstance ntInstance = Preferences.getNetworkTable().getInstance();
     verifyNotRegisteredToAnotherClass(ntInstance, preferenceName, recordClass);
 
     try {

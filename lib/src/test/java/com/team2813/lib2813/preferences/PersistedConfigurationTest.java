@@ -23,7 +23,6 @@ import static org.junit.Assert.assertThrows;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableType;
 import edu.wpi.first.networktables.Topic;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -173,7 +172,10 @@ public final class PersistedConfigurationTest {
 
       // Assert: topic added under "/PersistedConfiguration", and is not persistent
       NetworkTable table =
-          NetworkTableInstance.getDefault().getTable(REGISTERED_CLASSES_NETWORK_TABLE_KEY);
+          isolatedPreferences
+              .getPreferencesTable()
+              .getInstance()
+              .getTable(REGISTERED_CLASSES_NETWORK_TABLE_KEY);
       NetworkTableEntry entry = table.getEntry(preferenceName);
       assertThat(entry.exists()).isTrue();
       assertThat(entry.isPersistent()).isFalse();
