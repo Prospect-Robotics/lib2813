@@ -150,7 +150,7 @@ public class MultiPhotonPoseEstimator implements AutoCloseable {
   /**
    * Configuration for a camera that is connected to PhotonVision.
    *
-   * @param robotToCamera The 3D fixed pose of the camera relative to the robot. Intuitively, this *
+   * @param robotToCamera The 3D fixed pose of the camera relative to the robot. Intuitively, this
    *     field describes where on the robot the camera is mounted.
    * @param simulationPropertiesSupplier Factory for providing simulation properties for the camera.
    */
