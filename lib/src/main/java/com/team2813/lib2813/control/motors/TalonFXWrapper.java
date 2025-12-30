@@ -202,8 +202,8 @@ public class TalonFXWrapper implements PIDMotor {
    * @see TalonFXWrapper#setNeutralMode(NeutralModeValue)
    */
   @Override
-  public void disable() {
-    motor.disable();
+  public void stopMotor() {
+    motor.stopMotor();
   }
 
   @Override

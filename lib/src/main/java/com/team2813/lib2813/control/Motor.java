@@ -45,6 +45,22 @@ public interface Motor {
    */
   Current getAppliedCurrent();
 
-  /** Stops the motor. */
-  void disable();
+  /**
+   * Stops the motor.
+   *
+   * @deprecated Use {@link #stopMotor()}.
+   */
+  @Deprecated
+  default void disable() {
+    stopMotor();
+  }
+
+  /**
+   * Stops the motor.
+   *
+   * @since 2.0.0
+   */
+  default void stopMotor() {
+    set(ControlMode.VOLTAGE, 0);
+  }
 }

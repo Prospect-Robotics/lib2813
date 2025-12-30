@@ -97,7 +97,7 @@ public class SparkMaxWrapper implements PIDMotor {
   }
 
   @Override
-  public void disable() {
+  public void stopMotor() {
     motor.stopMotor();
   }
 
