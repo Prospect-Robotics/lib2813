@@ -142,9 +142,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    */
   @Override
   public void set(ControlMode mode, double demand, double feedForward) {
-    if (isEnabled()) {
-      disable();
-    }
+    isEnabled = false;
     motor.set(mode, demand, feedForward);
   }
 
@@ -154,7 +152,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   /**
-   * Engages the PID Controller.
+   * Engages the PID controller.
    *
    * <p>The motor voltage will be periodically updated to move the motor towards the current
    * setpoint.
@@ -172,9 +170,10 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * <p>The motor voltage will be set to zero, and the motor will not adjust to move towards the
    * current setpoint.
    */
-  public void disable() {
+  @Override
+  public void stopMotor() {
     isEnabled = false;
-    motor.disable();
+    motor.stopMotor();
   }
 
   /**

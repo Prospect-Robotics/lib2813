@@ -81,7 +81,7 @@ public class FakeMotor implements Motor {
   }
 
   @Override
-  public void disable() {
+  public void stopMotor() {
     if (controlMode != ControlMode.MOTION_MAGIC) {
       set(controlMode, 0);
     }
