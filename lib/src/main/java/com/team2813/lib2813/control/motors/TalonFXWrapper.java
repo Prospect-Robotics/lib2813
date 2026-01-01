@@ -143,11 +143,6 @@ public class TalonFXWrapper implements PIDMotor {
   }
 
   @Override
-  public double position() {
-    return getPositionMeasure().in(Units.Rotations);
-  }
-
-  @Override
   public Angle getPositionMeasure() {
     return Units.Rotations.of(motor.getPosition().getValueAsDouble());
   }
@@ -158,18 +153,8 @@ public class TalonFXWrapper implements PIDMotor {
   }
 
   @Override
-  public void setPosition(double position) {
-    motor.setPosition(position);
-  }
-
-  @Override
   public void setPosition(Angle position) {
     motor.setPosition(position.in(Units.Rotations));
-  }
-
-  @Override
-  public double getVelocity() {
-    return motor.getVelocity().getValueAsDouble();
   }
 
   @Override
