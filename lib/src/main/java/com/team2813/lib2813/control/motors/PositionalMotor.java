@@ -15,6 +15,8 @@ import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.apiguardian.api.API;
@@ -47,7 +49,7 @@ import org.apiguardian.api.API;
  */
 @API(status = API.Status.EXPERIMENTAL)
 public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
-    implements AutoCloseable, Motor {
+    implements AutoCloseable, Motor, Sendable {
   /** The default error tolerance for the controller. */
   public static final double DEFAULT_TOLERANCE = 0.05;
 
@@ -243,6 +245,11 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
     encoder.setPosition(rotationUnit.of(initialPositionAsDouble));
 
     builder.periodicRegistry.addPeriodic(this::periodic);
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    controller.initSendable(builder);
   }
 
   /**
