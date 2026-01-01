@@ -21,6 +21,7 @@ import com.team2813.lib2813.control.Motor;
 import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.robot.PeriodicRegistry;
 import com.team2813.lib2813.robot.RobotState;
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.BooleanPublisher;
@@ -30,6 +31,9 @@ import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.apiguardian.api.API;
@@ -62,7 +66,7 @@ import org.apiguardian.api.API;
  */
 @API(status = API.Status.EXPERIMENTAL)
 public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
-    implements AutoCloseable, Motor {
+    implements AutoCloseable, Motor, Sendable {
   /** The default error tolerance for the controller. */
   public static final double DEFAULT_TOLERANCE = 0.05;
 
@@ -258,6 +262,30 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
     encoder.setPosition(rotationUnit.of(initialPositionAsDouble));
 
     builder.periodicRegistry.addPeriodic(this::periodic);
+
+    PIDSendable pidSendable = new PIDSendable();
+    SendableRegistry.add(pidSendable, "Controller");
+    SendableRegistry.addChild(this, pidSendable);
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.setSmartDashboardType("PositionalMotor");
+    builder.setActuator(true);
+    builder.setSafeState(this::stopMotor);
+
+    builder.addBooleanProperty(
+        "pidControlEnabled",
+        this::isPIDControlEnabled,
+        enabled -> {
+          if (enabled) {
+            enablePIDControl();
+          } else {
+            stopMotor();
+          }
+        });
+    builder.publishConstDouble("position", encoder.getPositionMeasure().in(rotationUnit));
+    builder.publishConstString("rotationUnit", rotationUnit.name());
   }
 
   /**
@@ -398,6 +426,37 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
       atSetpointPublisher.close();
       appliedCurrentPublisher.close();
       setpointPublisher.close();
+    }
+  }
+
+  /** A Sendable implementation that allows users to update PID settings. */
+  private class PIDSendable implements Sendable {
+
+    /**
+     * {@inheritDoc
+     *
+     * <p>This is modeled after {@link PIDController#initSendable(SendableBuilder)},
+     * but does not support changing the setpoint.
+     */
+    @Override
+    public void initSendable(SendableBuilder builder) {
+      builder.setSmartDashboardType("PIDController");
+      builder.addDoubleProperty("p", controller::getP, controller::setP);
+      builder.addDoubleProperty("i", controller::getI, controller::setI);
+      builder.addDoubleProperty("d", controller::getD, controller::setD);
+      builder.addDoubleProperty(
+          "izone",
+          controller::getIZone,
+          (double toSet) -> {
+            try {
+              controller.setIZone(toSet);
+            } catch (IllegalArgumentException e) {
+              MathSharedStore.reportError(
+                  "IZone must be a non-negative number!", e.getStackTrace());
+            }
+          });
+      builder.addDoubleProperty(
+          "acceptableError", controller::getErrorTolerance, controller::setTolerance);
     }
   }
 }
