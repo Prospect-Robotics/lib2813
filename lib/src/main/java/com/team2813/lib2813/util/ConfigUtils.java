@@ -15,7 +15,6 @@ limitations under the License.
 */
 package com.team2813.lib2813.util;
 
-import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix6.StatusCode;
 import com.revrobotics.REVLibError;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -50,27 +49,6 @@ public class ConfigUtils {
     }
     if (errorCode != StatusCode.OK) {
       DriverStation.reportError(String.format("%s: Config Failed", errorCode.toString()), false);
-    }
-  }
-
-  public static void ctreConfig(Supplier<ErrorCode> configMethod) {
-    ErrorCode errorCode = configMethod.get();
-    if (errorCode != ErrorCode.OK) {
-      DriverStation.reportError(
-          String.format("%s: %s", "Config Attempt 1 Failed", errorCode.toString()), false);
-      for (int i = 1; i < ATTEMPTS; i++) {
-        errorCode = configMethod.get();
-        if (errorCode == ErrorCode.OK) {
-          DriverStation.reportWarning("Config Success!", false);
-          return;
-        } else {
-          DriverStation.reportError(
-              String.format(
-                  "%s: %s", "Config Attempt " + (i + 1) + " Failed", errorCode.toString()),
-              false);
-        }
-      }
-      DriverStation.reportError(String.format("%s: %s", "Config Failed", errorCode), false);
     }
   }
 }
