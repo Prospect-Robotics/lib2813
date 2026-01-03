@@ -37,21 +37,9 @@ public class CancoderWrapper implements Encoder {
     info = new DeviceInformation(id);
   }
 
-  @Deprecated
-  @Override
-  public double position() {
-    return cancoder.getPosition().getValueAsDouble();
-  }
-
   @Override
   public Angle getPositionMeasure() {
     return Units.Rotations.of(cancoder.getPosition().getValueAsDouble());
-  }
-
-  @Deprecated
-  @Override
-  public void setPosition(double position) {
-    ConfigUtils.phoenix6Config(() -> cancoder.setPosition(position));
   }
 
   @Override
@@ -61,12 +49,6 @@ public class CancoderWrapper implements Encoder {
 
   public CANcoder encoder() {
     return cancoder;
-  }
-
-  @Deprecated
-  @Override
-  public double getVelocity() {
-    return cancoder.getVelocity().getValueAsDouble();
   }
 
   @Override

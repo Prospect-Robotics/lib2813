@@ -82,11 +82,6 @@ public class SparkMaxWrapper implements PIDMotor {
   }
 
   @Override
-  public double position() {
-    return encoder.getPosition();
-  }
-
-  @Override
   public Angle getPositionMeasure() {
     return Units.Rotations.of(encoder.getPosition());
   }
@@ -102,18 +97,8 @@ public class SparkMaxWrapper implements PIDMotor {
   }
 
   @Override
-  public void setPosition(double position) {
-    encoder.setPosition(position);
-  }
-
-  @Override
   public void setPosition(Angle position) {
     encoder.setPosition(position.in(Units.Rotations));
-  }
-
-  @Override
-  public double getVelocity() {
-    return encoder.getVelocity();
   }
 
   @Override
