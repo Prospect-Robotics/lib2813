@@ -51,7 +51,7 @@ public class TalonFXWrapper implements PIDMotor {
   private final DeviceInformation information;
 
   /**
-   * Create a TalonFXWrapper on the specified canbus
+   * Create a TalonFXWrapper on the specified canbus.
    *
    * @param canID [0, 62] the can ID of the motor
    * @param canbus the canbus that the motor is on
@@ -62,7 +62,7 @@ public class TalonFXWrapper implements PIDMotor {
    *     InvertType} that is for following motors
    * @throws InvalidCanIdException if the CAN id is invalid
    */
-  public TalonFXWrapper(int canID, String canbus, InvertType invertType) {
+  public TalonFXWrapper(int canID, CANBus canbus, InvertType invertType) {
     Objects.requireNonNull(invertType, "invertType should not be null");
     Objects.requireNonNull(canbus, "canbus should not be null");
     if (!InvertType.rotationValues.contains(invertType)) {
@@ -81,6 +81,28 @@ public class TalonFXWrapper implements PIDMotor {
     configurator.apply(config);
 
     information = new DeviceInformation(canID, canbus);
+  }
+
+  /**
+   * Create a TalonFXWrapper on the specified canbus name.
+   *
+   * @param canID [0, 62] the can ID of the motor
+   * @param canbusName the canbus that the motor is on
+   * @param invertType the invert type
+   * @throws NullPointerException if either {@code invertType} or {@code canbus} are null
+   * @throws IllegalArgumentException if {@code invertType} is not in {@link
+   *     InvertType#rotationValues}. In other words, this exception is thrown when passed an {@link
+   *     InvertType} that is for following motors
+   * @throws InvalidCanIdException if the CAN id is invalid
+   * @deprecated Constructing {@code DeviceInformation} with a CAN bus string is deprecated for
+   *     removal in the 2027 season. Construct instances using a {@link CANBus} instance instead.
+   */
+  @Deprecated(forRemoval = true)
+  public TalonFXWrapper(int canID, String canbusName, InvertType invertType) {
+    this(
+        canID,
+        new CANBus(Objects.requireNonNull(canbusName, "canbus should not be null")),
+        invertType);
   }
 
   /**
