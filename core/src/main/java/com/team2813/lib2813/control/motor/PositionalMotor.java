@@ -358,7 +358,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
    * current setpoint.
    */
   @Override
-  public void disable() {
+  public void stopMotor() {
     isPIDControlEnabled = false;
     motor.stopMotor();
   }
