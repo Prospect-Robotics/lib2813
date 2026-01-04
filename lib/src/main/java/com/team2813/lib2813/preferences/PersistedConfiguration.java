@@ -20,6 +20,7 @@ import static edu.wpi.first.networktables.NetworkTable.PATH_SEPARATOR;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableType;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Preferences;
@@ -31,8 +32,8 @@ import java.util.function.*;
 /**
  * Initializes the fields of a Record Class from values stored in {@link Preferences}.
  *
- * <p>The Preference values can be updated in the Elastic. Updated values will be stored in the
- * flash storage for the robot.
+ * <p>The Preference values can be updated in Elastic and other dashboards. Updated values will be
+ * stored in the flash storage for the robot.
  *
  * <p>Example use:
  *
@@ -41,7 +42,7 @@ import java.util.function.*;
  *
  *   public record DriveConfiguration(
  *       boolean addVisionMeasurements, long robotWeight,
- *       DoubleSupplier powerMultiplier) {
+ *       double maxSpeed, String name) {
  *
  *     public static DriveConfiguration fromPreferences() {
  *       return PersistedConfiguration.fromPreferences("Drive", DriveConfiguration.class);
@@ -56,7 +57,8 @@ import java.util.function.*;
  * <ul>
  *   <li>{@code "Drive/addVisionMeasurements"}
  *   <li>{@code "Drive/robotWeight"}
- *   <li>{@code "Drive/powerMultiplier"}
+ *   <li>{@code "Drive/maxSpeed"}
+ *   <li>{@code "Drive/name"}
  * </ul>
  *
  * <p>If no value is stored in Preferences for a key, the default value returned (and initialized in
@@ -67,8 +69,29 @@ import java.util.function.*;
  * <ul>
  *   <li>{@code "Drive/addVisionMeasurements"}: {@code false}
  *   <li>{@code "Drive/robotWeight"}: {@code 0}
- *   <li>{@code "Drive/powerMultiplier"}: {@code 0.0}
+ *   <li>{@code "Drive/maxSpeed"}: {@code 0.0}
+ *   <li>{@code "Drive/name"}: {@code ""}
  * </ul>
+ *
+ * <p>The record class could also contain suppliers:
+ *
+ * <pre>{@code
+ * public final class Drive {
+ *
+ *   public record DriveConfiguration(
+ *       boolean addVisionMeasurements, LongSupplier robotWeight,
+ *       DoubleSupplier powerMultiplier) {
+ *
+ *     public static DriveConfiguration fromPreferences() {
+ *       return PersistedConfiguration.fromPreferences("Drive", DriveConfiguration.class);
+ *     }
+ *   }
+ * }
+ * }</pre>
+ *
+ * <p>In the above example, {@code fromPreferences()} would return a record instance that contained
+ * suppliers that, when queried, would return the current value in the "Preferences" NetworkTables
+ * table.
  *
  * <p>The caller could specify different default values by passing an instance of the record class:
  *
@@ -97,15 +120,17 @@ import java.util.function.*;
  *   <li>{@code "Drive/maxAngularVelocity"} (default value: {@code 3.14})
  * </ul>
  *
+ * <p>Note that {@code PersistedConfiguration} will use the default record constructor to create
+ * record instances, so any parameter validation should be done in a custom constructor; see <a
+ * href="https://www.baeldung.com/java-records-custom-constructor">Custom Constructor in Java
+ * Records</a> for details.
+ *
  * <p>For record classes with many component values of the same type, it is strongly recommended
  * that a builder is provided to construct the record, to avoid callers passing the parameters in
  * the wrong order. To make generation of a builder easier, consider using <a
  * href="https://github.com/google/auto/blob/main/value/userguide/autobuilder.md">{@code @AutoBuilder}</a>
  * from Google Auto or <a href="https://projectlombok.org/features/Builder">{@code @Builder}</a>
- * from Project Lombok. Note that {@code PersistedConfiguration} will use the default record
- * constructor to create record instances, so any parameter validation should be done in a custom
- * constructor; see <a href="https://www.baeldung.com/java-records-custom-constructor">Custom
- * Constructor in Java Records</a> for details.
+ * from Project Lombok.
  *
  * @since 2.0.0
  */
@@ -164,7 +189,7 @@ public final class PersistedConfiguration {
    * </ul>
    *
    * <p>The default values for the preferences will be Java defaults (for example, zero for
-   * integers).
+   * integers, an empty string for strings, etc.).
    *
    * @param preferenceName Preference subtable to use to get the values.
    * @param recordClass Type of the record instance to populate from preferences.
@@ -421,10 +446,10 @@ public final class PersistedConfiguration {
       if (defaultValue == null) {
         defaultValue = 0;
       }
-      Preferences.initInt(key, defaultValue);
+      initIntegerPreference(key, defaultValue);
       return defaultValue;
     }
-    return Preferences.getInt(key, 0);
+    return getIntegerPreference(key);
   }
 
   /** Gets a IntSupplier value from Preferences for the given component. */
@@ -432,9 +457,9 @@ public final class PersistedConfiguration {
       RecordComponent component, String key, IntSupplier defaultValueSupplier, boolean initialize) {
     if (initialize) {
       int defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsInt() : 0;
-      Preferences.initInt(key, defaultValue);
+      initIntegerPreference(key, defaultValue);
     }
-    return () -> Preferences.getInt(key, 0);
+    return () -> getIntegerPreference(key);
   }
 
   /** Gets a long value from Preferences for the given component. */
@@ -548,6 +573,42 @@ public final class PersistedConfiguration {
       }
       deletedLegacyKeys = true;
     }
+  }
+
+  /**
+   * Puts the given int into the preferences table if it doesn't already exist.
+   *
+   * <p>Unlike with {@link Preferences#initInt(String, int)}, the value is stored as an integer, not
+   * a double.
+   *
+   * @param key The key
+   * @param value The value
+   */
+  private static void initIntegerPreference(String key, int value) {
+    NetworkTable table = Preferences.getNetworkTable();
+    NetworkTableEntry entry = table.getEntry(key);
+    if (NetworkTableType.kDouble.equals(entry.getType())) {
+      // If we get here that should mean there is a value for this key, so the default value should
+      // be ignored. We update the default value just in case, if nothing else than to be
+      // consistent with the Preferences "init" methods.
+      entry.setDefaultDouble(value);
+    } else {
+      entry.setDefaultInteger(value);
+    }
+    entry.setPersistent();
+  }
+
+  /**
+   * Returns the value at the given key, as an int. If this table does not have a value for that
+   * position, then a value of zero will be returned.
+   *
+   * @param key the key
+   * @return either the value in the table, or zero
+   */
+  private static int getIntegerPreference(String key) {
+    NetworkTable table = Preferences.getNetworkTable();
+    NetworkTableEntry entry = table.getEntry(key);
+    return (int) entry.getInteger(0);
   }
 
   /**

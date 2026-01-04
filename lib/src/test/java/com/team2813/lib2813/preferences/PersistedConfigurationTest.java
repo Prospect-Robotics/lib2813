@@ -79,6 +79,35 @@ public final class PersistedConfigurationTest {
       UPDATED_VALUES
     }
 
+    private NetworkTableEntry getTableEntry(String key, NetworkTableType expectedType) {
+      NetworkTableEntry entry = isolatedPreferences.getPreferencesTable().getEntry(key);
+      assertThat(entry.getType()).isEqualTo(expectedType);
+      return entry;
+    }
+
+    protected final boolean getBooleanValue(String key, boolean defaultValue) {
+      return getTableEntry(key, NetworkTableType.kBoolean).getBoolean(defaultValue);
+    }
+
+    protected final long getIntegerValue(String key) {
+      return getTableEntry(key, NetworkTableType.kInteger).getInteger(-1);
+    }
+
+    protected final double getDoubleValue(String key) {
+      return getTableEntry(key, NetworkTableType.kDouble).getDouble(-1);
+    }
+
+    protected final String getStringValue(String key) {
+      return getTableEntry(key, NetworkTableType.kString).getString("defaultValue");
+    }
+
+    protected final void setIntegerValue(String key, int value) {
+      NetworkTable table = isolatedPreferences.getPreferencesTable();
+      NetworkTableEntry entry = table.getEntry(key);
+      entry.setInteger(value);
+      entry.setPersistent();
+    }
+
     protected final void assertHasNoChangesSince(Map<String, Object> previousValues) {
       var preferenceValues = preferenceValues();
       assertWithMessage("Unexpected no changes to preference values")
@@ -359,7 +388,7 @@ public final class PersistedConfigurationTest {
       assertThat(preferenceKeys())
           .containsExactly(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY, SUPPLIER_BOOLEAN_KEY);
       for (String key : ALL_KEYS) {
-        assertThat(Preferences.getBoolean(key, !defaultValue)).isEqualTo(defaultValue);
+        assertThat(getBooleanValue(key, !defaultValue)).isEqualTo(defaultValue);
       }
     }
 
@@ -375,7 +404,7 @@ public final class PersistedConfigurationTest {
       assertThat(preferenceKeys())
           .containsExactly(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY, SUPPLIER_BOOLEAN_KEY);
       for (String key : ALL_KEYS) {
-        assertThat(Preferences.getBoolean(key, true)).isFalse();
+        assertThat(getBooleanValue(key, true)).isFalse();
       }
     }
 
@@ -410,15 +439,23 @@ public final class PersistedConfigurationTest {
     }
   }
 
+  @RunWith(Parameterized.class)
   public static class IntPreferencesTest
       extends PreferencesRegistryTestCase<IntPreferencesTest.RecordWithInts> {
     static final String PREFERENCE_NAME = "Integers";
     static final String INT_VALUE_KEY = "Integers/intValue";
     static final String INT_SUPPLIER_KEY = "Integers/intSupplier";
     static final String SUPPLIER_INT_KEY = "Integers/supplierInt";
+    final boolean storeAsDoubles;
 
-    public IntPreferencesTest() {
+    @Parameters(name = "storeAsDoubles={0}")
+    public static Object[] data() {
+      return new Object[] {true, false};
+    }
+
+    public IntPreferencesTest(boolean storeAsDoubles) {
       super(PREFERENCE_NAME, RecordWithInts.class);
+      this.storeAsDoubles = storeAsDoubles;
     }
 
     /** Test record for testing classes that contain int fields. */
@@ -447,9 +484,9 @@ public final class PersistedConfigurationTest {
     protected void assertPreferencesHaveConfiguredDefaults() {
       assertThat(preferenceKeys())
           .containsExactly(INT_VALUE_KEY, INT_SUPPLIER_KEY, SUPPLIER_INT_KEY);
-      assertThat(Preferences.getInt(INT_VALUE_KEY, -1)).isEqualTo(1);
-      assertThat(Preferences.getInt(INT_SUPPLIER_KEY, -1)).isEqualTo(2);
-      assertThat(Preferences.getInt(SUPPLIER_INT_KEY, -1)).isEqualTo(3);
+      assertThat(getIntegerValue(INT_VALUE_KEY)).isEqualTo(1);
+      assertThat(getIntegerValue(INT_SUPPLIER_KEY)).isEqualTo(2);
+      assertThat(getIntegerValue(SUPPLIER_INT_KEY)).isEqualTo(3);
     }
 
     @Override
@@ -463,23 +500,38 @@ public final class PersistedConfigurationTest {
     protected void assertPreferencesHaveJavaDefaults() {
       assertThat(preferenceKeys())
           .containsExactly(INT_VALUE_KEY, INT_SUPPLIER_KEY, SUPPLIER_INT_KEY);
-      assertThat(Preferences.getInt(INT_VALUE_KEY, -1)).isEqualTo(0);
-      assertThat(Preferences.getInt(INT_SUPPLIER_KEY, -1)).isEqualTo(0);
-      assertThat(Preferences.getInt(SUPPLIER_INT_KEY, -1)).isEqualTo(0);
+      assertThat(getIntegerValue(INT_VALUE_KEY)).isEqualTo(0);
+      assertThat(getIntegerValue(INT_SUPPLIER_KEY)).isEqualTo(0);
+      assertThat(getIntegerValue(SUPPLIER_INT_KEY)).isEqualTo(0);
     }
 
     @Override
     protected void updatePreferenceValues(ValuesKind kind) {
-      switch (kind) {
-        case INITIAL_VALUES -> {
-          Preferences.setInt(INT_VALUE_KEY, 101);
-          Preferences.setInt(INT_SUPPLIER_KEY, 102);
-          Preferences.setInt(SUPPLIER_INT_KEY, 103);
+      if (storeAsDoubles) {
+        switch (kind) {
+          case INITIAL_VALUES -> {
+            Preferences.setDouble(INT_VALUE_KEY, 101);
+            Preferences.setDouble(INT_SUPPLIER_KEY, 102);
+            Preferences.setDouble(SUPPLIER_INT_KEY, 103);
+          }
+          case UPDATED_VALUES -> {
+            Preferences.setDouble(INT_VALUE_KEY, 201);
+            Preferences.setDouble(INT_SUPPLIER_KEY, 202);
+            Preferences.setDouble(SUPPLIER_INT_KEY, 203);
+          }
         }
-        case UPDATED_VALUES -> {
-          Preferences.setInt(INT_VALUE_KEY, 201);
-          Preferences.setInt(INT_SUPPLIER_KEY, 202);
-          Preferences.setInt(SUPPLIER_INT_KEY, 203);
+      } else {
+        switch (kind) {
+          case INITIAL_VALUES -> {
+            setIntegerValue(INT_VALUE_KEY, 101);
+            setIntegerValue(INT_SUPPLIER_KEY, 102);
+            setIntegerValue(SUPPLIER_INT_KEY, 103);
+          }
+          case UPDATED_VALUES -> {
+            setIntegerValue(INT_VALUE_KEY, 201);
+            setIntegerValue(INT_SUPPLIER_KEY, 202);
+            setIntegerValue(SUPPLIER_INT_KEY, 203);
+          }
         }
       }
     }
@@ -544,9 +596,9 @@ public final class PersistedConfigurationTest {
     protected void assertPreferencesHaveConfiguredDefaults() {
       assertThat(preferenceKeys())
           .containsExactly(LONG_VALUE_KEY, LONG_SUPPLIER_KEY, SUPPLIER_LONG_KEY);
-      assertThat(Preferences.getLong(LONG_VALUE_KEY, -1)).isEqualTo(1);
-      assertThat(Preferences.getLong(LONG_SUPPLIER_KEY, -1)).isEqualTo(2);
-      assertThat(Preferences.getLong(SUPPLIER_LONG_KEY, -1)).isEqualTo(3);
+      assertThat(getIntegerValue(LONG_VALUE_KEY)).isEqualTo(1);
+      assertThat(getIntegerValue(LONG_SUPPLIER_KEY)).isEqualTo(2);
+      assertThat(getIntegerValue(SUPPLIER_LONG_KEY)).isEqualTo(3);
     }
 
     @Override
@@ -560,9 +612,9 @@ public final class PersistedConfigurationTest {
     protected void assertPreferencesHaveJavaDefaults() {
       assertThat(preferenceKeys())
           .containsExactly(LONG_VALUE_KEY, LONG_SUPPLIER_KEY, SUPPLIER_LONG_KEY);
-      assertThat(Preferences.getLong(LONG_VALUE_KEY, -1)).isEqualTo(0);
-      assertThat(Preferences.getLong(LONG_SUPPLIER_KEY, -1)).isEqualTo(0);
-      assertThat(Preferences.getLong(SUPPLIER_LONG_KEY, -1)).isEqualTo(0);
+      assertThat(getIntegerValue(LONG_VALUE_KEY)).isEqualTo(0);
+      assertThat(getIntegerValue(LONG_SUPPLIER_KEY)).isEqualTo(0);
+      assertThat(getIntegerValue(SUPPLIER_LONG_KEY)).isEqualTo(0);
     }
 
     @Override
@@ -642,9 +694,9 @@ public final class PersistedConfigurationTest {
     protected void assertPreferencesHaveConfiguredDefaults() {
       assertThat(preferenceKeys())
           .containsExactly(DOUBLE_VALUE_KEY, DOUBLE_SUPPLIER_KEY, SUPPLIER_DOUBLE_KEY);
-      assertThat(Preferences.getDouble(DOUBLE_VALUE_KEY, -1)).isWithin(EPSILON).of(3.14159);
-      assertThat(Preferences.getDouble(DOUBLE_SUPPLIER_KEY, -1)).isWithin(EPSILON).of(2.71828);
-      assertThat(Preferences.getDouble(SUPPLIER_DOUBLE_KEY, -1)).isWithin(EPSILON).of(6.28318);
+      assertThat(getDoubleValue(DOUBLE_VALUE_KEY)).isWithin(EPSILON).of(3.14159);
+      assertThat(getDoubleValue(DOUBLE_SUPPLIER_KEY)).isWithin(EPSILON).of(2.71828);
+      assertThat(getDoubleValue(SUPPLIER_DOUBLE_KEY)).isWithin(EPSILON).of(6.28318);
     }
 
     @Override
@@ -658,9 +710,9 @@ public final class PersistedConfigurationTest {
     protected void assertPreferencesHaveJavaDefaults() {
       assertThat(preferenceKeys())
           .containsExactly(DOUBLE_VALUE_KEY, DOUBLE_SUPPLIER_KEY, SUPPLIER_DOUBLE_KEY);
-      assertThat(Preferences.getDouble(DOUBLE_VALUE_KEY, -1)).isWithin(EPSILON).of(0);
-      assertThat(Preferences.getDouble(DOUBLE_SUPPLIER_KEY, -1)).isWithin(EPSILON).of(0);
-      assertThat(Preferences.getDouble(SUPPLIER_DOUBLE_KEY, -1)).isWithin(EPSILON).of(0);
+      assertThat(getDoubleValue(DOUBLE_VALUE_KEY)).isWithin(EPSILON).of(0);
+      assertThat(getDoubleValue(DOUBLE_SUPPLIER_KEY)).isWithin(EPSILON).of(0);
+      assertThat(getDoubleValue(SUPPLIER_DOUBLE_KEY)).isWithin(EPSILON).of(0);
     }
 
     @Override
@@ -733,8 +785,8 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertPreferencesHaveConfiguredDefaults() {
       assertThat(preferenceKeys()).containsExactly(STRING_VALUE_KEY, SUPPLIER_STRING_KEY);
-      assertThat(Preferences.getString(STRING_VALUE_KEY, "")).isEqualTo("chicken");
-      assertThat(Preferences.getString(SUPPLIER_STRING_KEY, "")).isEqualTo("bus");
+      assertThat(getStringValue(STRING_VALUE_KEY)).isEqualTo("chicken");
+      assertThat(getStringValue(SUPPLIER_STRING_KEY)).isEqualTo("bus");
     }
 
     @Override
@@ -746,8 +798,8 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertPreferencesHaveJavaDefaults() {
       assertThat(preferenceKeys()).containsExactly(STRING_VALUE_KEY, SUPPLIER_STRING_KEY);
-      assertThat(Preferences.getString(STRING_VALUE_KEY, "default")).isEmpty();
-      assertThat(Preferences.getString(SUPPLIER_STRING_KEY, "default")).isEmpty();
+      assertThat(getStringValue(STRING_VALUE_KEY)).isEmpty();
+      assertThat(getStringValue(SUPPLIER_STRING_KEY)).isEmpty();
     }
 
     @Override
@@ -814,8 +866,8 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertPreferencesHaveConfiguredDefaults() {
       assertThat(preferenceKeys()).containsExactly(stringValueKey, longValueKey);
-      assertThat(Preferences.getString(stringValueKey, "")).isEqualTo("The Answer");
-      assertThat(Preferences.getLong(longValueKey, -1)).isEqualTo(42);
+      assertThat(getStringValue(stringValueKey)).isEqualTo("The Answer");
+      assertThat(getIntegerValue(longValueKey)).isEqualTo(42);
     }
 
     @Override
@@ -827,8 +879,8 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertPreferencesHaveJavaDefaults() {
       assertThat(preferenceKeys()).containsExactly(stringValueKey, longValueKey);
-      assertThat(Preferences.getString(stringValueKey, "default")).isEmpty();
-      assertThat(Preferences.getLong(longValueKey, -1)).isEqualTo(0);
+      assertThat(getStringValue(stringValueKey)).isEmpty();
+      assertThat(getIntegerValue(longValueKey)).isEqualTo(0);
     }
 
     @Override
