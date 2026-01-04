@@ -346,9 +346,7 @@ public final class PersistedConfigurationTest {
     static final String PREFERENCE_NAME = "Booleans";
     static final String BOOLEAN_VALUE_KEY = "Booleans/booleanValue";
     static final String BOOLEAN_SUPPLIER_KEY = "Booleans/booleanSupplier";
-    static final String SUPPLIER_BOOLEAN_KEY = "Booleans/supplierBoolean";
-    static final Set<String> ALL_KEYS =
-        Set.of(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY, SUPPLIER_BOOLEAN_KEY);
+    static final Set<String> ALL_KEYS = Set.of(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY);
     final boolean defaultValue;
 
     @Parameters(name = "defaultValue={0}")
@@ -362,12 +360,10 @@ public final class PersistedConfigurationTest {
     }
 
     /** Test record for testing classes that contain boolean fields. */
-    private record RecordWithBooleans(
-        boolean booleanValue, BooleanSupplier booleanSupplier, Supplier<Boolean> supplierBoolean) {
+    private record RecordWithBooleans(boolean booleanValue, BooleanSupplier booleanSupplier) {
 
       static RecordWithBooleans withDefaultValue(boolean defaultValue) {
-        return new RecordWithBooleans(
-            defaultValue, () -> defaultValue, () -> Boolean.valueOf(defaultValue));
+        return new RecordWithBooleans(defaultValue, () -> defaultValue);
       }
     }
 
@@ -380,13 +376,11 @@ public final class PersistedConfigurationTest {
     protected void assertHasConfiguredDefaults(RecordWithBooleans record) {
       assertThat(record.booleanValue()).isEqualTo(defaultValue);
       assertThat(record.booleanSupplier().getAsBoolean()).isEqualTo(defaultValue);
-      assertThat(record.supplierBoolean().get()).isEqualTo(Boolean.valueOf(defaultValue));
     }
 
     @Override
     protected void assertPreferencesHaveConfiguredDefaults() {
-      assertThat(preferenceKeys())
-          .containsExactly(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY, SUPPLIER_BOOLEAN_KEY);
+      assertThat(preferenceKeys()).containsExactly(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY);
       for (String key : ALL_KEYS) {
         assertThat(getBooleanValue(key, !defaultValue)).isEqualTo(defaultValue);
       }
@@ -396,13 +390,11 @@ public final class PersistedConfigurationTest {
     protected void assertHasJavaDefaults(RecordWithBooleans record) {
       assertThat(record.booleanValue()).isFalse();
       assertThat(record.booleanSupplier().getAsBoolean()).isFalse();
-      assertThat(record.supplierBoolean().get()).isFalse();
     }
 
     @Override
     protected void assertPreferencesHaveJavaDefaults() {
-      assertThat(preferenceKeys())
-          .containsExactly(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY, SUPPLIER_BOOLEAN_KEY);
+      assertThat(preferenceKeys()).containsExactly(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY);
       for (String key : ALL_KEYS) {
         assertThat(getBooleanValue(key, true)).isFalse();
       }
@@ -428,14 +420,12 @@ public final class PersistedConfigurationTest {
       boolean expectedValue = getUpdatedValue(kind);
       assertThat(record.booleanValue()).isEqualTo(expectedValue);
       assertThat(record.booleanSupplier().getAsBoolean()).isEqualTo(expectedValue);
-      assertThat(record.supplierBoolean().get()).isEqualTo(Boolean.valueOf(expectedValue));
     }
 
     @Override
     protected void assertSuppliersHaveUpdatedValues(RecordWithBooleans record) {
       boolean expectedValue = getUpdatedValue(ValuesKind.UPDATED_VALUES);
       assertThat(record.booleanSupplier().getAsBoolean()).isEqualTo(expectedValue);
-      assertThat(record.supplierBoolean().get()).isEqualTo(Boolean.valueOf(expectedValue));
     }
   }
 
@@ -445,7 +435,6 @@ public final class PersistedConfigurationTest {
     static final String PREFERENCE_NAME = "Integers";
     static final String INT_VALUE_KEY = "Integers/intValue";
     static final String INT_SUPPLIER_KEY = "Integers/intSupplier";
-    static final String SUPPLIER_INT_KEY = "Integers/supplierInt";
     final boolean storeAsDoubles;
 
     @Parameters(name = "storeAsDoubles={0}")
@@ -459,50 +448,42 @@ public final class PersistedConfigurationTest {
     }
 
     /** Test record for testing classes that contain int fields. */
-    private record RecordWithInts(
-        int intValue, IntSupplier intSupplier, Supplier<Integer> supplierInt) {
+    private record RecordWithInts(int intValue, IntSupplier intSupplier) {
 
-      static RecordWithInts withDefaultValues(
-          int intValue, int intSupplierValue, int supplierIntValue) {
-        return new RecordWithInts(intValue, () -> intSupplierValue, () -> supplierIntValue);
+      static RecordWithInts withDefaultValues(int intValue, int intSupplierValue) {
+        return new RecordWithInts(intValue, () -> intSupplierValue);
       }
     }
 
     @Override
     protected RecordWithInts createRecordWithConfiguredDefaults() {
-      return RecordWithInts.withDefaultValues(1, 2, 3);
+      return RecordWithInts.withDefaultValues(1, 2);
     }
 
     @Override
     protected void assertHasConfiguredDefaults(RecordWithInts record) {
       assertThat(record.intValue()).isEqualTo(1);
       assertThat(record.intSupplier.getAsInt()).isEqualTo(2);
-      assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(3));
     }
 
     @Override
     protected void assertPreferencesHaveConfiguredDefaults() {
-      assertThat(preferenceKeys())
-          .containsExactly(INT_VALUE_KEY, INT_SUPPLIER_KEY, SUPPLIER_INT_KEY);
+      assertThat(preferenceKeys()).containsExactly(INT_VALUE_KEY, INT_SUPPLIER_KEY);
       assertThat(getIntegerValue(INT_VALUE_KEY)).isEqualTo(1);
       assertThat(getIntegerValue(INT_SUPPLIER_KEY)).isEqualTo(2);
-      assertThat(getIntegerValue(SUPPLIER_INT_KEY)).isEqualTo(3);
     }
 
     @Override
     protected void assertHasJavaDefaults(RecordWithInts record) {
       assertThat(record.intValue()).isEqualTo(0);
       assertThat(record.intSupplier.getAsInt()).isEqualTo(0);
-      assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(0));
     }
 
     @Override
     protected void assertPreferencesHaveJavaDefaults() {
-      assertThat(preferenceKeys())
-          .containsExactly(INT_VALUE_KEY, INT_SUPPLIER_KEY, SUPPLIER_INT_KEY);
+      assertThat(preferenceKeys()).containsExactly(INT_VALUE_KEY, INT_SUPPLIER_KEY);
       assertThat(getIntegerValue(INT_VALUE_KEY)).isEqualTo(0);
       assertThat(getIntegerValue(INT_SUPPLIER_KEY)).isEqualTo(0);
-      assertThat(getIntegerValue(SUPPLIER_INT_KEY)).isEqualTo(0);
     }
 
     @Override
@@ -512,12 +493,10 @@ public final class PersistedConfigurationTest {
           case INITIAL_VALUES -> {
             Preferences.setDouble(INT_VALUE_KEY, 101);
             Preferences.setDouble(INT_SUPPLIER_KEY, 102);
-            Preferences.setDouble(SUPPLIER_INT_KEY, 103);
           }
           case UPDATED_VALUES -> {
             Preferences.setDouble(INT_VALUE_KEY, 201);
             Preferences.setDouble(INT_SUPPLIER_KEY, 202);
-            Preferences.setDouble(SUPPLIER_INT_KEY, 203);
           }
         }
       } else {
@@ -525,12 +504,10 @@ public final class PersistedConfigurationTest {
           case INITIAL_VALUES -> {
             setIntegerValue(INT_VALUE_KEY, 101);
             setIntegerValue(INT_SUPPLIER_KEY, 102);
-            setIntegerValue(SUPPLIER_INT_KEY, 103);
           }
           case UPDATED_VALUES -> {
             setIntegerValue(INT_VALUE_KEY, 201);
             setIntegerValue(INT_SUPPLIER_KEY, 202);
-            setIntegerValue(SUPPLIER_INT_KEY, 203);
           }
         }
       }
@@ -542,12 +519,10 @@ public final class PersistedConfigurationTest {
         case INITIAL_VALUES -> {
           assertThat(record.intValue()).isEqualTo(101);
           assertThat(record.intSupplier.getAsInt()).isEqualTo(102);
-          assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(103));
         }
         case UPDATED_VALUES -> {
           assertThat(record.intValue()).isEqualTo(201);
           assertThat(record.intSupplier.getAsInt()).isEqualTo(202);
-          assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(203));
         }
       }
     }
@@ -555,7 +530,6 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertSuppliersHaveUpdatedValues(RecordWithInts record) {
       assertThat(record.intSupplier.getAsInt()).isEqualTo(202);
-      assertThat(record.supplierInt().get()).isEqualTo(Integer.valueOf(203));
     }
   }
 
@@ -564,57 +538,48 @@ public final class PersistedConfigurationTest {
     static final String PREFERENCE_NAME = "Longs";
     static final String LONG_VALUE_KEY = "Longs/longValue";
     static final String LONG_SUPPLIER_KEY = "Longs/longSupplier";
-    static final String SUPPLIER_LONG_KEY = "Longs/supplierLong";
 
     public LongPreferencesTest() {
       super(PREFERENCE_NAME, RecordWithLongs.class);
     }
 
     /** Test record for testing classes that contain long fields. */
-    private record RecordWithLongs(
-        long longValue, LongSupplier longSupplier, Supplier<Long> supplierLong) {
+    private record RecordWithLongs(long longValue, LongSupplier longSupplier) {
 
-      static RecordWithLongs withDefaultValues(
-          long longValue, long longSupplierValue, long supplierLongValue) {
-        return new RecordWithLongs(longValue, () -> longSupplierValue, () -> supplierLongValue);
+      static RecordWithLongs withDefaultValues(long longValue, long longSupplierValue) {
+        return new RecordWithLongs(longValue, () -> longSupplierValue);
       }
     }
 
     @Override
     protected RecordWithLongs createRecordWithConfiguredDefaults() {
-      return RecordWithLongs.withDefaultValues(1, 2, 3);
+      return RecordWithLongs.withDefaultValues(1, 2);
     }
 
     @Override
     protected void assertHasConfiguredDefaults(RecordWithLongs record) {
       assertThat(record.longValue()).isEqualTo(1);
       assertThat(record.longSupplier.getAsLong()).isEqualTo(2);
-      assertThat(record.supplierLong().get()).isEqualTo(Long.valueOf(3));
     }
 
     @Override
     protected void assertPreferencesHaveConfiguredDefaults() {
-      assertThat(preferenceKeys())
-          .containsExactly(LONG_VALUE_KEY, LONG_SUPPLIER_KEY, SUPPLIER_LONG_KEY);
+      assertThat(preferenceKeys()).containsExactly(LONG_VALUE_KEY, LONG_SUPPLIER_KEY);
       assertThat(getIntegerValue(LONG_VALUE_KEY)).isEqualTo(1);
       assertThat(getIntegerValue(LONG_SUPPLIER_KEY)).isEqualTo(2);
-      assertThat(getIntegerValue(SUPPLIER_LONG_KEY)).isEqualTo(3);
     }
 
     @Override
     protected void assertHasJavaDefaults(RecordWithLongs record) {
       assertThat(record.longValue()).isEqualTo(0);
       assertThat(record.longSupplier.getAsLong()).isEqualTo(0);
-      assertThat(record.supplierLong().get()).isEqualTo(Long.valueOf(0));
     }
 
     @Override
     protected void assertPreferencesHaveJavaDefaults() {
-      assertThat(preferenceKeys())
-          .containsExactly(LONG_VALUE_KEY, LONG_SUPPLIER_KEY, SUPPLIER_LONG_KEY);
+      assertThat(preferenceKeys()).containsExactly(LONG_VALUE_KEY, LONG_SUPPLIER_KEY);
       assertThat(getIntegerValue(LONG_VALUE_KEY)).isEqualTo(0);
       assertThat(getIntegerValue(LONG_SUPPLIER_KEY)).isEqualTo(0);
-      assertThat(getIntegerValue(SUPPLIER_LONG_KEY)).isEqualTo(0);
     }
 
     @Override
@@ -623,12 +588,10 @@ public final class PersistedConfigurationTest {
         case INITIAL_VALUES -> {
           Preferences.setLong(LONG_VALUE_KEY, 10);
           Preferences.setLong(LONG_SUPPLIER_KEY, 20);
-          Preferences.setLong(SUPPLIER_LONG_KEY, 30);
         }
         case UPDATED_VALUES -> {
           Preferences.setLong(LONG_VALUE_KEY, 100);
           Preferences.setLong(LONG_SUPPLIER_KEY, 200);
-          Preferences.setLong(SUPPLIER_LONG_KEY, 300);
         }
       }
     }
@@ -639,12 +602,10 @@ public final class PersistedConfigurationTest {
         case INITIAL_VALUES -> {
           assertThat(record.longValue()).isEqualTo(10);
           assertThat(record.longSupplier.getAsLong()).isEqualTo(20);
-          assertThat(record.supplierLong().get()).isEqualTo(Long.valueOf(30));
         }
         case UPDATED_VALUES -> {
           assertThat(record.longValue()).isEqualTo(100);
           assertThat(record.longSupplier.getAsLong()).isEqualTo(200);
-          assertThat(record.supplierLong().get()).isEqualTo(Long.valueOf(300));
         }
       }
     }
@@ -652,7 +613,6 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertSuppliersHaveUpdatedValues(RecordWithLongs record) {
       assertThat(record.longSupplier.getAsLong()).isEqualTo(200);
-      assertThat(record.supplierLong().get()).isEqualTo(Long.valueOf(300));
     }
   }
 
@@ -661,58 +621,48 @@ public final class PersistedConfigurationTest {
     static final String PREFERENCE_NAME = "Doubles";
     static final String DOUBLE_VALUE_KEY = "Doubles/doubleValue";
     static final String DOUBLE_SUPPLIER_KEY = "Doubles/doubleSupplier";
-    static final String SUPPLIER_DOUBLE_KEY = "Doubles/supplierDouble";
 
     public DoublePreferencesTest() {
       super(PREFERENCE_NAME, RecordWithDoubles.class);
     }
 
     /** Test record for testing classes that contain double fields. */
-    private record RecordWithDoubles(
-        double doubleValue, DoubleSupplier doubleSupplier, Supplier<Double> supplierDouble) {
+    private record RecordWithDoubles(double doubleValue, DoubleSupplier doubleSupplier) {
 
-      static RecordWithDoubles withDefaultValues(
-          double doubleValue, double doubleSupplierValue, double supplierDoubleValue) {
-        return new RecordWithDoubles(
-            doubleValue, () -> doubleSupplierValue, () -> supplierDoubleValue);
+      static RecordWithDoubles withDefaultValues(double doubleValue, double doubleSupplierValue) {
+        return new RecordWithDoubles(doubleValue, () -> doubleSupplierValue);
       }
     }
 
     @Override
     protected RecordWithDoubles createRecordWithConfiguredDefaults() {
-      return RecordWithDoubles.withDefaultValues(3.14159, 2.71828, 6.28318);
+      return RecordWithDoubles.withDefaultValues(3.14159, 2.71828);
     }
 
     @Override
     protected void assertHasConfiguredDefaults(RecordWithDoubles record) {
       assertThat(record.doubleValue()).isWithin(EPSILON).of(3.14159);
       assertThat(record.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(2.71828);
-      assertThat(record.supplierDouble().get()).isWithin(EPSILON).of(6.28318);
     }
 
     @Override
     protected void assertPreferencesHaveConfiguredDefaults() {
-      assertThat(preferenceKeys())
-          .containsExactly(DOUBLE_VALUE_KEY, DOUBLE_SUPPLIER_KEY, SUPPLIER_DOUBLE_KEY);
+      assertThat(preferenceKeys()).containsExactly(DOUBLE_VALUE_KEY, DOUBLE_SUPPLIER_KEY);
       assertThat(getDoubleValue(DOUBLE_VALUE_KEY)).isWithin(EPSILON).of(3.14159);
       assertThat(getDoubleValue(DOUBLE_SUPPLIER_KEY)).isWithin(EPSILON).of(2.71828);
-      assertThat(getDoubleValue(SUPPLIER_DOUBLE_KEY)).isWithin(EPSILON).of(6.28318);
     }
 
     @Override
     protected void assertHasJavaDefaults(RecordWithDoubles record) {
       assertThat(record.doubleValue()).isWithin(EPSILON).of(0);
       assertThat(record.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(0);
-      assertThat(record.supplierDouble().get()).isWithin(EPSILON).of(0);
     }
 
     @Override
     protected void assertPreferencesHaveJavaDefaults() {
-      assertThat(preferenceKeys())
-          .containsExactly(DOUBLE_VALUE_KEY, DOUBLE_SUPPLIER_KEY, SUPPLIER_DOUBLE_KEY);
+      assertThat(preferenceKeys()).containsExactly(DOUBLE_VALUE_KEY, DOUBLE_SUPPLIER_KEY);
       assertThat(getDoubleValue(DOUBLE_VALUE_KEY)).isWithin(EPSILON).of(0);
       assertThat(getDoubleValue(DOUBLE_SUPPLIER_KEY)).isWithin(EPSILON).of(0);
-      assertThat(getDoubleValue(SUPPLIER_DOUBLE_KEY)).isWithin(EPSILON).of(0);
     }
 
     @Override
@@ -721,12 +671,10 @@ public final class PersistedConfigurationTest {
         case INITIAL_VALUES -> {
           Preferences.setDouble(DOUBLE_VALUE_KEY, 1.23);
           Preferences.setDouble(DOUBLE_SUPPLIER_KEY, 4.56);
-          Preferences.setDouble(SUPPLIER_DOUBLE_KEY, 7.89);
         }
         case UPDATED_VALUES -> {
           Preferences.setDouble(DOUBLE_VALUE_KEY, 10.23);
           Preferences.setDouble(DOUBLE_SUPPLIER_KEY, 40.56);
-          Preferences.setDouble(SUPPLIER_DOUBLE_KEY, 70.89);
         }
       }
     }
@@ -737,12 +685,10 @@ public final class PersistedConfigurationTest {
         case INITIAL_VALUES -> {
           assertThat(record.doubleValue()).isWithin(EPSILON).of(1.23);
           assertThat(record.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(4.56);
-          assertThat(record.supplierDouble().get()).isWithin(EPSILON).of(7.89);
         }
         case UPDATED_VALUES -> {
           assertThat(record.doubleValue()).isWithin(EPSILON).of(10.23);
           assertThat(record.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(40.56);
-          assertThat(record.supplierDouble().get()).isWithin(EPSILON).of(70.89);
         }
       }
     }
@@ -750,7 +696,6 @@ public final class PersistedConfigurationTest {
     @Override
     protected void assertSuppliersHaveUpdatedValues(RecordWithDoubles record) {
       assertThat(record.doubleSupplier.getAsDouble()).isWithin(EPSILON).of(40.56);
-      assertThat(record.supplierDouble().get()).isWithin(EPSILON).of(70.89);
     }
   }
 
