@@ -18,7 +18,6 @@ package com.team2813.lib2813.subsystems;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Rotations;
 
-import com.revrobotics.spark.SparkBase.ControlType;
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.Encoder;
 import com.team2813.lib2813.control.Motor;
@@ -51,16 +50,16 @@ import java.util.function.Supplier;
  *       voltage or duty cycle).
  * </ul>
  *
- * <p>The <b>PID Mode</b> is enabled by calling {@link setSetpoint(T)}. The subsystem starts moving
+ * <p>The <b>PID Mode</b> is enabled by calling {@link #setSetpoint(T)}. The subsystem starts moving
  * toward the setpoint and maintains position at the setpoint under the control of the PID
- * controller. The motor system's {@link isEnabled()} returns {@code true}.
+ * controller. The motor system's {@link #isEnabled()} returns {@code true}.
  *
  * <p>The <b>Direct User Input Mode</b> is activated when the user calls the {@link
- * set(ControlType,double,double)} or {@link set(ControlType,double)} method, where the user
+ * #set(ControlMode,double,double)} or {@link #set(ControlMode,double)} method, where the user
  * provides direct input of type ControlType (specified via {@link
- * MotorSubsystemConfiguration#controlMode(ControlType)}). The PID Mode is interrupted and
- * disengaged, and {@link isEnabled()} returns {@code false}. It can be re-engaged with the {@link
- * enable()} method and will resume movement toward setpoint.
+ * MotorSubsystemConfiguration#controlMode(ControlMode)}). The PID Mode is interrupted and
+ * disengaged, and {@link #isEnabled()} returns {@code false}. It can be re-engaged with the {@link
+ * #enable()} method and will resume movement toward setpoint.
  *
  * @param <T> the type of the {@link Supplier<Angle>} used to specify setpoints.
  */
@@ -180,8 +179,8 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * Returns whether the PID controller is engaged.
    *
    * <p>When the PID controller is engaged, the motor system is moving toward the user-specified
-   * setpoint position (set via {@link setSetpoint(T)}), or, if it has already reached the setpoint,
-   * is maintaining that position.
+   * setpoint position (set via {@link #setSetpoint(T)}), or, if it has already reached the
+   * setpoint, is maintaining that position.
    *
    * @return Whether the PID controller is engaged.
    */
@@ -204,15 +203,10 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /**
    * Clamps the given output value and provides it to the motor.
    *
-   * <p>This was protected and non-final to allow subclasses to clamp the output. Subclasses should
-   * override {@link #clampOutput(double)}.
-   *
    * @param output The output calculated by the PID algorithm.
    * @param setpoint Ignored.
-   * @deprecated Subclasses should override {@link #clampOutput(double)}.
    */
-  @Deprecated
-  protected void useOutput(double output, double setpoint) {
+  private void useOutput(double output, double setpoint) {
     motor.set(controlMode, clampOutput(output));
   }
 

@@ -168,7 +168,7 @@ public class TalonFXWrapper implements PIDMotor {
 
   /**
    * Sets the behavior the motor should exhibit upon receiving a request to stop: {@link
-   * MotorSubsystem#disable()}
+   * MotorSubsystem#stopMotor()}
    *
    * <ul>
    *   <li>Coast: The motor stops applying an input, but continues to move with its inertia.
