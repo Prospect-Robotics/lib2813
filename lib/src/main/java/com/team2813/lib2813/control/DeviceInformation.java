@@ -15,20 +15,37 @@ limitations under the License.
 */
 package com.team2813.lib2813.control;
 
+import com.ctre.phoenix6.CANBus;
 import com.team2813.lib2813.util.InputValidation;
+import java.util.Objects;
 import java.util.Optional;
 
 public final class DeviceInformation {
-  private int id;
-  private Optional<String> canbus;
+  private static final String DEFAULT_CANBUS_NAME = new CANBus().getName();
+  private final int id;
+  private final CANBus canbus;
 
   /**
-   * Creates a DeviceInformation for a device on the RoboRIO can loop
+   * Creates a DeviceInformation for a device on the default CAN bus.
    *
-   * @param id the can ID
+   * @param deviceId the configured ID of the device
    */
-  public DeviceInformation(int id) {
-    this(id, null);
+  public DeviceInformation(int deviceId) {
+    this.id = InputValidation.checkCanId(deviceId);
+    this.canbus = new CANBus();
+  }
+
+  /**
+   * Creates a DeviceInformation with a canbus.
+   *
+   * @param deviceId the configured ID of the device
+   * @param canbus the CAN bus the device is on
+   */
+  public DeviceInformation(int deviceId, CANBus canbus) {
+    Objects.requireNonNull(canbus, "canbus");
+    Objects.requireNonNull(canbus.getName(), "canbus name");
+    this.id = InputValidation.checkCanId(deviceId);
+    this.canbus = canbus;
   }
 
   /**
@@ -36,11 +53,14 @@ public final class DeviceInformation {
    * acts like {@link #DeviceInformation(int)} was called
    *
    * @param id the CAN id
-   * @param canbus the canbus string
+   * @param canbus the name of the CAN bus the device is on
+   * @deprecated Constructing {@code DeviceInformation} with a CAN bus string is deprecated for
+   *     removal in the 2027 season. Construct instances using a {@link CANBus} instance instead.
    */
+  @Deprecated(forRemoval = true)
   public DeviceInformation(int id, String canbus) {
     this.id = InputValidation.checkCanId(id);
-    this.canbus = Optional.ofNullable(canbus);
+    this.canbus = canbus == null ? new CANBus() : new CANBus(canbus);
   }
 
   /**
@@ -57,20 +77,36 @@ public final class DeviceInformation {
    * can loop
    *
    * @return the canbus that the device is on
+   * @deprecated use {@link #canBus()}}
    */
+  @Deprecated(forRemoval = true)
   public Optional<String> canbus() {
+    String canbusName = canbus.getName();
+    if (canbusName.equals(DEFAULT_CANBUS_NAME)) {
+      return Optional.empty();
+    }
+    return Optional.of(canbusName);
+  }
+
+  /**
+   * Returns the canbus that this device is on.
+   *
+   * @return the canbus that the device is on
+   */
+  public CANBus canBus() {
     return canbus;
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof DeviceInformation)) return false;
-    DeviceInformation other = (DeviceInformation) o;
-    return other.id == id && other.canbus.equals(canbus);
+  public boolean equals(Object obj) {
+    if (obj instanceof DeviceInformation other) {
+      return other.id == id && other.canbus.getName().equals(canbus.getName());
+    }
+    return false;
   }
 
   @Override
   public int hashCode() {
-    return id * 31 + canbus.hashCode();
+    return id * 31 + canbus.getName().hashCode();
   }
 }
