@@ -149,10 +149,10 @@ public final class PersistedConfiguration {
    * <p>To be stored in preferences, the type of the record components can be any of the following:
    *
    * <ul>
-   *   <li>{@code boolean} or {@code BooleanSupplier} or {@code Supplier<Boolean>}
-   *   <li>{@code int} or {@code IntSupplier} or {@code Supplier<Integer>}
-   *   <li>{@code long} or {@code LongSupplier} or {@code Supplier<Long>}
-   *   <li>{@code double} or {@code DoubleSupplier} or {@code Supplier<Double>}
+   *   <li>{@code boolean} or {@code BooleanSupplier}
+   *   <li>{@code int} or {@code IntSupplier}
+   *   <li>{@code long} or {@code LongSupplier}
+   *   <li>{@code double} or {@code DoubleSupplier}
    *   <li>{@code String} or {@code Supplier<String>}
    *   <li>{@code Record} following the above rules
    * </ul>
@@ -180,10 +180,10 @@ public final class PersistedConfiguration {
    * <p>To be stored in preferences, the type of the record components can be any of the following:
    *
    * <ul>
-   *   <li>{@code boolean} or {@code BooleanSupplier} or {@code Supplier<Boolean>}
-   *   <li>{@code int} or {@code IntSupplier} or {@code Supplier<Integer>}
-   *   <li>{@code long} or {@code LongSupplier} or {@code Supplier<Long>}
-   *   <li>{@code double} or {@code DoubleSupplier} or {@code Supplier<Double>}
+   *   <li>{@code boolean} or {@code BooleanSupplier}
+   *   <li>{@code int} or {@code IntSupplier}
+   *   <li>{@code long} or {@code LongSupplier}
+   *   <li>{@code double} or {@code DoubleSupplier}
    *   <li>{@code String} or {@code Supplier<String>}
    *   <li>{@code Record} following the above rules
    * </ul>
@@ -294,13 +294,13 @@ public final class PersistedConfiguration {
       types[i] = type;
 
       boolean needComponentValue;
-      PreferenceFactory factory = null;
+      PreferenceFetcher fetcher = null;
       boolean isRecordField = Record.class.isAssignableFrom(type);
       if (isRecordField) {
         needComponentValue = true;
       } else {
-        factory = TYPE_TO_FACTORY.get(type);
-        if (factory == null) {
+        fetcher = TYPE_TO_FETCHER.get(type);
+        if (fetcher == null) {
           // Cannot get value from Preferences; copy over the value from the input record.
           needComponentValue = true;
         } else {
@@ -309,23 +309,20 @@ public final class PersistedConfiguration {
       }
 
       Object componentValue = null;
-      if (needComponentValue) {
-        if (configWithDefaults != null) {
-          Field defaultValueField = clazz.getDeclaredField(name);
-          defaultValueField.setAccessible(true);
-          componentValue = defaultValueField.get(configWithDefaults);
-        }
+      if (needComponentValue && configWithDefaults != null) {
+        Field defaultValueField = clazz.getDeclaredField(name);
+        defaultValueField.setAccessible(true);
+        componentValue = defaultValueField.get(configWithDefaults);
       }
 
       if (isRecordField) {
         params[i] = createFromPreferences(key, type, componentValue);
-      } else if (factory == null) {
+      } else if (fetcher == null) {
         warn("Cannot store '%s' in Preferences; type %s is unsupported", name, type);
         params[i] = componentValue;
       } else {
-        // Fetch the value from Preferences
         params[i] =
-            factory.create(
+            fetcher.getValue(
                 component, key, componentValue, /* initializePreference= */ needComponentValue);
       }
       i++;
@@ -339,7 +336,7 @@ public final class PersistedConfiguration {
    * Type-safe functional interface for creating an instance of a type using data in Preferences.
    */
   @FunctionalInterface
-  private interface GenericPreferenceFactory<T> {
+  private interface GenericPreferenceFetcher<T> {
     /**
      * Gets a value from Preferences for the given component.
      *
@@ -349,7 +346,7 @@ public final class PersistedConfiguration {
      * @param initializePreference Whether the preference should be initialized.
      * @return The value; will match the type in "component";
      */
-    T create(RecordComponent component, String key, T defaultValue, boolean initializePreference);
+    T getValue(RecordComponent component, String key, T defaultValue, boolean initializePreference);
   }
 
   /**
@@ -358,7 +355,7 @@ public final class PersistedConfiguration {
    * <p>Note: this interface exists to avoid ugly casts in the code that uses the reflection APIs.
    */
   @FunctionalInterface
-  private interface PreferenceFactory {
+  private interface PreferenceFetcher {
     /**
      * Gets a value from Preferences for the given component.
      *
@@ -368,50 +365,41 @@ public final class PersistedConfiguration {
      * @param initializePreference Whether the preference should be initialized.
      * @return The value; will match the type in "component";
      */
-    Object create(
+    Object getValue(
         RecordComponent component, String key, Object defaultValue, boolean initializePreference);
   }
 
-  private static final Map<Type, PreferenceFactory> TYPE_TO_FACTORY = new HashMap<>();
+  private static final Map<Type, PreferenceFetcher> TYPE_TO_FETCHER = new HashMap<>();
 
   /**
-   * Registers a preference factory with a type.
+   * Registers a preference fetcher with a type.
    *
    * @param type The type to register.
-   * @param simpleFactory The factory that should be used to create values of the given type.
+   * @param simpleFetcher The fetcher that should be used to create values of the given type.
    */
   @SuppressWarnings("unchecked")
-  private static <T> void register(Class<T> type, GenericPreferenceFactory<T> simpleFactory) {
-    PreferenceFactory factory =
+  private static <T> void register(Class<T> type, GenericPreferenceFetcher<T> simpleFetcher) {
+    PreferenceFetcher fetcher =
         (component, key, defaultValue, initializePreference) ->
-            simpleFactory.create(component, key, (T) defaultValue, initializePreference);
-    TYPE_TO_FACTORY.put(type, factory);
+            simpleFetcher.getValue(component, key, (T) defaultValue, initializePreference);
+    TYPE_TO_FETCHER.put(type, fetcher);
   }
 
   static {
-    register(Boolean.TYPE, PersistedConfiguration::booleanFactory);
-    register(BooleanSupplier.class, PersistedConfiguration::booleanSupplierFactory);
-    register(Integer.TYPE, PersistedConfiguration::intFactory);
-    register(IntSupplier.class, PersistedConfiguration::intSupplierFactory);
-    register(Long.TYPE, PersistedConfiguration::longFactory);
-    register(LongSupplier.class, PersistedConfiguration::longSupplierFactory);
-    register(Double.TYPE, PersistedConfiguration::doubleFactory);
-    register(DoubleSupplier.class, PersistedConfiguration::doubleSupplierFactory);
-    register(String.class, PersistedConfiguration::stringFactory);
-    register(Supplier.class, PersistedConfiguration::supplierFactory);
+    register(Boolean.TYPE, PersistedConfiguration::booleanFetcher);
+    register(BooleanSupplier.class, PersistedConfiguration::booleanSupplierFetcher);
+    register(Integer.TYPE, PersistedConfiguration::intFetcher);
+    register(IntSupplier.class, PersistedConfiguration::intSupplierFetcher);
+    register(Long.TYPE, PersistedConfiguration::longFetcher);
+    register(LongSupplier.class, PersistedConfiguration::longSupplierFetcher);
+    register(Double.TYPE, PersistedConfiguration::doubleFetcher);
+    register(DoubleSupplier.class, PersistedConfiguration::doubleSupplierFetcher);
+    register(String.class, PersistedConfiguration::stringFetcher);
+    register(Supplier.class, PersistedConfiguration::supplierFetcher);
   }
 
-  /** Maps the generic types supported by Preferences to their primitive types. */
-  private static final Map<Type, Type> SUPPLIER_TYPE_TO_REGISTERED_TYPE =
-      Map.of(
-          Boolean.class, Boolean.TYPE,
-          Integer.class, Integer.TYPE,
-          Long.class, Long.TYPE,
-          Double.class, Double.TYPE,
-          String.class, String.class);
-
   /** Gets a boolean value from Preferences for the given component. */
-  private static boolean booleanFactory(
+  private static boolean booleanFetcher(
       RecordComponent component, String key, Boolean defaultValue, boolean initialize) {
     if (initialize) {
       if (defaultValue == null) {
@@ -424,7 +412,7 @@ public final class PersistedConfiguration {
   }
 
   /** Gets a BooleanSupplier value from Preferences for the given component. */
-  private static BooleanSupplier booleanSupplierFactory(
+  private static BooleanSupplier booleanSupplierFetcher(
       RecordComponent component,
       String key,
       BooleanSupplier defaultValueSupplier,
@@ -440,7 +428,7 @@ public final class PersistedConfiguration {
   }
 
   /** Gets an int value from Preferences for the given component. */
-  private static int intFactory(
+  private static int intFetcher(
       RecordComponent component, String key, Integer defaultValue, boolean initialize) {
     if (initialize) {
       if (defaultValue == null) {
@@ -453,7 +441,7 @@ public final class PersistedConfiguration {
   }
 
   /** Gets a IntSupplier value from Preferences for the given component. */
-  private static IntSupplier intSupplierFactory(
+  private static IntSupplier intSupplierFetcher(
       RecordComponent component, String key, IntSupplier defaultValueSupplier, boolean initialize) {
     if (initialize) {
       int defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsInt() : 0;
@@ -463,7 +451,7 @@ public final class PersistedConfiguration {
   }
 
   /** Gets a long value from Preferences for the given component. */
-  private static long longFactory(
+  private static long longFetcher(
       RecordComponent component, String key, Long defaultValue, boolean initialize) {
     if (initialize) {
       if (defaultValue == null) {
@@ -476,7 +464,7 @@ public final class PersistedConfiguration {
   }
 
   /** Gets a LongSupplier value from Preferences for the given component. */
-  private static LongSupplier longSupplierFactory(
+  private static LongSupplier longSupplierFetcher(
       RecordComponent component,
       String key,
       LongSupplier defaultValueSupplier,
@@ -489,7 +477,7 @@ public final class PersistedConfiguration {
   }
 
   /** Gets a double value from Preferences for the given component. */
-  private static double doubleFactory(
+  private static double doubleFetcher(
       RecordComponent component, String key, Double defaultValue, boolean initialize) {
     if (initialize) {
       if (defaultValue == null) {
@@ -502,7 +490,7 @@ public final class PersistedConfiguration {
   }
 
   /** Gets a DoubleSupplier value from Preferences for the given component. */
-  private static DoubleSupplier doubleSupplierFactory(
+  private static DoubleSupplier doubleSupplierFetcher(
       RecordComponent component,
       String key,
       DoubleSupplier defaultValueSupplier,
@@ -515,7 +503,7 @@ public final class PersistedConfiguration {
   }
 
   /** Gets a String value from Preferences for the given component. */
-  private static String stringFactory(
+  private static String stringFetcher(
       RecordComponent component, String key, String defaultValue, boolean initialize) {
     if (initialize) {
       if (defaultValue == null) {
@@ -528,36 +516,34 @@ public final class PersistedConfiguration {
   }
 
   /**
-   * Gets a Supplier value from Preferences for the given component. Supports String, long, int,
-   * boolean and float values.
+   * Gets a Supplier&lt;String&gt; value from Preferences for the given component. Supports String,
+   * long, int, boolean and float values.
    */
-  private static Supplier<?> supplierFactory(
-      RecordComponent component, String key, Supplier<?> defaultValueSupplier, boolean initialize) {
+  private static Supplier<String> supplierFetcher(
+      RecordComponent component,
+      String key,
+      Supplier<String> defaultValueSupplier,
+      boolean initialize) {
     Type supplierType =
         ((ParameterizedType) component.getGenericType()).getActualTypeArguments()[0];
-    Type registeredType = SUPPLIER_TYPE_TO_REGISTERED_TYPE.get(supplierType);
-    if (registeredType == null) {
-      warn(
-          "Cannot store '%s' in Preferences; type %s is unsupported",
-          component.getName(), component.getGenericType());
+    if (!String.class.equals(supplierType)) {
+      String formatString =
+          initialize
+              ? "Cannot store '%s' in Preferences; type %s is unsupported"
+              : "Cannot read '%s' from Preferences; type %s is unsupported";
+      warn(formatString, component.getName(), component.getGenericType());
       return defaultValueSupplier;
     }
-    PreferenceFactory factory = TYPE_TO_FACTORY.get(registeredType);
 
     if (initialize) {
-      Object defaultValue = null;
-      if (defaultValueSupplier != null) {
-        defaultValue = defaultValueSupplier.get();
-        if (defaultValue == null) {
-          warn("Cannot store '%s' in Preferences; default value is null", component.getName());
-          return defaultValueSupplier;
-        }
+      String defaultValue = defaultValueSupplier != null ? defaultValueSupplier.get() : "";
+      if (defaultValue == null) {
+        defaultValue = "";
+        warn("Cannot get initial value for '%s'; Supplier returned null", component.getName());
       }
-      factory.create(
-          component, key, defaultValue, true); // Call Preferences.init{String,Double,etc}()
+      Preferences.initString(key, defaultValue);
     }
-
-    return () -> factory.create(component, key, null, false);
+    return () -> Preferences.getString(key, "");
   }
 
   /** Deletes Preferences that were created by older versions of this class. */
