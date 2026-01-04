@@ -24,7 +24,7 @@ import org.junit.rules.ExternalResource;
  * A JUnit rule that ensures that changes to preferences done by a test are not leaked out to other
  * tests.
  */
-public final class IsolatedPreferences extends ExternalResource {
+final class IsolatedPreferences extends ExternalResource {
   private NetworkTableInstance tempInstance;
 
   /** Gets the {@link NetworkTable} that contains the preference values. */
@@ -42,9 +42,9 @@ public final class IsolatedPreferences extends ExternalResource {
 
   @Override
   protected void after() {
-    if (!tempInstance.waitForListenerQueue(.1)) {
+    if (!tempInstance.waitForListenerQueue(.2)) {
       System.err.println(
-          "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 100ms);"
+          "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 200ms);"
               + " JVM may crash");
     }
     Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
