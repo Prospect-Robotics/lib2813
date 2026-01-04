@@ -20,6 +20,7 @@ import static edu.wpi.first.networktables.NetworkTable.PATH_SEPARATOR;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableType;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Preferences;
@@ -421,10 +422,10 @@ public final class PersistedConfiguration {
       if (defaultValue == null) {
         defaultValue = 0;
       }
-      Preferences.initInt(key, defaultValue);
+      initIntegerPreference(key, defaultValue);
       return defaultValue;
     }
-    return Preferences.getInt(key, 0);
+    return getIntegerPreference(key);
   }
 
   /** Gets a IntSupplier value from Preferences for the given component. */
@@ -432,9 +433,9 @@ public final class PersistedConfiguration {
       RecordComponent component, String key, IntSupplier defaultValueSupplier, boolean initialize) {
     if (initialize) {
       int defaultValue = defaultValueSupplier != null ? defaultValueSupplier.getAsInt() : 0;
-      Preferences.initInt(key, defaultValue);
+      initIntegerPreference(key, defaultValue);
     }
-    return () -> Preferences.getInt(key, 0);
+    return () -> getIntegerPreference(key);
   }
 
   /** Gets a long value from Preferences for the given component. */
@@ -548,6 +549,37 @@ public final class PersistedConfiguration {
       }
       deletedLegacyKeys = true;
     }
+  }
+
+  /**
+   * Puts the given int into the preferences table if it doesn't already exist.
+   *
+   * <p>Unlike with {@link Preferences#initInt(String, int)}, the value is stored as an integer, not
+   * a double.
+   *
+   * @param key The key
+   * @param value The value
+   */
+  private static void initIntegerPreference(String key, int value) {
+    NetworkTable table = Preferences.getNetworkTable();
+    NetworkTableEntry entry = table.getEntry(key);
+    if (!NetworkTableType.kDouble.equals(entry.getType())) {
+      entry.setDefaultInteger(value);
+    }
+    entry.setPersistent();
+  }
+
+  /**
+   * Returns the value at the given key, as an int. If this table does not have a value for that
+   * position, then a value of zero will be returned.
+   *
+   * @param key the key
+   * @return either the value in the table, or zero
+   */
+  private static int getIntegerPreference(String key) {
+    NetworkTable table = Preferences.getNetworkTable();
+    NetworkTableEntry entry = table.getEntry(key);
+    return (int) entry.getInteger(0);
   }
 
   /**
