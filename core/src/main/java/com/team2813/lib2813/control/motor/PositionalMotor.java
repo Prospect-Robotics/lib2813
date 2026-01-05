@@ -186,7 +186,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
     }
 
     /**
-     * Sets the low and high values for the output.
+     * Sets the low and high values for the output to use when PID control is enabled.
      *
      * @param low The lower boundary to which to clamp output values.
      * @param high The higher boundary to which to clamp output values.
@@ -201,7 +201,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
     }
 
     /**
-     * Sets the function to use to clamp output values.
+     * Sets the function to use to clamp output values when PID control is enabled.
      *
      * @param clamper Function to use to clamp output values
      * @return {@code this} for chaining
@@ -393,6 +393,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
       publishers.setpointPublisher.set(getSetpoint().in(rotationUnit));
       publishers.atSetpointPublisher.set(atSetpoint());
       publishers.appliedCurrentPublisher.set(motor.getAppliedCurrent().in(Units.Amps));
+      publishers.pidControlEnabledPublisher.set(isPIDControlEnabled);
     }
   }
 
@@ -411,14 +412,16 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
       DoublePublisher positionPublisher,
       BooleanPublisher atSetpointPublisher,
       DoublePublisher appliedCurrentPublisher,
-      DoublePublisher setpointPublisher) {
+      DoublePublisher setpointPublisher,
+      BooleanPublisher pidControlEnabledPublisher) {
 
     Publishers(NetworkTable networkTable) {
       this(
           networkTable.getDoubleTopic("position").publish(),
           networkTable.getBooleanTopic("at setpoint").publish(),
           networkTable.getDoubleTopic("applied current").publish(),
-          networkTable.getDoubleTopic("setpoint").publish());
+          networkTable.getDoubleTopic("setpoint").publish(),
+          networkTable.getBooleanTopic("PID control enabled").publish());
     }
 
     void close() {
