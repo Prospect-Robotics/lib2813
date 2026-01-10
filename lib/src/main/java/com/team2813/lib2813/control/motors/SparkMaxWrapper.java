@@ -113,7 +113,9 @@ public class SparkMaxWrapper implements PIDMotor {
       throw new RuntimeException("Invalid slot!");
     }
     ClosedLoopSlot cSlot = slots[slot];
-    config.apply(new ClosedLoopConfig().pidf(p, i, d, f, cSlot));
+    ClosedLoopConfig closedLoopConfig = new ClosedLoopConfig().pid(p, i, d, cSlot);
+    closedLoopConfig.feedForward.kV(f, cSlot);
+    config.apply(closedLoopConfig);
     ConfigUtils.revConfig(() -> motor.configure(config, resetMode, persistMode));
   }
 

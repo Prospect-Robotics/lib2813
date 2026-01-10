@@ -15,37 +15,54 @@ limitations under the License.
 */
 package com.team2813.lib2813.control.imu;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.util.ConfigUtils;
 
 public class Pigeon2Wrapper {
-
-  private Pigeon2 pigeon;
+  private final Pigeon2 pigeon;
+  private final DeviceInformation info;
 
   private double currentHeading = 0;
-  private DeviceInformation info;
 
   /**
-   * Constructor
+   * Creates an instance for a Pigeon 2 IMU sensor on the specified CAN bus.
    *
-   * @param deviceNumber [0,62]
+   * @param deviceId [0,62]
    * @param canbus Name of the CANbus; can be a SocketCAN interface (on Linux), or a CANivore device
    *     name or serial number
    */
-  public Pigeon2Wrapper(int deviceNumber, String canbus) {
-    info = new DeviceInformation(deviceNumber, canbus);
-    pigeon = new Pigeon2(deviceNumber, canbus);
+  public Pigeon2Wrapper(int deviceId, CANBus canbus) {
+    info = new DeviceInformation(deviceId, canbus);
+    pigeon = new Pigeon2(deviceId, canbus);
   }
 
   /**
    * Constructor
    *
-   * @param deviceNumber [0,62]
+   * @param deviceId [0,62]
+   * @param canbusName the name of the CAN bus the device is on; can be a SocketCAN interface (on
+   *     Linux), or a CANivore device name or serial number
+   * @deprecated Constructing {@code CancoderWrapper} with a CAN bus string is deprecated for
+   *     removal in the 2027 season. Construct instances using a {@link CANBus} instance instead.
    */
-  public Pigeon2Wrapper(int deviceNumber) {
-    info = new DeviceInformation(deviceNumber);
-    pigeon = new Pigeon2(deviceNumber);
+  @Deprecated(forRemoval = true)
+  public Pigeon2Wrapper(int deviceId, String canbusName) {
+    @SuppressWarnings("removal")
+    DeviceInformation deviceInformation = new DeviceInformation(deviceId, canbusName);
+    info = deviceInformation;
+    pigeon = new Pigeon2(deviceId, info.canBus());
+  }
+
+  /**
+   * Constructor
+   *
+   * @param deviceId [0,62]
+   */
+  public Pigeon2Wrapper(int deviceId) {
+    pigeon = new Pigeon2(deviceId);
+    info = new DeviceInformation(deviceId, pigeon.getNetwork());
   }
 
   public Pigeon2 getPigeon() {
@@ -77,11 +94,10 @@ public class Pigeon2Wrapper {
     return info.hashCode();
   }
 
-  public boolean equals(Object other) {
-    if (!(other instanceof Pigeon2Wrapper)) {
-      return false;
+  public boolean equals(Object obj) {
+    if (obj instanceof Pigeon2Wrapper other) {
+      return info.equals(other.info);
     }
-    Pigeon2Wrapper o = (Pigeon2Wrapper) other;
-    return o.info.equals(info);
+    return false;
   }
 }
