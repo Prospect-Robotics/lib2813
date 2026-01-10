@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
 }
 
-version = '2.0.0-alpha.1'
+version = '2.0.0-rc-1'
 
 dependencies {
     implementation wpi.java.deps.wpilib()
@@ -39,39 +39,36 @@ tasks.named('test') {
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
-javadoc {
-    options.tags = [
-        // Converts `@apiNote` paragraph to "Note: " section in the generated javadoc
-        'apiNote:a:Api Note:',
-        // Converts `@implSpec` paragraph to "Implementation Requirements: " section in the generated javadoc
-        'implSpec:a:Implementation Requirements:'
-    ]
-}
-
-task sourceJar(type: Jar) {
-    from sourceSets.main.allJava
-    archiveClassifier = 'sources'
-}
-
 publishing {
     publications {
         lib2813(MavenPublication) {
             groupId = 'com.team2813.lib2813'
-            artifactId = 'lib2813'
+            artifactId = 'lib'
             from components.java
             artifact sourceJar
             pom {
                 name = '2813 Library'
                 description = 'Frequently reused code written by team 2813'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
                 developers {
                     developer {
-                        id = 'mango'
-                        name = 'kyle'
+                        id = 'cuttestkittensrule'
+                        name = 'Kyle'
                         email = 'mangoiscute95@gmail.com'
                     }
                 }
+                scm {
+                    connection = 'scm:git:git://github.com/Prospect-Robotics/lib2813.git'
+                    developerConnection = 'scm:git:git://github.com/Prospect-Robotics/lib2813.git'
+                    url = 'https://github.com/Prospect-Robotics/lib2813'
+                }
                 organization {
-                    name = '2813 Gear Heads'
+                    name = 'FRC 2813 Gear Heads'
                     url = 'https://team2813.com'
                 }
             }
