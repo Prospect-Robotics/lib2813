@@ -7,6 +7,7 @@ plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
     id 'com.diffplug.spotless'
+    id 'idea'
 }
 
 java {
@@ -119,5 +120,23 @@ javadoc {
         links += "https://codedocs.revrobotics.com/java/"
         // PhotonVision
         links += "https://javadocs.photonvision.org/release/"
+
+        // Converts `@apiNote` paragraph to "Note: " section in the generated javadoc
+        tags += 'apiNote:a:Api Note:'
+
+        // Converts `@implSpec` paragraph to "Implementation Requirements: " section in the generated javadoc
+        tags += 'implSpec:a:Implementation Requirements:'
+    }
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
     }
 }
