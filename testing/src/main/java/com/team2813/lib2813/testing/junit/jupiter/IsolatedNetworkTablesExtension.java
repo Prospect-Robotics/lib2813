@@ -50,16 +50,16 @@ public final class IsolatedNetworkTablesExtension
   @Override
   public void afterEach(ExtensionContext context) {
     // If this extension created a temporary NetworkTableInstance, close it.
-    var ntInstance = NETWORK_TABLE_INSTANCE_KEY.get(getStore(context));
+    var ntInstance = NETWORK_TABLE_INSTANCE_KEY.remove(getStore(context));
     if (ntInstance != null) {
       // Clear out the listener queue before destroying our temporary NetworkTableInstance.
       //
       // This works around a race condition in WPILib where a listener registered by Preferences can
       // be called after the NetworkTableInstance was closed (see
       // https://github.com/wpilibsuite/allwpilib/issues/8215).
-      if (!ntInstance.waitForListenerQueue(.1)) {
+      if (!ntInstance.waitForListenerQueue(.2)) {
         System.err.println(
-            "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 100ms);"
+            "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 200ms);"
                 + " JVM may crash");
       }
 
