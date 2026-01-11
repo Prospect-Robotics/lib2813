@@ -42,7 +42,7 @@ public interface Limelight {
    * may also upload the field map to the Limelight if desired. This will likely be a slow
    * operation, and should not be regularly called.
    *
-   * @param filepath The path to the file from the deploy directory (using UNIX file seperators)
+   * @param filepath The path to the file from the deploy directory (using UNIX file separators)
    * @param updateLimelight If the limelight should be updated with this field map
    * @throws IOException If the given filepath does not exist in the deploy directory or could not
    *     be read

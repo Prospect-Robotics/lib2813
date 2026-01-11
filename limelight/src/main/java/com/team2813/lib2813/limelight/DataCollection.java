@@ -60,9 +60,7 @@ class DataCollection implements Runnable {
 
       return BodySubscribers.mapping(
           BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo),
-          body -> {
-            return new Result(new JSONObject(body), responseTimestamp);
-          });
+          body -> new Result(new JSONObject(body), responseTimestamp));
     }
   }
 
