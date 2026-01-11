@@ -17,7 +17,6 @@ package com.team2813.lib2813.limelight;
 
 import static com.team2813.lib2813.limelight.JSONHelper.*;
 import static com.team2813.lib2813.limelight.Optionals.unboxDouble;
-import static com.team2813.lib2813.limelight.Optionals.unboxLong;
 import static java.util.Collections.*;
 
 import edu.wpi.first.math.geometry.Pose3d;
@@ -63,20 +62,6 @@ class RestLimelight implements Limelight {
     collectionThread.run();
   }
 
-  @Override
-  public Optional<JSONObject> getJsonDump() {
-    return collectionThread.getMostRecent().map(DataCollection.Result::json);
-  }
-
-  public OptionalDouble getCaptureLatency() {
-    return getLocationalData().getCaptureLatency();
-  }
-
-  @Override
-  public OptionalDouble getTimestamp() {
-    return getLocationalData().getTimestamp();
-  }
-
   /**
    * Sets the field map for the limelight. Additionally, this may also upload the field map to the
    * Limelight if desired. This will likely be a slow operation, and should not be regularly called.
@@ -87,11 +72,6 @@ class RestLimelight implements Limelight {
   @Override
   public void setFieldMap(InputStream stream, boolean updateLimelight) throws IOException {
     aprilTagMapPoseHelper.setFieldMap(stream, updateLimelight);
-  }
-
-  @Override
-  public List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags) {
-    return aprilTagMapPoseHelper.getVisibleTagPoses(visibleTags);
   }
 
   private static <T> Function<T, Boolean> not(Function<? super T, Boolean> fnc) {
@@ -198,18 +178,11 @@ class RestLimelight implements Limelight {
           new Pose3d(arr.getDouble(0), arr.getDouble(1), arr.getDouble(2), rotation));
     }
 
-    @Override
-    public OptionalDouble getTimestamp() {
-      return unboxDouble(getDouble(root, "ts"));
-    }
-
-    @Override
-    public OptionalDouble getCaptureLatency() {
+    private OptionalDouble getCaptureLatency() {
       return unboxDouble(getDouble(root, "cl"));
     }
 
-    @Override
-    public OptionalDouble getTargetingLatency() {
+    private OptionalDouble getTargetingLatency() {
       return unboxDouble(getDouble(root, "tl"));
     }
 
@@ -255,28 +228,6 @@ class RestLimelight implements Limelight {
       double timestampSeconds = responseTimestamp - (latencyMillis / 1000);
       return new BotPoseEstimate(
           pose.toPose2d(), timestampSeconds, getVisibleAprilTagPoses().keySet());
-    }
-
-    /** Gets the id of the targeted tag. */
-    OptionalLong getTagID() {
-      return unboxLong(getLong(root, "pID"));
-    }
-
-    @Override
-    public Set<Integer> getVisibleTags() {
-      return getArr(root, "Fiducial")
-          .map(
-              arr -> {
-                Set<Integer> ints = new HashSet<>();
-                for (int i = 0; i < arr.length(); i++) {
-                  JSONObject obj = arr.optJSONObject(i);
-                  if (obj != null && obj.has("fID")) {
-                    ints.add(obj.getInt("fID"));
-                  }
-                }
-                return unmodifiableSet(ints);
-              })
-          .orElseGet(Set::of);
     }
 
     @Override

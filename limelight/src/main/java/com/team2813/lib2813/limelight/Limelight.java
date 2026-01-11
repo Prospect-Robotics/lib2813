@@ -15,14 +15,11 @@ limitations under the License.
 */
 package com.team2813.lib2813.limelight;
 
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.Filesystem;
-import java.io.*;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.Set;
-import org.json.JSONObject;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public interface Limelight {
 
@@ -34,20 +31,6 @@ public interface Limelight {
   static Limelight getDefaultLimelight() {
     return RestLimelight.getDefaultLimelight();
   }
-
-  /**
-   * @deprecated use methods in {@link LocationalData} that return a {@link BotPoseEstimate}.
-   */
-  @Deprecated
-  OptionalDouble getTimestamp();
-
-  /**
-   * Returns {@code true} if the limelight has identified a target.
-   *
-   * @deprecated use {@link LocationalData#hasTarget()}
-   */
-  @Deprecated
-  boolean hasTarget();
 
   /** Gets an object for getting locational data. */
   LocationalData getLocationalData();
@@ -70,26 +53,4 @@ public interface Limelight {
       setFieldMap(stream, updateLimelight);
     }
   }
-
-  /**
-   * Gets the locations of the given AprilTags.
-   *
-   * @deprecated use {@link LocationalData#getVisibleAprilTagPoses()}
-   */
-  @Deprecated
-  List<Pose3d> getLocatedAprilTags(Set<Integer> visibleTags);
-
-  /**
-   * @deprecated use {@link LocationalData#getCaptureLatency()}
-   */
-  @Deprecated
-  OptionalDouble getCaptureLatency();
-
-  /**
-   * Gets the most recent JSON from the Limelight. Does not work for all implementations.
-   *
-   * @deprecated use {@link LocationalData#isValid()}.
-   */
-  @Deprecated
-  Optional<JSONObject> getJsonDump();
 }
