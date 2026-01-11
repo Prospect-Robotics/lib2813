@@ -919,16 +919,10 @@ class LimelightHelpers {
     return getLimelightNTTableEntry(tableName, entryName).getStringArray(new String[0]);
   }
 
-  public static URL getLimelightURLString(String tableName, String request) {
+  public static URL getLimelightURLString(String tableName, String request)
+      throws MalformedURLException {
     String urlString = "http://" + sanitizeName(tableName) + ".local:5807/" + request;
-    URL url;
-    try {
-      url = new URL(urlString);
-      return url;
-    } catch (MalformedURLException e) {
-      System.err.println("bad LL URL");
-    }
-    return null;
+    return new URL(urlString);
   }
 
   /////
@@ -1658,8 +1652,8 @@ class LimelightHelpers {
   }
 
   private static boolean SYNCH_TAKESNAPSHOT(String tableName, String snapshotName) {
-    URL url = getLimelightURLString(tableName, "capturesnapshot");
     try {
+      URL url = getLimelightURLString(tableName, "capturesnapshot");
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
       connection.setRequestMethod("GET");
       if (snapshotName != null && !snapshotName.isEmpty()) {
@@ -1672,6 +1666,8 @@ class LimelightHelpers {
       } else {
         System.err.println("Bad LL Request");
       }
+    } catch (MalformedURLException e) {
+      System.err.println("bad Limelight URL: " + e.getMessage());
     } catch (IOException e) {
       System.err.println(e.getMessage());
     }
