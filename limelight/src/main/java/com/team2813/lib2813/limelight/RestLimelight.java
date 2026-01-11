@@ -85,7 +85,7 @@ class RestLimelight implements Limelight {
   public LocationalData getLocationalData() {
     Optional<LocationalData> locationalData =
         collectionThread.getMostRecent().map(RestLocationalData::new);
-    return locationalData.orElse(StubLocationalData.VALID);
+    return locationalData.orElse(StubLocationalData.INVALID);
   }
 
   private void clean() {

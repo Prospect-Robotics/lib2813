@@ -47,13 +47,13 @@ abstract class LimelightTestCase {
     Limelight limelight = createLimelight();
 
     LocationalData locationalData = limelight.getLocationalData();
+    assertThat(locationalData.isValid()).isFalse();
     assertThat(locationalData.getBotpose()).isEmpty();
     assertThat(locationalData.getBotPoseEstimate()).isEmpty();
     assertThat(locationalData.getBotPoseEstimateBlue()).isEmpty();
     assertThat(locationalData.getBotposeBlue()).isEmpty();
     assertThat(locationalData.getBotposeRed()).isEmpty();
     assertThat(locationalData.getBotPoseEstimateRed()).isEmpty();
-    // assertThat(locationalData.isValid()).isFalse();
   }
 
   @Test
