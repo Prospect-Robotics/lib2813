@@ -32,7 +32,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -44,9 +43,17 @@ import org.junit.Test;
 abstract class LimelightTestCase {
 
   @Test
-  public final void emptyValues() {
+  public final void noData() {
     Limelight limelight = createLimelight();
-    assertWithMessage("JSON should be empty").that(limelight.getCaptureLatency()).isEmpty();
+
+    LocationalData locationalData = limelight.getLocationalData();
+    assertThat(locationalData.getBotpose()).isEmpty();
+    assertThat(locationalData.getBotPoseEstimate()).isEmpty();
+    assertThat(locationalData.getBotPoseEstimateBlue()).isEmpty();
+    assertThat(locationalData.getBotposeBlue()).isEmpty();
+    assertThat(locationalData.getBotposeRed()).isEmpty();
+    assertThat(locationalData.getBotPoseEstimateRed()).isEmpty();
+    // assertThat(locationalData.isValid()).isFalse();
   }
 
   @Test
@@ -59,10 +66,11 @@ abstract class LimelightTestCase {
     LocationalData locationalData = limelight.getLocationalData();
     assertThat(locationalData.isValid()).isFalse();
     assertThat(locationalData.getBotpose()).isEmpty();
-    OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-    assertThat(actualCaptureLatency).isEmpty();
-    OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-    assertThat(actualTargetingLatency).isEmpty();
+    assertThat(locationalData.getBotPoseEstimate()).isEmpty();
+    assertThat(locationalData.getBotPoseEstimateBlue()).isEmpty();
+    assertThat(locationalData.getBotposeBlue()).isEmpty();
+    assertThat(locationalData.getBotposeRed()).isEmpty();
+    assertThat(locationalData.getBotPoseEstimateRed()).isEmpty();
   }
 
   @Test
@@ -75,13 +83,10 @@ abstract class LimelightTestCase {
     LocationalData locationalData = limelight.getLocationalData();
     assertThat(locationalData.isValid()).isTrue();
     assertThat(locationalData.getBotpose()).isEmpty();
-    OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-    double expectedCaptureLatencyMs = 37.40;
-    assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
-    OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-    double expectedTargetingLatencyMs = 38.95;
-    assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+    assertThat(locationalData.getBotPoseEstimate()).isEmpty();
     assertThat(locationalData.getBotPoseEstimateBlue()).isEmpty();
+    assertThat(locationalData.getBotposeBlue()).isEmpty();
+    assertThat(locationalData.getBotposeRed()).isEmpty();
     assertThat(locationalData.getBotPoseEstimateRed()).isEmpty();
   }
 
@@ -95,13 +100,10 @@ abstract class LimelightTestCase {
     LocationalData locationalData = limelight.getLocationalData();
     assertThat(locationalData.isValid()).isTrue();
     assertThat(locationalData.getBotpose()).isEmpty();
-    OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-    double expectedCaptureLatencyMs = 37.40;
-    assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
-    OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-    double expectedTargetingLatencyMs = 54.64;
-    assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+    assertThat(locationalData.getBotPoseEstimate()).isEmpty();
     assertThat(locationalData.getBotPoseEstimateBlue()).isEmpty();
+    assertThat(locationalData.getBotposeBlue()).isEmpty();
+    assertThat(locationalData.getBotposeRed()).isEmpty();
     assertThat(locationalData.getBotPoseEstimateRed()).isEmpty();
   }
 
@@ -115,13 +117,6 @@ abstract class LimelightTestCase {
     assertHasTarget(limelight);
     LocationalData locationalData = limelight.getLocationalData();
     assertThat(locationalData.isValid()).isTrue();
-
-    OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-    double expectedCaptureLatencyMs = 37.40;
-    assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
-    OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-    double expectedTargetingLatencyMs = 66.61;
-    assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
 
     assertThat(locationalData.getBotpose()).isPresent();
     Pose3d actualPose = locationalData.getBotpose().get();
@@ -158,13 +153,6 @@ abstract class LimelightTestCase {
     assertHasTarget(limelight);
     LocationalData locationalData = limelight.getLocationalData();
     assertThat(locationalData.isValid()).isTrue();
-
-    OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
-    double expectedCaptureLatencyMs = 37.40;
-    assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
-    OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
-    double expectedTargetingLatencyMs = 59.20;
-    assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
 
     assertThat(locationalData.getBotpose()).isPresent();
     Pose3d actualPose = locationalData.getBotpose().get();
@@ -220,15 +208,6 @@ abstract class LimelightTestCase {
   }
 
   @Test
-  public final void getVisibleTags() throws Exception {
-    JSONObject obj = readJSON("BotposeBlueRedTest.json");
-    setJson(obj);
-    Limelight limelight = createLimelight();
-    assertHasTarget(limelight);
-    assertThat(limelight.getLocationalData().getVisibleTags()).containsExactly(20);
-  }
-
-  @Test
   public final void getVisibleAprilTagPoses() throws Exception {
     JSONObject obj = readJSON("BotposeBlueRedTest.json");
     setJson(obj);
@@ -252,20 +231,6 @@ abstract class LimelightTestCase {
 
     assertThat(locationalData.getBotPoseEstimateRed()).isPresent();
     assertThat(locationalData.getBotPoseEstimateRed().get().visibleAprilTags()).isEqualTo(tags);
-  }
-
-  @Test
-  public final void visibleTagLocation() throws Exception {
-    JSONObject obj = readJSON("BotposeBlueRedTest.json");
-    setJson(obj);
-    Limelight limelight = createLimelight();
-    uploadFieldMap(limelight);
-
-    Set<Integer> visibleTags = limelight.getLocationalData().getVisibleTags();
-    List<Pose3d> aprilTags = limelight.getLocatedAprilTags(visibleTags);
-    assertThat(aprilTags).hasSize(1);
-    Pose3d pose = aprilTags.get(0);
-    assertThat(pose.getTranslation()).isWithin(0.005).of(new Translation3d(-3.87, 0.72, 0.31));
   }
 
   protected abstract Limelight createLimelight();
@@ -292,7 +257,9 @@ abstract class LimelightTestCase {
   }
 
   private void assertHasTarget(Limelight limelight) {
-    assertWithMessage("Should have target").that(limelight.hasTarget()).isTrue();
+    assertWithMessage("Should have target")
+        .that(limelight.getLocationalData().hasTarget())
+        .isTrue();
     assertWithMessage("Should have target")
         .that(limelight.getLocationalData().hasTarget())
         .isTrue();

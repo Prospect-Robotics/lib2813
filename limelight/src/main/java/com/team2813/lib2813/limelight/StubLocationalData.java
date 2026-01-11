@@ -70,31 +70,6 @@ final class StubLocationalData implements LocationalData {
   }
 
   @Override
-  public OptionalDouble getCaptureLatency() {
-    return OptionalDouble.empty();
-  }
-
-  @Override
-  public OptionalDouble getTargetingLatency() {
-    return OptionalDouble.empty();
-  }
-
-  @Override
-  public OptionalDouble getTimestamp() {
-    return OptionalDouble.empty();
-  }
-
-  @Override
-  public OptionalDouble lastMSDelay() {
-    return OptionalDouble.empty();
-  }
-
-  @Override
-  public Set<Integer> getVisibleTags() {
-    return Set.of();
-  }
-
-  @Override
   public Map<Integer, Pose3d> getVisibleAprilTagPoses() {
     return Collections.emptyMap();
   }
