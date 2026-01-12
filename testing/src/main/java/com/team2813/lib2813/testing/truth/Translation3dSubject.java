@@ -24,7 +24,11 @@ import com.google.common.truth.Subject;
 import edu.wpi.first.math.geometry.Translation3d;
 import javax.annotation.Nullable;
 
-/** Truth Subject for making assertions about {@link Translation3d} values. */
+/**
+ * Truth Subject for making assertions about {@link Translation3d} values.
+ *
+ * @since 2.0.0
+ */
 public final class Translation3dSubject extends Subject {
 
   // User-defined entry point

@@ -20,6 +20,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * A partially specified check about an approximate relationship to a {@code double} subject using a
  * tolerance.
+ *
+ * @since 2.0.0
  */
 public abstract class TolerantComparison<T> {
 
