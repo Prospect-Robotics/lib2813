@@ -59,6 +59,8 @@ import org.photonvision.simulation.VisionSystemSim;
  * referred to as "field-centric pose". In our libraries, field-centric poses are <a
  * href="https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#always-blue-origin"
  * target="_top">always specified relative to the blue origin</a>.
+ *
+ * @since 2.0.0
  */
 public class MultiPhotonPoseEstimator implements AutoCloseable {
   private final List<PhotonCameraWrapper> cameraWrappers;

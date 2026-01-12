@@ -21,6 +21,8 @@ import edu.wpi.first.wpilibj2.command.Command;
  * Allows tests to run commands.
  *
  * <p>Tests can get an instance by using {@link WPILibExtension}.
+ *
+ * @since 2.0.0
  */
 public interface CommandTester {
 
