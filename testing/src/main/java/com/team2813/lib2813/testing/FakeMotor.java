@@ -30,6 +30,8 @@ import java.util.Objects;
  *
  * <p>This class simulates motor behavior by storing the most recent control mode and demand value.
  * It also includes methods that make it easier to verify the current state of the motor.
+ *
+ * @since 2.0.0
  */
 public class FakeMotor implements Motor {
   private boolean isStopped = true;

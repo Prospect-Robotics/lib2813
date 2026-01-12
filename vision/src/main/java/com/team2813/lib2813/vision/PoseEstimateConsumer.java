@@ -17,7 +17,11 @@ package com.team2813.lib2813.vision;
 
 import org.photonvision.EstimatedRobotPose;
 
-/** Represents an operation that accepts estimated robot positions. */
+/**
+ * Represents an operation that accepts estimated robot positions.
+ *
+ * @since 2.0.0
+ */
 @FunctionalInterface
 public interface PoseEstimateConsumer {
   /**

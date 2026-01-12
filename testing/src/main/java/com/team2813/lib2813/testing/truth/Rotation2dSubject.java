@@ -24,7 +24,11 @@ import com.google.common.truth.Subject;
 import edu.wpi.first.math.geometry.Rotation2d;
 import javax.annotation.Nullable;
 
-/** Truth Subject for making assertions about {@link Rotation2d} values. */
+/**
+ * Truth Subject for making assertions about {@link Rotation2d} values.
+ *
+ * @since 2.0.0
+ */
 public final class Rotation2dSubject extends Subject {
   // User-defined entry point
   public static Rotation2dSubject assertThat(@Nullable Rotation2d rotation) {
