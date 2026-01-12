@@ -179,6 +179,15 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   }
 
   /**
+   * Returns a command that stops the motor.
+   *
+   * @since 2.0.0
+   */
+  public final Command stopMotorCommand() {
+    return new InstantCommand(this::stopMotor, this);
+  }
+
+  /**
    * Returns whether the PID controller is engaged.
    *
    * <p>When the PID controller is engaged, the motor system is moving toward the user-specified
