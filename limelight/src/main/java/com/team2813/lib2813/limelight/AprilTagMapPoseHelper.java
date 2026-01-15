@@ -69,7 +69,7 @@ class AprilTagMapPoseHelper {
       return List.of();
     }
     return retriever.getFiducialMap().values().stream()
-        .filter(fidicual -> ids.contains(fidicual.getId()))
+        .filter(fiducial -> ids.contains(fiducial.getId()))
         .map(Fiducial::getPosition)
         .toList();
   }
