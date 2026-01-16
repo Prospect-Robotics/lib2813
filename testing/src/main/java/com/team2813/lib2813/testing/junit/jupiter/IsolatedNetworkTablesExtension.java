@@ -41,6 +41,8 @@ import org.junit.jupiter.api.extension.ParameterResolver;
  *   }
  * }
  * }</pre>
+ *
+ * @since 2.0.0
  */
 public final class IsolatedNetworkTablesExtension
     implements Extension, AfterEachCallback, ParameterResolver {

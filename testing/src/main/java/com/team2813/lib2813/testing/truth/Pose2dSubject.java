@@ -28,6 +28,8 @@ import javax.annotation.Nullable;
  *
  * <p>See <a href="https://truth.dev/extension">Writing your own custom subject</a> to learn about
  * creating custom Truth subjects.
+ *
+ * @since 2.0.0
  */
 public final class Pose2dSubject extends Subject {
 

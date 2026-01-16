@@ -38,6 +38,8 @@ import org.photonvision.targeting.PhotonTrackedTarget;
  * Estimated robot positions are published to NetworkTables using the timestamp in the {@code
  * EstimatedRobotPose}. If no data is available, a position of (0, 0, 0) is published only when the
  * previous available value is older than the expected latency of producing vision estimates.
+ *
+ * @since 2.0.0
  */
 public final class PhotonVisionPosePublisher {
   /**
