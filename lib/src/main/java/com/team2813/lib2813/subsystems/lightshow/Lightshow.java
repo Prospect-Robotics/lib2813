@@ -60,7 +60,15 @@ public abstract class Lightshow extends SubsystemBase {
     addStates(states);
   }
 
-  protected abstract void useColor(Color c);
+  /**
+   * Sets the lights to the provided color.
+   *
+   * <p>Subclasses should override this to display the provided color. For example, the value could
+   * be passed to {@link com.ctre.phoenix.CANifier#setLEDOutput(double, LEDChannel)}.
+   *
+   * @param color Color to display
+   */
+  protected abstract void useColor(Color color);
 
   public final <T extends Enum<T> & State> void addStates(Class<? extends T> enumClass) {
     T[] constants = enumClass.getEnumConstants();
