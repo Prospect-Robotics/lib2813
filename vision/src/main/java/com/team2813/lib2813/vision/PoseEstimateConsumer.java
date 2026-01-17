@@ -25,5 +25,5 @@ public interface PoseEstimateConsumer {
    *
    * @param estimatedPose The estimated robot positions.
    */
-  void addEstimatedRobotPose(EstimatedRobotPose estimatedPose);
+  void acceptEstimatedRobotPose(EstimatedRobotPose estimatedPose);
 }
