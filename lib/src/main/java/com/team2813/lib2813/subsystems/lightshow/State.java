@@ -26,9 +26,9 @@ public interface State {
   Color color();
 
   /**
-   * Checks if the current state should be applied
+   * Checks if the current state is active.
    *
-   * @return {@code true} if the state should be applied
+   * @return {@code true} if the state is active
    */
-  boolean apply();
+  boolean isActive();
 }

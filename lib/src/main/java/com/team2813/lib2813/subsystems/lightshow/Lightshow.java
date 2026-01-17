@@ -32,7 +32,7 @@ public abstract class Lightshow extends SubsystemBase {
           return new Color(0, 0, 0);
         }
 
-        public boolean apply() {
+        public boolean isActive() {
           return true;
         }
       };
