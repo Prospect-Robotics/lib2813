@@ -394,7 +394,7 @@ public class MultiPhotonPoseEstimator implements AutoCloseable {
               .flatMap(Optional::stream) // Convert Stream<Optional<P>> -> Stream<P>
               .toList();
 
-      poses.forEach(poseEstimateConsumer::addEstimatedRobotPose);
+      poses.forEach(poseEstimateConsumer::acceptEstimatedRobotPose);
       cameraWrapper.robotPosePublisher.publish(poses);
     }
   }
