@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj.util.Color;
 
 public interface State {
   /**
-   * gets the color of this State.
+   * Gets the color of this State.
    *
    * @return the color of this State
    */
