@@ -51,13 +51,13 @@ public abstract class QueueLightshow extends Lightshow {
   protected Optional<Color> update() {
     for (State s : states) {
       if (!activatedStates.contains(s) && s.isActive()) {
-        activatedStates.addFirst(s);
+        activatedStates.addFirst(s); // Push
       }
     }
     while (!activatedStates.isEmpty()) {
-      State s = activatedStates.poll();
+      State s = activatedStates.removeFirst(); // Pop
       if (s.isActive()) {
-        activatedStates.addFirst(s);
+        activatedStates.addFirst(s); // Push
         return Optional.of(s.color());
       }
     }
