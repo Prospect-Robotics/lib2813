@@ -23,12 +23,16 @@ import java.util.Set;
 
 /**
  * A lightshow that keeps track of the states that have been applied, and uses the last state. To be
- * more specific, all states that return {@code true} on a call to {@link State#apply()} are added
- * to the list. States are only removed from the list if they are at the front and {@link
- * State#apply()} returns {@code false}, when a state is removed, the next one will be activated if
- * {@link State#apply()} returns {@code true}, until either a state returns {@code true} upon a call
- * to {@link State#apply()}, in which the color will be used, or there are no states where {@link
- * State#apply()} return {@code true}, then the default color is used.
+ * more specific, all states that return {@code true} on a call to {@link State#isActive()} are
+ * added to the list. States are only removed from the list if they are at the front and {@link
+ * State#isActive()} returns {@code false}. When a state is removed, the next one will be activated
+ * if {@link State#isActive()} returns {@code true}, until either a state returns {@code true} upon
+ * a call to {@link State#isActive()}, in which the color will be used, or there are no states where
+ * {@link State#isActive()} return {@code true}, then the default color is used.
+ *
+ * <p>For example usage, see FRC Team 2813's <a
+ * href="https://github.com/Prospect-Robotics/Robot2024/blob/master/Robot2024/src/main/java/com/team2813/subsystems/LEDs.java"
+ * >2024 robot code</a>.
  */
 public abstract class QueueLightshow extends Lightshow {
   private final Deque<State> activatedStates = new ArrayDeque<>();
@@ -46,14 +50,14 @@ public abstract class QueueLightshow extends Lightshow {
   @Override
   protected Optional<Color> update() {
     for (State s : states) {
-      if (!activatedStates.contains(s) && s.apply()) {
-        activatedStates.addFirst(s);
+      if (!activatedStates.contains(s) && s.isActive()) {
+        activatedStates.addFirst(s); // Push
       }
     }
     while (!activatedStates.isEmpty()) {
-      State s = activatedStates.poll();
-      if (s.apply()) {
-        activatedStates.addFirst(s);
+      State s = activatedStates.removeFirst(); // Pop
+      if (s.isActive()) {
+        activatedStates.addFirst(s); // Push
         return Optional.of(s.color());
       }
     }
