@@ -1,51 +1,59 @@
 # User Documentation
 
-## adding submodule
-In order to use, go to your WPILib project directory (the inner one, where the build.gradle file is), and run the command
-```
-git submodule add https://github.com/Prospect-Robotics/lib2813
-```
-## adding submodule to gradle
-The following lines needs to be added to your settings.gradle to make the lib usable:
-```
-includeBuild('lib2813') {
-    dependencySubstitution {
-        substitute module('com.team2813:lib2813') using project(':lib')
-    }
+## Using the libraries
+
+### Updating your dependencies
+
+> [!NOTE]
+> The lib2813 jars are not yet published to Maven Central. For the time being, you need to publish
+> them to Maven Local. See [the Contributing page](CONTRIBUTING.md#publishing-to-maven-local) for details.
+
+In your `build.gradle`, update the `dependencies` section:
+
+```groovy
+dependencies {
+    // Existing dependencies
+    implementation 'com.team2813.lib2813:lib:2.0.0-rc-1'
+    implementation 'com.team2813.lib2813:vision:2.0.0-rc-1'
+    implementation 'com.team2813.lib2813:limelight:2.0.0-rc-1'
+    testImplementation 'com.team2813.lib2813:testing:2.0.0-rc-1'
 }
 ```
-Whatever text that is in the module parentheses is the text that will need to be in an `implementation` statement to depend on the library.
-So, after adding the lines to the settings.gradle, this line in the dependencies block will refer to the library.
-```
-implementation "com.team2813:lib2813"
-```
-Finally, in order to guarantee that the library jars are created before GradleRIO referees to them, add the following line to your build.gradle
-```
-downloadDepsPreemptively.dependsOn gradle.includedBuild("lib2813").task(":lib:jar")
+
+Note that you do not need to include all the dependencies. See the [Runtime dependencies](#runtime-dependencies)
+section for details.
+
+In addition be sure to include Maven Local in the list of repositories in your `build.gradle`
+(needed until we publish to Maven Central):
+
+```groovy
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
 ```
 
-## Fixing vscode jank
-As of version 1.85.1, vscode doesn't work properly with gradle composite builds without the old buildServer. To use the old buildServer, add the following line
-to your settings.json
-```
-"java.gradle.buildServer.enabled": "off",
-```
-This isn't strictly necessary, but without it vscode will not be able to do code completion from things in the library, and tell the user that there are errors,
-when gradle builds fine.
+### Runtime dependencies
 
-## Cloning a repository with a git submodule
-When cloning a repository with a git submodule, git will not automatically get the files in the submodules. in order to do this, run the command
-```
-git submodule update --init --recursive
-```
-This command will recursively initialize all submodules.
-
-This code is still in development, and apis are still subject to change. The most likely thing to get removed is the swerve api, as ctre recently released their own.
-
-## Developer Documentation
-
-To ignore code reformatting when running `git blame` run:
-
-```shell
-git config blame.ignoreRevsFile .git-blame-ignore-revs
-```
+- `com.team2813.lib2813:lib`:
+  - Vendor deps
+    - `WPILibNewCommands.json`
+    - `Phoenix6.json` (if using Phoenix motors)
+    - `REVLib.json` (if using REV Robotics motors)
+- `com.team2813.lib2813:vision`:
+  - lib2813 deps
+    - `com.team2813.lib2813:lib`
+  - Vendor deps
+    - `photonlib.json`
+- `com.team2813.lib2813:testing`:
+  - lib2813 deps
+    - `com.team2813.lib2813:lib`
+  - Vendor deps
+    - `WPILibNewCommands.json`
+  - Java deps
+    - `org.junit.jupiter:junit-jupiter:5.13.1`
+    - `com.google.truth:truth:1.4.4`
+- `com.team2813.lib2813:limelight`:
+  - Java deps
+    - `com.google.code.gson:gson:2.12.1`
+    - `org.json:json:20240205`
