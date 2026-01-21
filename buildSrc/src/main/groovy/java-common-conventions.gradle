@@ -82,6 +82,7 @@ tasks.named('jar') {
 }
 
 spotless {
+    ratchetFrom 'origin/main' // Update license years for files changed since 'origin/main'.
     // See https://github.com/diffplug/spotless/tree/main/plugin-gradle
     format 'misc', {
         // define the files to apply `misc` to
