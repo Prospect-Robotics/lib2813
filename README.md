@@ -8,15 +8,28 @@
 > The lib2813 jars are not yet published to Maven Central. For the time being, you need to publish
 > them to Maven Local. See [the Contributing page](CONTRIBUTING.md#publishing-to-maven-local) for details.
 
+In your project's "gradle" directory, create a file named `libs.versions.toml` with the following content:
+
+```toml
+[versions]
+lib2813 = "2.0.0-rc-1"
+
+[libraries]
+lib2813-lib = { module = "com.team2813.lib2813:lib", version.ref="lib2813" }
+lib2813-vision = { module = "com.team2813.lib2813:vision", version.ref="lib2813" }
+lib2813-limelight = { module = "com.team2813.lib2813:limelight", version.ref="lib2813" }
+lib2813-testing = { module = "com.team2813.lib2813:testing", version.ref="lib2813" }
+```
+
 In your `build.gradle`, update the `dependencies` section:
 
 ```groovy
 dependencies {
     // Existing dependencies
-    implementation 'com.team2813.lib2813:lib:2.0.0-rc-1'
-    implementation 'com.team2813.lib2813:vision:2.0.0-rc-1'
-    implementation 'com.team2813.lib2813:limelight:2.0.0-rc-1'
-    testImplementation 'com.team2813.lib2813:testing:2.0.0-rc-1'
+    implementation libs.lib2813.lib
+    implementation libs.lib2813.vision
+    implementation libs.lib2813.limelight
+    testImplementation libs.lib2813.testing
 }
 ```
 
@@ -32,6 +45,11 @@ repositories {
     mavenCentral()
 }
 ```
+
+### Upgrading
+
+To upgrade the version of the lib2813 libraries you are using, simply update the version string for "lib2813" in
+`libs.versions.toml`.
 
 ### Vendordeps
 

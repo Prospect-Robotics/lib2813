@@ -109,7 +109,7 @@ repositories {
 }
 ```
 
-Then update your `build.gradle` to reference the version that you published locally.
+Then update your `libs.versions.toml` to reference the version that you published locally.
 
 ### Cloning a repository with a git submodule
 When cloning a repository with a git submodule, git will not automatically get the files in the submodules. in order to do this, run the command
