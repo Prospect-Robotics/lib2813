@@ -1,0 +1,28 @@
+[versions]
+wpilib = "2026.2.1"
+spotless = "6.25.0"
+mockito = "5.14.2"
+truth = "1.4.4"
+autovalue = "1.11.0"
+junit = "5.13.1"
+junit4 = "4.13.2"
+gson = "2.12.1"
+json = "20240205"
+
+[libraries]
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+autovalue-annotations = { module = "com.google.auto.value:auto-value-annotations", version.ref = "autovalue" }
+autovalue-processor = { module = "com.google.auto.value:auto-value", version.ref = "autovalue" }
+junit-junit4 = { module = "junit:junit", version.ref = "junit4" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit"}
+junit-platform-testkit = { module = "org.junit.platform:junit-platform-testkit", version.ref = "junit" }
+junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+json = { module = "org.json:json", version.ref = "json" }
+
+
+[plugins]
+gradleRIO = { id = "edu.wpi.first.GradleRIO", version.ref = "wpilib" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
