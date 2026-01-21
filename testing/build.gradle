@@ -8,6 +8,7 @@ dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
     implementation(libs.truth)
+    implementation(platform(libs.junit.bom))
     implementation(libs.junit.jupiter)
     implementation project(':lib')
     nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)

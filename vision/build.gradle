@@ -9,6 +9,7 @@ dependencies {
     implementation wpi.java.vendor.java()
     implementation project(':lib')
 
+    testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.truth)
     testImplementation project(':testing')

@@ -15,10 +15,11 @@ truth = { module = "com.google.truth:truth", version.ref = "truth" }
 autovalue-annotations = { module = "com.google.auto.value:auto-value-annotations", version.ref = "autovalue" }
 autovalue-processor = { module = "com.google.auto.value:auto-value", version.ref = "autovalue" }
 junit-junit4 = { module = "junit:junit", version.ref = "junit4" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit"}
-junit-platform-testkit = { module = "org.junit.platform:junit-platform-testkit", version.ref = "junit" }
-junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+junit-platform-testkit = { module = "org.junit.platform:junit-platform-testkit" }
+junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 json = { module = "org.json:json", version.ref = "json" }
 
