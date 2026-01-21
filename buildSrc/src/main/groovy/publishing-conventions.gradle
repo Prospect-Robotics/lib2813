@@ -1,0 +1,32 @@
+plugins {
+    id 'maven-publish'
+}
+
+version = '2.0.0-rc-1'
+
+publishing {
+    publications {
+        lib2813(MavenPublication) {
+            groupId = 'com.team2813.lib2813'
+            from components.java
+            artifact sourceJar
+            pom {
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/Prospect-Robotics/lib2813.git'
+                    developerConnection = 'scm:git:git://github.com/Prospect-Robotics/lib2813.git'
+                    url = 'https://github.com/Prospect-Robotics/lib2813'
+                }
+                organization {
+                    name = 'FRC 2813 Gear Heads'
+                    url = 'https://team2813.com'
+                }
+            }
+        }
+    }
+}
