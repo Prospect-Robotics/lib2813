@@ -119,6 +119,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * Returns a command that sets the desired setpoint to the provided value.
    *
    * @param setpoint the position to go to.
+   * @since 2.0.0
    */
   public final Command setSetpointCommand(T setpoint) {
     return new InstantCommand(() -> this.setSetpoint(setpoint), this);
@@ -168,6 +169,8 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    *
    * <p>The motor voltage will be set to zero, and the motor will not adjust to move towards the
    * current setpoint.
+   *
+   * @since 2.0.0
    */
   @Override
   public final void stopMotor() {
@@ -203,20 +206,10 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
   /**
    * Clamps the given output value and provides it to the motor.
    *
-   * @param output The output calculated by the PID algorithm.
-   * @param setpoint Ignored.
-   */
-  private void useOutput(double output, double setpoint) {
-    motor.set(controlMode, clampOutput(output));
-  }
-
-  /**
-   * Clamps the given output value and provides it to the motor.
-   *
    * <p>This is called by {@link #periodic()} if this subsystem is enabled.
    */
   private void useOutput(double output) {
-    useOutput(output, controller.getSetpoint());
+    motor.set(controlMode, clampOutput(output));
   }
 
   /**
@@ -227,6 +220,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
    * @param output Output provided by the PID controller.
    * @return Output to provide to the motor.
    * @see edu.wpi.first.math.MathUtil#clamp(double, double, double)
+   * @since 2.0.0
    */
   protected double clampOutput(double output) {
     return output;
@@ -384,7 +378,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       return startingPosition(startingPositionSupplier.get());
     }
 
-    /** Sets the acceptable position error. */
+    /**
+     * Sets the acceptable position error.
+     *
+     * @param error the error which is considered tolerable for use with {@code }atPosition()}
+     * @return {@code this} for chaining
+     */
     public MotorSubsystemConfiguration acceptableError(double error) {
       this.acceptableError = error;
       return this;
@@ -393,7 +392,8 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     /**
      * Sets the unit to use for PID calculations
      *
-     * @param rotationUnit The angle unit to use for calculations
+     * @param rotationUnit the angle unit to use for calculations
+     * @return {@code this} for chaining
      */
     public MotorSubsystemConfiguration rotationUnit(AngleUnit rotationUnit) {
       startingPosition = rotationUnit.convertFrom(startingPosition, this.rotationUnit);
@@ -401,6 +401,13 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
       return this;
     }
 
+    /**
+     * Enables publishing of data to the provided network table instance.
+     *
+     * @param ntInstance the network table instance to publish to
+     * @return {@code this} for chaining
+     * @since 2.0.0
+     */
     public MotorSubsystemConfiguration publishTo(NetworkTableInstance ntInstance) {
       this.ntInstance = ntInstance;
       return this;

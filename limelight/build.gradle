@@ -1,14 +1,7 @@
 plugins {
     id 'java-common-conventions'
+    id 'publishing-conventions'
     id 'edu.wpi.first.GradleRIO' version '2026.1.1'
-    id 'idea'
-}
-
-idea {
-    module {
-        downloadJavadoc = true
-        downloadSources = true
-    }
 }
 
 dependencies {
@@ -36,4 +29,27 @@ wpi.java.configureTestTasks(test)
 test {
     // Use JUnit 4 for tests
     useJUnit()
+}
+
+publishing {
+    publications {
+        lib2813(MavenPublication) {
+            pom {
+                name = '2813 Limelight Library'
+                description = 'Limelight utilities for FRC robots'
+                developers {
+                    developer {
+                        id = 'cuttestkittensrule'
+                        name = 'Kyle'
+                        email = 'mangoiscute95@gmail.com'
+                    }
+                    developer {
+                        id = 'kcooney'
+                        name = 'Kevin'
+                        email = 'kcooney@gmail.com'
+                    }
+                }
+            }
+        }
+    }
 }

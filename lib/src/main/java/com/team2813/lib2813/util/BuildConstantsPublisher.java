@@ -52,6 +52,8 @@ import java.util.function.Function;
  * // Log the build constants in the robot console as well.
  * buildConstantsPublisher.log();
  * }</pre>
+ *
+ * @since 2.0.0
  */
 public final class BuildConstantsPublisher {
   /** The name of the NetworkTable under which the build constants are published. */
