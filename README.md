@@ -33,27 +33,13 @@ repositories {
 }
 ```
 
-### Runtime dependencies
+### Vendordeps
 
 - `com.team2813.lib2813:lib`:
-  - Vendor deps
-    - `WPILibNewCommands.json`
-    - `Phoenix6.json` (if using Phoenix motors)
-    - `REVLib.json` (if using REV Robotics motors)
+  - `WPILibNewCommands.json`
+  - `Phoenix6.json` (if using Phoenix motors)
+  - `REVLib.json` (if using REV Robotics motors)
 - `com.team2813.lib2813:vision`:
-  - lib2813 deps
-    - `com.team2813.lib2813:lib`
-  - Vendor deps
-    - `photonlib.json`
+  - `photonlib.json`
 - `com.team2813.lib2813:testing`:
-  - lib2813 deps
-    - `com.team2813.lib2813:lib`
-  - Vendor deps
-    - `WPILibNewCommands.json`
-  - Java deps
-    - `org.junit.jupiter:junit-jupiter:5.13.1`
-    - `com.google.truth:truth:1.4.4`
-- `com.team2813.lib2813:limelight`:
-  - Java deps
-    - `com.google.code.gson:gson:2.12.1`
-    - `org.json:json:20240205`
+  - `WPILibNewCommands.json`

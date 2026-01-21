@@ -46,7 +46,7 @@ To do this, run the following command from any directory:
 git config --global submodule.stickyRecursiveClone true
 ```
 
-To add the lib2813 submodule, go to your robot project directory (where the `vendordeps` directory is), and run
+To add the lib2813 submodule, go to your robot project directory (where the `settings.gradle` file is), and run
 this command:
 ```shell
 git submodule add https://github.com/Prospect-Robotics/lib2813
@@ -68,8 +68,6 @@ Next, remove the version numbers for the lib2813 dependencies in your `build.gra
 ```
 implementation "com.team2813.lib2813:lib"
 ```
-
-Next, add the following lines to your `build.gradle`:
 
 Finally, in order to guarantee that the library jars are created before GradleRIO referees to them, add the following
 lines to your `build.gradle`:
