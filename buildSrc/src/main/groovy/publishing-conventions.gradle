@@ -26,7 +26,32 @@ publishing {
                     name = 'FRC 2813 Gear Heads'
                     url = 'https://team2813.com'
                 }
+                withXml {
+                    def top = asNode()
+                    def repositories = new Node(top, 'repositories')
+                    def photonlib = new Node(repositories, 'repository')
+                    new Node(photonlib, 'id', 'photonlib')
+                    new Node(photonlib, 'name', 'PhotonLib Repository')
+                    new Node(photonlib, 'url', 'https://maven.photonvision.org/releases')
+                    def wpilib = new Node(repositories, 'repository')
+                    new Node(wpilib, 'id', 'wpilib')
+                    new Node(wpilib, 'name', 'WPILib Repository')
+                    new Node(wpilib, 'url', 'https://frcmaven.wpi.edu/artifactory/release/')
+                    def revlib = new Node(repositories, 'repository')
+                    new Node(revlib, 'id', 'revlib')
+                    new Node(revlib, 'name', "REVLib Repository")
+                    new Node(revlib, 'url', 'https://maven.revrobotics.com/')
+                    def ctre = new Node(repositories, 'repository')
+                    new Node(ctre, 'id', 'ctre')
+                    new Node(ctre, 'name', 'CTRE Repository')
+                    new Node(ctre, 'url', 'https://maven.ctr-electronics.com/release')
+                }
             }
         }
     }
+}
+
+
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
 }
