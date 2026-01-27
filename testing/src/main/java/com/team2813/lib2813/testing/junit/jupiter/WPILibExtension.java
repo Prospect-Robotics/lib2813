@@ -72,7 +72,9 @@ public final class WPILibExtension
 
   @Override
   public void beforeAll(ExtensionContext context) {
-    // See https://www.chiefdelphi.com/t/driverstation-getalliance-in-gradle-test/
+    // Ensure the Hardware Abstraction Layer is initialized before we try to use it. This logic is
+    // based on a comment from Peter Johnson at
+    // https://www.chiefdelphi.com/t/driverstation-getalliance-in-gradle-test/
     if (!HAL.initialize(500, 0)) {
       throw new IllegalStateException("Could not initialize Hardware Abstraction Layer");
     }
