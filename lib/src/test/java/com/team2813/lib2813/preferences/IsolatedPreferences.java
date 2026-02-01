@@ -26,6 +26,7 @@ import org.junit.rules.ExternalResource;
  */
 final class IsolatedPreferences extends ExternalResource {
   private NetworkTableInstance tempInstance;
+  private NetworkTableInstance prevInstance;
 
   /** Gets the {@link NetworkTable} that contains the preference values. */
   public NetworkTable getPreferencesTable() {
@@ -34,7 +35,7 @@ final class IsolatedPreferences extends ExternalResource {
 
   @Override
   protected void before() {
-    NetworkTableInstance.getDefault();
+    prevInstance = Preferences.getNetworkTable().getInstance();
     tempInstance = NetworkTableInstance.create();
     tempInstance.startLocal();
     Preferences.setNetworkTableInstance(tempInstance);
@@ -42,7 +43,7 @@ final class IsolatedPreferences extends ExternalResource {
 
   @Override
   protected void after() {
-    Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
+    Preferences.setNetworkTableInstance(prevInstance);
     if (!tempInstance.waitForListenerQueue(.6)) {
       System.err.println(
           "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 600ms);"
