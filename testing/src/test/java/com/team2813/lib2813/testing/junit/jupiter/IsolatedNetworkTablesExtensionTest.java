@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static com.team2813.lib2813.testing.junit.jupiter.ExtensionAssertions.ass
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Preferences;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,12 @@ class IsolatedNetworkTablesExtensionTest {
     public void verifyProvidesNetworkTableParameter(NetworkTableInstance ntInstance) {
       assertThat(ntInstance).isNotNull();
       assertThat(ntInstance.getHandle())
+          .isNotEqualTo(NetworkTableInstance.getDefault().getHandle());
+    }
+
+    @Test
+    public void verifyReplacesPreferencesNetworkTableInstance() {
+      assertThat(Preferences.getNetworkTable().getInstance().getHandle())
           .isNotEqualTo(NetworkTableInstance.getDefault().getHandle());
     }
   } // end SampleTest
