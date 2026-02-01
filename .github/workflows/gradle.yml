@@ -16,7 +16,7 @@ jobs:
         distribution: 'temurin'
         cache: gradle
     - name: Setup Gradle
-      uses: gradle/gradle-build-action@v3
+      uses: gradle/actions/setup-gradle@v5
     - name: Run build with Gradle Wrapper
       run: ./gradlew --info build -PgearHeads.testJvmArg='-XX:ErrorFile=${{ github.workspace }}/hs_err_pid%p.log'
     - name: Archive test artifacts
