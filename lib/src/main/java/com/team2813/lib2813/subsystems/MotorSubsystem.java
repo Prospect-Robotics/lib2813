@@ -31,7 +31,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -84,7 +83,7 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     controller.setTolerance(builder.acceptableError);
     controller.setSetpoint(builder.startingPosition);
     motor = new ControlledMotor(builder.motor);
-    encoder = new EncoderWrapper(builder.encoder);
+    encoder = builder.encoder;
     controlMode = builder.controlMode;
     rotationUnit = builder.rotationUnit;
     if (builder.ntInstance != null) {
@@ -414,29 +413,6 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
     public void stopMotor() {
       pidControlEnabled = false;
       motor.stopMotor();
-    }
-  }
-
-  private static class EncoderWrapper implements Encoder {
-    private final Encoder encoder;
-
-    EncoderWrapper(Encoder encoder) {
-      this.encoder = encoder;
-    }
-
-    @Override
-    public Angle getPositionMeasure() {
-      return encoder.getPositionMeasure();
-    }
-
-    @Override
-    public void setPosition(Angle position) {
-      encoder.setPosition(position);
-    }
-
-    @Override
-    public AngularVelocity getVelocityMeasure() {
-      return encoder.getVelocityMeasure();
     }
   }
 
