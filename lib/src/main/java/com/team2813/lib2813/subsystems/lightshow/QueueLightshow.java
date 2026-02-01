@@ -1,5 +1,5 @@
 /*
-Copyright 2024-2025 Prospect Robotics SWENext Club
+Copyright 2024-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,13 +22,18 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * A lightshow that keeps track of the states that have been applied, and uses the last state. To be
- * more specific, all states that return {@code true} on a call to {@link State#apply()} are added
- * to the list. States are only removed from the list if they are at the front and {@link
- * State#apply()} returns {@code false}, when a state is removed, the next one will be activated if
- * {@link State#apply()} returns {@code true}, until either a state returns {@code true} upon a call
- * to {@link State#apply()}, in which the color will be used, or there are no states where {@link
- * State#apply()} return {@code true}, then the default color is used.
+ * A lightshow that changes color when a State transitions from inactive to active.
+ *
+ * <p>All states that return {@code true} on a call to {@link State#isActive()} are pushed to a
+ * deque. States are only removed from the deque if they are at the front and {@link
+ * State#isActive()} returns {@code false}. When a state is removed, the next one will be activated
+ * if {@link State#isActive()} returns {@code true}, until either a state returns {@code true} upon
+ * a call to {@link State#isActive()}, in which the color will be used, or there are no states where
+ * {@link State#isActive()} return {@code true}, then the default color is used.
+ *
+ * <p>For example usage, see FRC Team 2813's <a
+ * href="https://github.com/Prospect-Robotics/Robot2024/blob/master/Robot2024/src/main/java/com/team2813/subsystems/LEDs.java"
+ * >2024 robot code</a>.
  */
 public abstract class QueueLightshow extends Lightshow {
   private final Deque<State> activatedStates = new ArrayDeque<>();
@@ -45,18 +50,28 @@ public abstract class QueueLightshow extends Lightshow {
 
   @Override
   protected Optional<Color> update() {
+    // NOTE: Even though this class is called QueueLightshow, we are treating activatedStates as a
+    // stack, not a queue.
+
+    // If new States become active, push them, so we change the color.
     for (State s : states) {
-      if (!activatedStates.contains(s) && s.apply()) {
-        activatedStates.addFirst(s);
+      if (!activatedStates.contains(s) && s.isActive()) {
+        activatedStates.addFirst(s); // Push
       }
     }
-    while (!activatedStates.isEmpty()) {
-      State s = activatedStates.poll();
-      if (s.apply()) {
-        activatedStates.addFirst(s);
+
+    // Pick the color to display. We start with the State that was most recently pushed, so the
+    // color returned changes when a either a State transitions to active or when the State
+    // associated with the previous color transitioned to inactive.
+    do {
+      State s = activatedStates.peekFirst();
+      if (s == null) {
+        return Optional.empty(); // No states active. The lightshow is over. 😿
+      }
+      if (s.isActive()) {
         return Optional.of(s.color());
       }
-    }
-    return Optional.empty();
+      activatedStates.removeFirst(); // Pop
+    } while (true);
   }
 }

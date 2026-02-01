@@ -1,5 +1,5 @@
 /*
-Copyright 2024-2025 Prospect Robotics SWENext Club
+Copyright 2024-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,16 +19,16 @@ import edu.wpi.first.wpilibj.util.Color;
 
 public interface State {
   /**
-   * gets the color of this State.
+   * Gets the color of this State.
    *
    * @return the color of this State
    */
   Color color();
 
   /**
-   * Checks if the current state should be applied
+   * Checks if the current state is active.
    *
-   * @return {@code true} if the state should be applied
+   * @return {@code true} if the state is active
    */
-  boolean apply();
+  boolean isActive();
 }

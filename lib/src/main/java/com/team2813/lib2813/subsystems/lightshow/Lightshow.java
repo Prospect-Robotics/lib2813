@@ -1,5 +1,5 @@
 /*
-Copyright 2024-2025 Prospect Robotics SWENext Club
+Copyright 2024-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,13 +32,13 @@ public abstract class Lightshow extends SubsystemBase {
           return new Color(0, 0, 0);
         }
 
-        public boolean apply() {
+        public boolean isActive() {
           return true;
         }
       };
 
-  protected Set<State> states = new HashSet<>();
-  protected Optional<? extends State> defaultState;
+  protected final Set<State> states = new HashSet<>();
+  protected Optional<? extends State> defaultState = Optional.empty();
 
   /**
    * Creates a new Lightshow subsystem using an enum. Uses the given {@code enumClass} to get a list
@@ -60,7 +60,15 @@ public abstract class Lightshow extends SubsystemBase {
     addStates(states);
   }
 
-  protected abstract void useColor(Color c);
+  /**
+   * Sets the lights to the provided color.
+   *
+   * <p>Subclasses should override this to display the provided color. For example, the value could
+   * be passed to {@link com.ctre.phoenix.CANifier#setLEDOutput(double, LEDChannel)}.
+   *
+   * @param color Color to display
+   */
+  protected abstract void useColor(Color color);
 
   public final <T extends Enum<T> & State> void addStates(Class<? extends T> enumClass) {
     T[] constants = enumClass.getEnumConstants();
