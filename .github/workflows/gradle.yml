@@ -1,6 +1,7 @@
 name: Build Gradle project
 
 on: push
+fetch-depth: 0
 
 jobs:
   build-gradle-project:
@@ -16,8 +17,6 @@ jobs:
         cache: gradle
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v3
-    - name: Fetch 'origin/main'
-      run: git fetch --depth=1 origin main
     - name: Run build with Gradle Wrapper
       run: ./gradlew --info build -PgearHeads.testJvmArg='-XX:ErrorFile=${{ github.workspace }}/hs_err_pid%p.log'
     - name: Archive test artifacts
