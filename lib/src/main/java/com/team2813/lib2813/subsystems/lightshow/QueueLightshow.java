@@ -22,9 +22,10 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * A lightshow that keeps track of the states that have been applied, and uses the last state. To be
- * more specific, all states that return {@code true} on a call to {@link State#isActive()} are
- * added to the list. States are only removed from the list if they are at the front and {@link
+ * A lightshow that changes color when a State transitions from inactive to active.
+ *
+ * <p>All states that return {@code true} on a call to {@link State#isActive()} are pushed to a
+ * deque. States are only removed from the deque if they are at the front and {@link
  * State#isActive()} returns {@code false}. When a state is removed, the next one will be activated
  * if {@link State#isActive()} returns {@code true}, until either a state returns {@code true} upon
  * a call to {@link State#isActive()}, in which the color will be used, or there are no states where
