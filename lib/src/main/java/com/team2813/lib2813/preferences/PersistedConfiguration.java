@@ -515,10 +515,7 @@ public final class PersistedConfiguration {
     return Preferences.getString(key, "");
   }
 
-  /**
-   * Gets a Supplier&lt;String&gt; value from Preferences for the given component. Supports String,
-   * long, int, boolean and float values.
-   */
+  /** Gets a Supplier&lt;String&gt; value from Preferences for the given component. */
   private static Supplier<String> supplierFetcher(
       RecordComponent component,
       String key,
