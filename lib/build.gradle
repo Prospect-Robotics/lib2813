@@ -1,5 +1,6 @@
 plugins {
     id 'java-common-conventions'
+    id 'com.vanniktech.maven.publish' version '0.34.0'
     id 'publishing-conventions'
     id 'edu.wpi.first.GradleRIO' version '2026.1.1'
 }
@@ -37,19 +38,15 @@ tasks.named('test') {
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
-publishing {
-    publications {
-        lib2813(MavenPublication) {
-            pom {
-                name = '2813 Library'
-                description = 'Frequently reused code written by team 2813'
-                developers {
-                    developer {
-                        id = 'cuttestkittensrule'
-                        name = 'Kyle'
-                        email = 'mangoiscute95@gmail.com'
-                    }
-                }
+mavenPublishing {
+    pom {
+        name = '2813 Library'
+        description = 'Frequently reused code written by team 2813'
+        developers {
+            developer {
+                id = 'cuttestkittensrule'
+                name = 'Kyle'
+                email = 'mangoiscute95@gmail.com'
             }
         }
     }
