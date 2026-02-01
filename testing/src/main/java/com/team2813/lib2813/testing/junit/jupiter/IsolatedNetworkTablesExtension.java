@@ -64,18 +64,18 @@ public final class IsolatedNetworkTablesExtension
     Store store = context.getStore(NAMESPACE);
     Data data = DATA_KEY.remove(store);
     if (data != null) {
+      Preferences.setNetworkTableInstance(data.prevInstance);
+
       // Clear out the listener queue before destroying our temporary NetworkTableInstance.
       //
       // This works around a race condition in WPILib where a listener registered by Preferences can
       // be called after the NetworkTableInstance was closed (see
       // https://github.com/wpilibsuite/allwpilib/issues/8215).
-      if (!data.testInstance.waitForListenerQueue(.5)) {
+      if (!data.testInstance.waitForListenerQueue(.2)) {
         System.err.println(
-            "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 500ms);"
+            "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 200ms);"
                 + " JVM may crash");
       }
-
-      Preferences.setNetworkTableInstance(data.prevInstance);
       data.testInstance.close();
     }
   }

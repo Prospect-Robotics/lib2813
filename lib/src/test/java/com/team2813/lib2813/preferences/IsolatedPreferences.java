@@ -42,12 +42,12 @@ final class IsolatedPreferences extends ExternalResource {
 
   @Override
   protected void after() {
-    if (!tempInstance.waitForListenerQueue(.4)) {
+    Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
+    if (!tempInstance.waitForListenerQueue(.2)) {
       System.err.println(
           "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 200ms);"
               + " JVM may crash");
     }
-    Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
     tempInstance.close();
   }
 }
