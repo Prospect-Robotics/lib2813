@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ class AprilTagMapPoseHelper {
       return List.of();
     }
     return retriever.getFiducialMap().values().stream()
-        .filter(fidicual -> ids.contains(fidicual.getId()))
+        .filter(fiducial -> ids.contains(fiducial.getId()))
         .map(Fiducial::getPosition)
         .toList();
   }

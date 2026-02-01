@@ -1,5 +1,5 @@
 /*
-Copyright 2024-2025 Prospect Robotics SWENext Club
+Copyright 2024-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -60,9 +60,7 @@ class DataCollection implements Runnable {
 
       return BodySubscribers.mapping(
           BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo),
-          body -> {
-            return new Result(new JSONObject(body), responseTimestamp);
-          });
+          body -> new Result(new JSONObject(body), responseTimestamp));
     }
   }
 

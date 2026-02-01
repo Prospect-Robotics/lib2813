@@ -1,5 +1,5 @@
 /*
-Copyright 2024-2025 Prospect Robotics SWENext Club
+Copyright 2024-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
-import java.util.Set;
 
 /**
  * Get positional data from limelight
@@ -69,46 +68,15 @@ public interface LocationalData {
    *
    * <p>Per the Limelight docs, this is the time between the end of the exposure of the middle row
    * to the beginning of the tracking loop.
-   *
-   * @deprecated Use {@link #getBotPoseEstimateBlue()} or {@link #getBotPoseEstimateRed()}
    */
-  @Deprecated
   OptionalDouble getCaptureLatency();
 
   /**
    * Targeting latency in milliseconds.
    *
    * <p>Per the Limelight docs, this is the time consumed by the tracking loop this frame.
-   *
-   * @deprecated Use {@link #getBotPoseEstimateBlue()} or {@link #getBotPoseEstimateRed()}
    */
-  @Deprecated
   OptionalDouble getTargetingLatency();
-
-  /**
-   * @deprecated use methods that return a {@link BotPoseEstimate}.
-   */
-  @Deprecated
-  OptionalDouble getTimestamp();
-
-  @Deprecated
-  default OptionalDouble lastMSDelay() {
-    OptionalDouble a = getCaptureLatency();
-    OptionalDouble b = getTargetingLatency();
-    if (a.isPresent() && b.isPresent()) {
-      return OptionalDouble.of(a.getAsDouble() + b.getAsDouble());
-    }
-    return OptionalDouble.empty();
-  }
-
-  /**
-   * Gets the set of all visible tags
-   *
-   * @return The visible tags
-   * @deprecated use {@link #getVisibleAprilTagPoses()}
-   */
-  @Deprecated
-  Set<Integer> getVisibleTags();
 
   /** Gets the visible AprilTags as a map from ID to position. */
   Map<Integer, Pose3d> getVisibleAprilTagPoses();

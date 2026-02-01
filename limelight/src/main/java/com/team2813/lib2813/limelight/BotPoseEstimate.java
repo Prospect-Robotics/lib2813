@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,10 +25,5 @@ import java.util.Set;
  * @param timestampSeconds The timestamp, in seconds, using the drivetrain clock
  * @param visibleAprilTags All April Tags that are visible from the vision source.
  */
-public record BotPoseEstimate(Pose2d pose, double timestampSeconds, Set<Integer> visibleAprilTags) {
-
-  @Deprecated
-  public BotPoseEstimate(Pose2d pose, double timestampSeconds) {
-    this(pose, timestampSeconds, Set.of());
-  }
-}
+public record BotPoseEstimate(
+    Pose2d pose, double timestampSeconds, Set<Integer> visibleAprilTags) {}

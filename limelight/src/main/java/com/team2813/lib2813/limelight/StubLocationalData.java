@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -77,21 +77,6 @@ final class StubLocationalData implements LocationalData {
   @Override
   public OptionalDouble getTargetingLatency() {
     return OptionalDouble.empty();
-  }
-
-  @Override
-  public OptionalDouble getTimestamp() {
-    return OptionalDouble.empty();
-  }
-
-  @Override
-  public OptionalDouble lastMSDelay() {
-    return OptionalDouble.empty();
-  }
-
-  @Override
-  public Set<Integer> getVisibleTags() {
-    return Set.of();
   }
 
   @Override
