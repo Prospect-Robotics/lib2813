@@ -15,39 +15,9 @@ limitations under the License.
 */
 package com.team2813.lib2813.preferences;
 
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.Preferences;
-import org.junit.rules.ExternalResource;
-
-/**
- * A JUnit rule that ensures that changes to preferences done by a test are not leaked out to other
- * tests.
- */
-final class IsolatedPreferences extends ExternalResource {
-  private NetworkTableInstance tempInstance;
-
-  /** Gets the {@link NetworkTable} that contains the preference values. */
-  public NetworkTable getPreferencesTable() {
-    return tempInstance.getTable("Preferences");
-  }
-
-  @Override
-  protected void before() {
-    NetworkTableInstance.getDefault();
-    tempInstance = NetworkTableInstance.create();
-    tempInstance.startLocal();
-    Preferences.setNetworkTableInstance(tempInstance);
-  }
-
-  @Override
-  protected void after() {
-    Preferences.setNetworkTableInstance(NetworkTableInstance.getDefault());
-    if (!tempInstance.waitForListenerQueue(.2)) {
-      System.err.println(
-          "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 200ms);"
-              + " JVM may crash");
-    }
-    tempInstance.close();
-  }
+// TODO: Remove this file.
+// Initial attempts at deletion caused exceptions in :lib:spotlessJava,
+// possibly due to the Copyright header check.
+final class IsolatedPreferences {
+  private IsolatedPreferences() {}
 }
