@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 
 class NetworkTablesLimelight implements Limelight {
@@ -141,6 +142,16 @@ class NetworkTablesLimelight implements Limelight {
     @Override
     public Optional<BotPoseEstimate> getBotPoseEstimateRed() {
       return redPoseEstimate;
+    }
+
+    @Override
+    public OptionalDouble getCaptureLatency() {
+      return OptionalDouble.of(results.latency_capture);
+    }
+
+    @Override
+    public OptionalDouble getTargetingLatency() {
+      return OptionalDouble.of(results.latency_pipeline);
     }
 
     @Override

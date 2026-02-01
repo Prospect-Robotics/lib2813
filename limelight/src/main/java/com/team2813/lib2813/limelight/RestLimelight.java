@@ -178,11 +178,13 @@ class RestLimelight implements Limelight {
           new Pose3d(arr.getDouble(0), arr.getDouble(1), arr.getDouble(2), rotation));
     }
 
-    private OptionalDouble getCaptureLatency() {
+    @Override
+    public OptionalDouble getCaptureLatency() {
       return unboxDouble(getDouble(root, "cl"));
     }
 
-    private OptionalDouble getTargetingLatency() {
+    @Override
+    public OptionalDouble getTargetingLatency() {
       return unboxDouble(getDouble(root, "tl"));
     }
 

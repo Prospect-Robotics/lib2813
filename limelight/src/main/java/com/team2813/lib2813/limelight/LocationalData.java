@@ -18,6 +18,7 @@ package com.team2813.lib2813.limelight;
 import edu.wpi.first.math.geometry.Pose3d;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 
 /**
  * Get positional data from limelight
@@ -61,6 +62,21 @@ public interface LocationalData {
 
   /** Gets the estimated position of the robot with the red driverstation as the origin. */
   Optional<BotPoseEstimate> getBotPoseEstimateRed();
+
+  /**
+   * Capture latency in milliseconds.
+   *
+   * <p>Per the Limelight docs, this is the time between the end of the exposure of the middle row
+   * to the beginning of the tracking loop.
+   */
+  OptionalDouble getCaptureLatency();
+
+  /**
+   * Targeting latency in milliseconds.
+   *
+   * <p>Per the Limelight docs, this is the time consumed by the tracking loop this frame.
+   */
+  OptionalDouble getTargetingLatency();
 
   /** Gets the visible AprilTags as a map from ID to position. */
   Map<Integer, Pose3d> getVisibleAprilTagPoses();

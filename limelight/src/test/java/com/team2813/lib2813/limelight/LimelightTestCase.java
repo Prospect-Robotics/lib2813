@@ -118,6 +118,13 @@ abstract class LimelightTestCase {
     LocationalData locationalData = limelight.getLocationalData();
     assertThat(locationalData.isValid()).isTrue();
 
+    OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
+    double expectedCaptureLatencyMs = 37.40;
+    assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
+    OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
+    double expectedTargetingLatencyMs = 66.61;
+    assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
+
     assertThat(locationalData.getBotpose()).isPresent();
     Pose3d actualPose = locationalData.getBotpose().get();
     Rotation3d rotation =
@@ -153,6 +160,13 @@ abstract class LimelightTestCase {
     assertHasTarget(limelight);
     LocationalData locationalData = limelight.getLocationalData();
     assertThat(locationalData.isValid()).isTrue();
+
+    OptionalDouble actualCaptureLatency = locationalData.getCaptureLatency();
+    double expectedCaptureLatencyMs = 37.40;
+    assertAlmostEqual(expectedCaptureLatencyMs, actualCaptureLatency, 0.005);
+    OptionalDouble actualTargetingLatency = locationalData.getTargetingLatency();
+    double expectedTargetingLatencyMs = 59.20;
+    assertAlmostEqual(expectedTargetingLatencyMs, actualTargetingLatency, 0.005);
 
     assertThat(locationalData.getBotpose()).isPresent();
     Pose3d actualPose = locationalData.getBotpose().get();
