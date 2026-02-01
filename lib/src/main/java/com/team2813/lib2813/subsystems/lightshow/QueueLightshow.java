@@ -49,18 +49,28 @@ public abstract class QueueLightshow extends Lightshow {
 
   @Override
   protected Optional<Color> update() {
+    // NOTE: Even though this class is called QueueLightshow, we are treating activatedStates as a
+    // stack, not a queue.
+
+    // If new States become active, push them, so we change the color.
     for (State s : states) {
       if (!activatedStates.contains(s) && s.isActive()) {
         activatedStates.addFirst(s); // Push
       }
     }
-    while (!activatedStates.isEmpty()) {
-      State s = activatedStates.removeFirst(); // Pop
+
+    // Pick the color to display. We start with the State that was most recently pushed, so the
+    // color returned changes when a either a State transitions to active or when the State
+    // associated with the previous color transitioned to inactive.
+    do {
+      State s = activatedStates.peekFirst();
+      if (s == null) {
+        return Optional.empty(); // No states active. The lightshow is over. 😿
+      }
       if (s.isActive()) {
-        activatedStates.addFirst(s); // Push
         return Optional.of(s.color());
       }
-    }
-    return Optional.empty();
+      activatedStates.removeFirst(); // Pop
+    } while (true);
   }
 }
