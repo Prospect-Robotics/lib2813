@@ -1,5 +1,5 @@
 /*
-Copyright 2023-2025 Prospect Robotics SWENext Club
+Copyright 2023-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertThrows;
 
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
-@RunWith(Enclosed.class)
 public class InputValidationTest {
+
   // Tests for the `InputValidation.checkCanId(...)` method.
-  public static class CheckCanIdTest {
+  @Nested
+  public class CheckCanIdTest {
     @Test
     public void invalidCanId() {
       // Can IDs can only valid in the range [0, 62].
