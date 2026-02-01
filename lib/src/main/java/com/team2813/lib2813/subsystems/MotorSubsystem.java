@@ -336,8 +336,12 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
      *
      * @param error the error which is considered tolerable for use with {@code }atPosition()}
      * @return {@code this} for chaining
+     * @throws IllegalArgumentException If {@code error} is negative
      */
     public MotorSubsystemConfiguration acceptableError(double error) {
+      if (error < 0) {
+        throw new IllegalArgumentException("AcceptableError cannot be negative");
+      }
       this.acceptableError = error;
       return this;
     }
@@ -443,7 +447,9 @@ public abstract class MotorSubsystem<T extends Supplier<Angle>> extends Subsyste
             }
           });
       builder.addDoubleProperty(
-          "acceptableError", controller::getErrorTolerance, controller::setTolerance);
+          "acceptableError",
+          controller::getErrorTolerance,
+          t -> controller.setTolerance(Math.abs(t)));
     }
   }
 }
