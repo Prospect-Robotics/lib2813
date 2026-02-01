@@ -6,7 +6,7 @@ mavenPublishing {
         signAllPublications()
     }
 
-    coordinates('com.team2813', project.name, project.version)
+    coordinates('com.team2813.lib2813', project.name, project.version)
 
     pom {
         inceptionYear = '2023'
