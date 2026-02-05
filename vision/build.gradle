@@ -32,24 +32,20 @@ test {
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
-publishing {
-    publications {
-        lib2813(MavenPublication) {
-            pom {
-                name = '2813 Vision Library'
-                description = 'Utilities for location and vision for FRC robots'
-                developers {
-                    developer {
-                        id = 'cuttestkittensrule'
-                        name = 'Kyle'
-                        email = 'mangoiscute95@gmail.com'
-                    }
-                    developer {
-                        id = 'kcooney'
-                        name = 'Kevin'
-                        email = 'kcooney@gmail.com'
-                    }
-                }
+mavenPublishing {
+    pom {
+        name = '2813 Vision Library'
+        description = 'Utilities for location and vision for FRC robots'
+        developers {
+            developer {
+                id = 'cuttestkittensrule'
+                name = 'Kyle'
+                email = 'mangoiscute95@gmail.com'
+            }
+            developer {
+                id = 'kcooney'
+                name = 'Kevin'
+                email = 'kcooney@gmail.com'
             }
         }
     }

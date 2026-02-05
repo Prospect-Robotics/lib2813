@@ -31,24 +31,20 @@ test {
     useJUnit()
 }
 
-publishing {
-    publications {
-        lib2813(MavenPublication) {
-            pom {
-                name = '2813 Limelight Library'
-                description = 'Limelight utilities for FRC robots'
-                developers {
-                    developer {
-                        id = 'cuttestkittensrule'
-                        name = 'Kyle'
-                        email = 'mangoiscute95@gmail.com'
-                    }
-                    developer {
-                        id = 'kcooney'
-                        name = 'Kevin'
-                        email = 'kcooney@gmail.com'
-                    }
-                }
+mavenPublishing {
+    pom {
+        name = '2813 Limelight Library'
+        description = 'Limelight utilities for FRC robots'
+        developers {
+            developer {
+                id = 'cuttestkittensrule'
+                name = 'Kyle'
+                email = 'mangoiscute95@gmail.com'
+            }
+            developer {
+                id = 'kcooney'
+                name = 'Kevin'
+                email = 'kcooney@gmail.com'
             }
         }
     }
