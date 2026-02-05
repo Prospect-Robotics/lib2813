@@ -12,7 +12,7 @@ In your project's "gradle" directory, create a file named `libs.versions.toml` w
 
 ```toml
 [versions]
-lib2813 = "2.0.0-rc-1"
+lib2813 = "2.0.0-rc-2"
 
 [libraries]
 lib2813-lib = { module = "com.team2813.lib2813:lib", version.ref="lib2813" }
