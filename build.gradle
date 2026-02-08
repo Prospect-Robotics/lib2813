@@ -17,5 +17,12 @@ allprojects {
             name 'photonvisionRepositoryRepository'
             url 'https://maven.photonvision.org/releases'
         }
+        maven {
+            url = 'https://repo1.maven.org/maven2/'
+            credentials {
+                username = properties.getOrDefault('mavenCentralUsername', '')
+                password = properties.getOrDefault('mavenCentralPassword', '')
+            }
+        }
     }
 }
