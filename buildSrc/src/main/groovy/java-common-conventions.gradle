@@ -95,7 +95,7 @@ spotless {
         endWithNewline()
     }
     groovyGradle {
-        greclipse().configFile('../greclipse-gradle.properties')
+        greclipse().configFile("$rootDir/greclipse-gradle.properties")
     }
     java {
         importOrder() // Use the default importOrder configuration (can override)
@@ -107,7 +107,7 @@ spotless {
 
         formatAnnotations()  // fix formatting of type annotations
 
-        licenseHeaderFile("../java-copyright-header.txt")
+        licenseHeaderFile("$rootDir/java-copyright-header.txt")
     }
 }
 

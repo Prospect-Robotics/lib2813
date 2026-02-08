@@ -2,15 +2,21 @@ plugins {
     id 'com.vanniktech.maven.publish'
 }
 
-version = '2.0.0-rc-2'
+group = 'com.team2813.lib2813'
+version = "2.0.0-rc-3"
 
 mavenPublishing {
+
     publishToMavenCentral()
     if (gradle.startParameter.taskNames.any { it.contains('MavenCentral') }) {
         signAllPublications()
     }
 
-    coordinates('com.team2813.lib2813', project.name, project.version)
+    coordinates(
+            group,
+            // The below evaluates to "vendor-ctre" for "vendor/ctre"
+            project.path.replace(':', '-').substring(1),
+            version)
 
     pom {
         inceptionYear = '2023'

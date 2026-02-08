@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package com.team2813.lib2813.control;
+package com.team2813.lib2813.vendor.ctre;
 
 import com.ctre.phoenix6.CANBus;
 import com.team2813.lib2813.util.InputValidation;
