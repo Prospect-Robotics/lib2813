@@ -55,8 +55,12 @@ final class ProvideUniqueNetworkTableInstanceExtension
     Store store = context.getStore(NAMESPACE);
     NetworkTableInstance ntInstance =
         DATA_KEY.getOrComputeIfAbsent(store, Data::create).testInstance;
-    Preferences.setNetworkTableInstance(ntInstance);
-    removePreferencesListener();
+
+    ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
+    if (annotation.replacePreferencesNetworkTable()) {
+      Preferences.setNetworkTableInstance(ntInstance);
+      removePreferencesListener();
+    }
   }
 
   @Override
@@ -65,14 +69,16 @@ final class ProvideUniqueNetworkTableInstanceExtension
     Store store = context.getStore(NAMESPACE);
     Data data = DATA_KEY.remove(store);
     if (data != null) {
-      Preferences.setNetworkTableInstance(data.prevInstance);
+      ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
+      if (!data.prevInstance.equals(Preferences.getNetworkTable().getInstance())) {
+        Preferences.setNetworkTableInstance(data.prevInstance);
+      }
 
       // Clear out the listener queue before destroying our temporary NetworkTableInstance.
       //
       // This works around a race condition in WPILib where a listener registered by Preferences can
       // be called after the NetworkTableInstance was closed (see
       // https://github.com/wpilibsuite/allwpilib/issues/8215).
-      ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
       double timeout = annotation.waitForListenerQueueSeconds();
       if (!data.testInstance.waitForListenerQueue(timeout)) {
         System.err.printf(

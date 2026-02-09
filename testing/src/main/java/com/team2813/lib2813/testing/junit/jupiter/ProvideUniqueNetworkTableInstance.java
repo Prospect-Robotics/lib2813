@@ -44,5 +44,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ProvideUniqueNetworkTableInstanceExtension.class)
 public @interface ProvideUniqueNetworkTableInstance {
 
-  double waitForListenerQueueSeconds() default 0.4;
+  /**
+   * How long to wait for the listener queue to empty before destroying the temporary network table
+   * instance.
+   */
+  double waitForListenerQueueSeconds() default 0.6;
+
+  /**
+   * Whether to call {@link
+   * edu.wpi.first.wpilibj.Preferences#setNetworkTableInstance(edu.wpi.first.networktables.NetworkTableInstance)}
+   * with the temporary network table instance before starting each test.
+   */
+  boolean replacePreferencesNetworkTable() default false;
 }

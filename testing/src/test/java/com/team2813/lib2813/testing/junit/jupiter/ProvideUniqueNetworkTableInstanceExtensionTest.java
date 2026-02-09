@@ -44,9 +44,9 @@ class ProvideUniqueNetworkTableInstanceExtensionTest {
     }
 
     @Test
-    public void verifyReplacesPreferencesNetworkTableInstance() {
+    public void verifyDoesNotReplacePreferencesNetworkTableInstanceByDefault() {
       assertThat(Preferences.getNetworkTable().getInstance().getHandle())
-          .isNotEqualTo(NetworkTableInstance.getDefault().getHandle());
+          .isEqualTo(NetworkTableInstance.getDefault().getHandle());
     }
   } // end SampleTest
 
