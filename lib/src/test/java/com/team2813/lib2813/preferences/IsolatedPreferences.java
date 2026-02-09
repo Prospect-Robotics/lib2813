@@ -52,7 +52,7 @@ final class IsolatedPreferences extends ExternalResource {
     // This works around a race condition in WPILib where a listener registered by Preferences can
     // be called after the NetworkTableInstance was closed (see
     // https://github.com/wpilibsuite/allwpilib/issues/8215).
-    if (!tempInstance.waitForListenerQueue(4)) {
+    if (!tempInstance.waitForListenerQueue(.4)) {
       System.err.println(
           "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 400ms);"
               + " will not close temporary NetworkTableInstance");
