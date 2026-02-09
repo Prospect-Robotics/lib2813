@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package com.team2813.lib2813.control.motors;
+package com.team2813.lib2813.vendor.rev.motor;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -27,13 +27,15 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.control.PIDMotor;
-import com.team2813.lib2813.util.ConfigUtils;
+import com.team2813.lib2813.vendor.rev.InvertTypes;
+import com.team2813.lib2813.vendor.rev.RevUtils;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SparkMaxWrapper implements PIDMotor {
   private final List<SparkMax> followers = new ArrayList<>();
@@ -51,15 +53,15 @@ public class SparkMaxWrapper implements PIDMotor {
    * @param type The motor type connected to the controller. Brushless motor wires must be connected
    *     to their matching colors and the hall sensor must be plugged in. Brushed motors must be
    *     connected to the Red and Black terminals only.
-   * @param inverted Whether the motor is inverted
+   * @param invertType Whether the motor is inverted
    */
-  public SparkMaxWrapper(int deviceId, SparkLowLevel.MotorType type, InvertType inverted) {
+  public SparkMaxWrapper(int deviceId, SparkLowLevel.MotorType type, InvertType invertType) {
     motor = new SparkMax(deviceId, type);
-    this.inverted = inverted.sparkMaxInvert().orElseThrow();
+    this.inverted = toSparkMaxInvert(invertType);
     config = new SparkMaxConfig().apply(new AlternateEncoderConfig().inverted(this.inverted));
     persistMode = SparkBase.PersistMode.kNoPersistParameters;
     resetMode = SparkBase.ResetMode.kResetSafeParameters;
-    ConfigUtils.revConfig(() -> motor.configure(config, resetMode, persistMode));
+    RevUtils.revConfig(() -> motor.configure(config, resetMode, persistMode));
     encoder = motor.getEncoder();
   }
 
@@ -116,7 +118,7 @@ public class SparkMaxWrapper implements PIDMotor {
     ClosedLoopConfig closedLoopConfig = new ClosedLoopConfig().pid(p, i, d, cSlot);
     closedLoopConfig.feedForward.kV(f, cSlot);
     config.apply(closedLoopConfig);
-    ConfigUtils.revConfig(() -> motor.configure(config, resetMode, persistMode));
+    RevUtils.revConfig(() -> motor.configure(config, resetMode, persistMode));
   }
 
   @Override
@@ -134,18 +136,26 @@ public class SparkMaxWrapper implements PIDMotor {
     configPIDF(0, p, i, d, 0);
   }
 
-  public void addFollower(int deviceId, SparkLowLevel.MotorType type, InvertType inverted) {
+  public void addFollower(int deviceId, SparkLowLevel.MotorType type, InvertType invertType) {
     SparkMax follower = new SparkMax(deviceId, type);
     boolean isInverted =
-        switch (inverted) {
-          case CLOCKWISE, COUNTER_CLOCKWISE -> inverted.sparkMaxInvert().orElseThrow();
+        switch (invertType) {
+          case CLOCKWISE, COUNTER_CLOCKWISE -> toSparkMaxInvert(invertType);
           case FOLLOW_MASTER -> this.inverted;
           case OPPOSE_MASTER -> !this.inverted;
         };
-    ConfigUtils.revConfig(
+    RevUtils.revConfig(
         () ->
             follower.configure(
                 new SparkMaxConfig().follow(motor).inverted(isInverted), resetMode, persistMode));
     followers.add(follower); // add to follower list so CANSparkMax follower object is preserved
+  }
+
+  private static boolean toSparkMaxInvert(InvertType invertType) {
+    Objects.requireNonNull(invertType, "invertType should not be null");
+    return InvertTypes.toSparkMaxInvert(invertType)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException("invertType must be CLOCKWISE or COUNTER_CLOCKWISE"));
   }
 }

@@ -13,19 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package com.team2813.lib2813.util;
+package com.team2813.lib2813.vendor.rev;
 
 import com.revrobotics.REVLibError;
 import edu.wpi.first.wpilibj.DriverStation;
 import java.util.function.Supplier;
 
-public class ConfigUtils {
+public class RevUtils {
   private static final int ATTEMPTS = 10;
-
-  // make class non-instantiable
-  private ConfigUtils() {
-    throw new AssertionError("cannot create ConfigUtils instance");
-  }
 
   public static void revConfig(Supplier<REVLibError> configMethod) {
     REVLibError errorCode = configMethod.get();
@@ -37,5 +32,9 @@ public class ConfigUtils {
     if (errorCode != REVLibError.kOk) {
       DriverStation.reportError(String.format("%s: Config Failed", errorCode.toString()), false);
     }
+  }
+
+  private RevUtils() {
+    throw new AssertionError("Not instantiable");
   }
 }
