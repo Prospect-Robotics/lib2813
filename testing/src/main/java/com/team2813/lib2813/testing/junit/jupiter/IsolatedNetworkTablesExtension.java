@@ -111,7 +111,8 @@ public final class IsolatedNetworkTablesExtension
   }
 
   /**
-   * Removes the listener installed by Preferences.setNetworkTableInstance.
+   * Removes the listener installed by {@link
+   * Preferences#setNetworkTableInstance(NetworkTableInstance)}.
    *
    * <p>The listener is a constant source of SIGSEGVs in our GitHub test actions.
    */
