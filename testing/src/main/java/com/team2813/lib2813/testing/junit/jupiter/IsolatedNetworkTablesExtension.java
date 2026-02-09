@@ -16,7 +16,9 @@ limitations under the License.
 package com.team2813.lib2813.testing.junit.jupiter;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableListener;
 import edu.wpi.first.wpilibj.Preferences;
+import java.lang.reflect.Field;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.Extension;
@@ -56,6 +58,7 @@ public final class IsolatedNetworkTablesExtension
     NetworkTableInstance ntInstance =
         DATA_KEY.getOrComputeIfAbsent(store, Data::create).testInstance;
     Preferences.setNetworkTableInstance(ntInstance);
+    removePreferencesListener();
   }
 
   @Override
@@ -105,6 +108,22 @@ public final class IsolatedNetworkTablesExtension
       testInstance.startLocal();
       NetworkTableInstance prevInstance = Preferences.getNetworkTable().getInstance();
       return new Data(testInstance, prevInstance);
+    }
+  }
+
+  /**
+   * Removes the listener installed by Preferences.setNetworkTableInstance.
+   *
+   * <p>The listener is a constant source of SIGSEGVs in our GitHub test actions.
+   */
+  private static void removePreferencesListener() {
+    try {
+      Field listnerField = Preferences.class.getDeclaredField("m_listener");
+      listnerField.setAccessible(true);
+      NetworkTableListener listener = (NetworkTableListener) listnerField.get(null);
+      listnerField.set(null, null);
+      listener.close();
+    } catch (NoSuchFieldException | IllegalAccessException e) {
     }
   }
 }

@@ -17,7 +17,9 @@ package com.team2813.lib2813.preferences;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableListener;
 import edu.wpi.first.wpilibj.Preferences;
+import java.lang.reflect.Field;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -39,6 +41,7 @@ final class IsolatedPreferences extends ExternalResource {
     tempInstance = NetworkTableInstance.create();
     tempInstance.startLocal();
     Preferences.setNetworkTableInstance(tempInstance);
+    removePreferencesListener();
   }
 
   @Override
@@ -56,6 +59,22 @@ final class IsolatedPreferences extends ExternalResource {
               + " will not close temporary NetworkTableInstance");
     } else {
       tempInstance.close();
+    }
+  }
+
+  /**
+   * Removes the listener installed by Preferences.setNetworkTableInstance.
+   *
+   * <p>The listener is a constant source of SIGSEGVs in our GitHub test actions.
+   */
+  private static void removePreferencesListener() {
+    try {
+      Field listnerField = Preferences.class.getDeclaredField("m_listener");
+      listnerField.setAccessible(true);
+      NetworkTableListener listener = (NetworkTableListener) listnerField.get(null);
+      listnerField.set(null, null);
+      listener.close();
+    } catch (NoSuchFieldException | IllegalAccessException e) {
     }
   }
 }
