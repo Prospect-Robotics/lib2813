@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * Allows tests to run commands.
  *
- * <p>Tests can get an instance by using {@link WPILibExtension}.
+ * <p>Tests can get an instance by using {@link InitWPILib}.
  *
  * @since 2.0.0
  */

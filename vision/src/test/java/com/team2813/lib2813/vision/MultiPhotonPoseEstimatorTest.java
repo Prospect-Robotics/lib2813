@@ -17,7 +17,7 @@ package com.team2813.lib2813.vision;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.team2813.lib2813.testing.junit.jupiter.IsolatedNetworkTablesExtension;
+import com.team2813.lib2813.testing.junit.jupiter.ProvideUniqueNetworkTableInstance;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -27,13 +27,12 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import java.util.List;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 /** Tests for {@link MultiPhotonPoseEstimator}. */
-@ExtendWith(IsolatedNetworkTablesExtension.class)
+@ProvideUniqueNetworkTableInstance
 class MultiPhotonPoseEstimatorTest {
   private static final double FIELD_LENGTH = 17.548;
   private static final double FIELD_WIDTH = 8.052;
