@@ -105,7 +105,6 @@ public final class IsolatedNetworkTablesExtension
   private record Data(NetworkTableInstance testInstance, NetworkTableInstance prevInstance) {
     static Data create() {
       NetworkTableInstance testInstance = NetworkTableInstance.create();
-      testInstance.startLocal();
       NetworkTableInstance prevInstance = Preferences.getNetworkTable().getInstance();
       return new Data(testInstance, prevInstance);
     }
