@@ -44,11 +44,18 @@ final class IsolatedPreferences extends ExternalResource {
   @Override
   protected void after() {
     Preferences.setNetworkTableInstance(prevInstance);
-    if (!tempInstance.waitForListenerQueue(.6)) {
+
+    // Clear out the listener queue before destroying our temporary NetworkTableInstance.
+    //
+    // This works around a race condition in WPILib where a listener registered by Preferences can
+    // be called after the NetworkTableInstance was closed (see
+    // https://github.com/wpilibsuite/allwpilib/issues/8215).
+    if (!tempInstance.waitForListenerQueue(4)) {
       System.err.println(
-          "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 600ms);"
-              + " JVM may crash");
+          "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 400ms);"
+              + " will not close temporary NetworkTableInstance");
+    } else {
+      tempInstance.close();
     }
-    tempInstance.close();
   }
 }

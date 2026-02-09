@@ -71,12 +71,13 @@ public final class IsolatedNetworkTablesExtension
       // This works around a race condition in WPILib where a listener registered by Preferences can
       // be called after the NetworkTableInstance was closed (see
       // https://github.com/wpilibsuite/allwpilib/issues/8215).
-      if (!data.testInstance.waitForListenerQueue(.6)) {
+      if (!data.testInstance.waitForListenerQueue(.4)) {
         System.err.println(
-            "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 600ms);"
-                + " JVM may crash");
+            "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 400ms);"
+                + " will not close temporary NetworkTableInstance");
+      } else {
+        data.testInstance.close();
       }
-      data.testInstance.close();
     }
   }
 
