@@ -59,6 +59,7 @@ final class ProvideUniqueNetworkTableInstanceExtension
     ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
     if (annotation.replacePreferencesNetworkTable()) {
       Preferences.setNetworkTableInstance(ntInstance);
+      ntInstance.waitForListenerQueue(1);
       removePreferencesListener();
     }
   }
@@ -141,7 +142,7 @@ final class ProvideUniqueNetworkTableInstanceExtension
       NetworkTableListener listener = (NetworkTableListener) listnerField.get(null);
       listnerField.set(null, null);
       listener.close();
-    } catch (NoSuchFieldException | IllegalAccessException e) {
+    } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
     }
   }
 }

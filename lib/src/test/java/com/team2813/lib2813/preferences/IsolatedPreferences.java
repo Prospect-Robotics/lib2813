@@ -40,6 +40,7 @@ final class IsolatedPreferences extends ExternalResource {
     prevInstance = Preferences.getNetworkTable().getInstance();
     tempInstance = NetworkTableInstance.create();
     Preferences.setNetworkTableInstance(tempInstance);
+    tempInstance.waitForListenerQueue(1);
     removePreferencesListener();
   }
 
@@ -74,7 +75,7 @@ final class IsolatedPreferences extends ExternalResource {
       NetworkTableListener listener = (NetworkTableListener) listnerField.get(null);
       listnerField.set(null, null);
       listener.close();
-    } catch (NoSuchFieldException | IllegalAccessException e) {
+    } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
     }
   }
 }
