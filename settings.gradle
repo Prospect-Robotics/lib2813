@@ -9,4 +9,4 @@
 
 rootProject.name = 'lib2813'
 include 'lib',  'limelight', 'vision', 'testing'
-include 'vendor:ctre'
+include 'vendor:ctre', 'vendor:rev'

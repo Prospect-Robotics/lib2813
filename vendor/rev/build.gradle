@@ -1,0 +1,45 @@
+plugins {
+    id 'java-common-conventions'
+    id 'publishing-conventions'
+    id 'edu.wpi.first.GradleRIO' version '2026.1.1'
+}
+
+dependencies {
+    implementation wpi.java.deps.wpilib()
+    implementation wpi.java.vendor.java()
+    implementation project(':lib')
+
+    nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
+    nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
+    simulationDebug wpi.sim.enableDebug()
+
+    nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
+    nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
+    simulationRelease wpi.sim.enableRelease()
+
+    testImplementation(platform('org.junit:junit-bom:5.13.1'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testImplementation('com.google.truth:truth:1.4.4')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+}
+
+// the magic line that makes tests work :)
+wpi.java.configureTestTasks(test)
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+mavenPublishing {
+    pom {
+        name = '2813 REV Robotics Vendor Library'
+        description = 'REV Robotics extensions to team2813:lib'
+        developers {
+            developer {
+                id = 'cuttestkittensrule'
+                name = 'Kyle'
+                email = 'mangoiscute95@gmail.com'
+            }
+        }
+    }
+}

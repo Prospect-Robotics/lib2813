@@ -15,14 +15,13 @@ limitations under the License.
 */
 package com.team2813.lib2813.control;
 
-import static java.util.stream.Collectors.toUnmodifiableMap;
-
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 
 public enum InvertType {
-  CLOCKWISE(true),
-  COUNTER_CLOCKWISE(false),
+  CLOCKWISE,
+  COUNTER_CLOCKWISE,
   FOLLOW_MASTER,
   OPPOSE_MASTER;
 
@@ -32,44 +31,4 @@ public enum InvertType {
    */
   public static final Set<InvertType> rotationValues =
       Collections.unmodifiableSet(EnumSet.of(CLOCKWISE, COUNTER_CLOCKWISE));
-
-  private final Optional<Boolean> sparkMaxInvert;
-
-  InvertType() {
-    sparkMaxInvert = Optional.empty();
-  }
-
-  InvertType(boolean sparkMaxInvert) {
-    this.sparkMaxInvert = Optional.of(sparkMaxInvert);
-  }
-
-  /**
-   * Gets an {@link InvertType} from a spark max invert
-   *
-   * @param v the value to search for
-   * @return {@link Optional#empty()} if no {@link InvertType} is found, otherwise, an optional
-   *     describing the {@link InvertType}
-   */
-  public static Optional<InvertType> fromSparkMaxInvert(boolean v) {
-    return Optional.of(Maps.sparkMaxMap.get(v));
-  }
-
-  public Optional<Boolean> sparkMaxInvert() {
-    return sparkMaxInvert;
-  }
-
-  private boolean forceSparkMaxInvert() {
-    return sparkMaxInvert.orElseThrow();
-  }
-
-  /**
-   * Contains the maps for {@link InvertType#fromSparkMaxInvert(boolean)}. In a static class so that
-   * they will only be initialized if they are needed.
-   */
-  private static final class Maps {
-    private static final Map<Boolean, InvertType> sparkMaxMap =
-        Stream.of(InvertType.values())
-            .filter((j) -> j.sparkMaxInvert.isPresent())
-            .collect(toUnmodifiableMap(InvertType::forceSparkMaxInvert, (j) -> j, (a, b) -> null));
-  }
 }
