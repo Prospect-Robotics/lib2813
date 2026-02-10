@@ -7,7 +7,7 @@ plugins {
 dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
-    implementation project(':lib')
+    implementation project(':core')
 
     testImplementation(platform('org.junit:junit-bom:5.13.1'))
     testImplementation('org.junit.jupiter:junit-jupiter')

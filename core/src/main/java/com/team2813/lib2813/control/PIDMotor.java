@@ -1,5 +1,5 @@
 /*
-Copyright 2023-2025 Prospect Robotics SWENext Club
+Copyright 2023-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,19 +15,12 @@ limitations under the License.
 */
 package com.team2813.lib2813.control;
 
-public enum ControlMode {
-  DUTY_CYCLE(false),
-  VELOCITY(false),
-  MOTION_MAGIC(true),
-  VOLTAGE(false);
+public interface PIDMotor extends Motor, Encoder {
+  void configPIDF(int slot, double p, double i, double d, double f);
 
-  private final boolean isPositionalControl;
+  void configPIDF(double p, double i, double d, double f);
 
-  ControlMode(boolean isPositionalControl) {
-    this.isPositionalControl = isPositionalControl;
-  }
+  void configPID(int slot, double p, double i, double d);
 
-  public boolean isPositionalControl() {
-    return isPositionalControl;
-  }
+  void configPID(double p, double i, double d);
 }
