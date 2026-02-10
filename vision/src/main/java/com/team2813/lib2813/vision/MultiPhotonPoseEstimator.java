@@ -67,23 +67,13 @@ public class MultiPhotonPoseEstimator implements AutoCloseable {
   private PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
 
   /** A builder for {@code MultiPhotonPoseEstimator}. */
-  public static class Builder {
+  public static final class Builder {
     private final Map<String, CameraConfig> cameraConfigs = new HashMap<>();
     private final AprilTagFieldLayout aprilTagFieldLayout;
     private final NetworkTableInstance ntInstance;
     private final PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
 
-    /**
-     * {@code MultiPhotonPoseEstimator} builder constructor.
-     *
-     * @param ntInstance Network table instance used to log the pose of AprilTag detections as well
-     *     as pose estimates.
-     * @param aprilTagFieldLayout WPILib field description (dimensions) including AprilTag 3D
-     *     locations.
-     * @param poseEstimatorStrategy Posing strategy (for instance, multi tag PnP, closest to camera
-     *     tag, etc.)
-     */
-    public Builder(
+    Builder(
         NetworkTableInstance ntInstance,
         AprilTagFieldLayout aprilTagFieldLayout,
         PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy) {
@@ -140,6 +130,23 @@ public class MultiPhotonPoseEstimator implements AutoCloseable {
     public MultiPhotonPoseEstimator build() {
       return new MultiPhotonPoseEstimator(this);
     }
+  }
+
+  /**
+   * Creates a builder for building {@link MultiPhotonPoseEstimator} instances.
+   *
+   * @param ntInstance Network table instance used to log the pose of AprilTag detections as well as
+   *     pose estimates.
+   * @param aprilTagFieldLayout WPILib field description (dimensions) including AprilTag 3D
+   *     locations.
+   * @param poseEstimatorStrategy Posing strategy (for instance, multi tag PnP, closest to camera
+   *     tag, etc.)
+   */
+  public static Builder builder(
+      NetworkTableInstance ntInstance,
+      AprilTagFieldLayout aprilTagFieldLayout,
+      PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy) {
+    return new Builder(ntInstance, aprilTagFieldLayout, poseEstimatorStrategy);
   }
 
   /**
