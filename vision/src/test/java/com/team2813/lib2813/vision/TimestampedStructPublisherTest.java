@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,17 +19,16 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.team2813.lib2813.vision.TimestampedStructPublisher.DEFAULT_PUBLISHED_VALUE_VALID_MICROS;
 import static com.team2813.lib2813.vision.TimestampedStructPublisher.EXPECTED_UPDATE_FREQUENCY_MICROS;
 
-import com.team2813.lib2813.testing.junit.jupiter.IsolatedNetworkTablesExtension;
+import com.team2813.lib2813.testing.junit.jupiter.ProvideUniqueNetworkTableInstance;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.units.Units;
 import java.util.*;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /** Tests for {@link TimestampedStructPublisher}. */
-@ExtendWith(IsolatedNetworkTablesExtension.class)
+@ProvideUniqueNetworkTableInstance(waitForListenerQueueSeconds = 0.6)
 public class TimestampedStructPublisherTest {
   private static final long MICROSECONDS_PER_SECOND = 1_000_000;
   private static final Translation2d DEFAULT_VALUE = new Translation2d(28, 13);

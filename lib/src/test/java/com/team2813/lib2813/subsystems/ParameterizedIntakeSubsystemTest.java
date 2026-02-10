@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,16 +22,15 @@ import com.team2813.lib2813.control.ControlMode;
 import com.team2813.lib2813.control.Motor;
 import com.team2813.lib2813.testing.FakeMotor;
 import com.team2813.lib2813.testing.junit.jupiter.CommandTester;
-import com.team2813.lib2813.testing.junit.jupiter.WPILibExtension;
+import com.team2813.lib2813.testing.junit.jupiter.InitWPILib;
 import edu.wpi.first.wpilibj2.command.Command;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.EnumSource;
 
 @ParameterizedClass
 @EnumSource(ControlMode.class)
-@ExtendWith(WPILibExtension.class)
+@InitWPILib
 public final class ParameterizedIntakeSubsystemTest {
 
   private static class ConcreteParameterizedIntakeSubsystem extends ParameterizedIntakeSubsystem {

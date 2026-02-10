@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,12 +33,11 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 
-/** Tests for {@link WPILibExtension}. */
-public class WPILibExtensionTest {
+/** Tests for {@link InitWPILibExtension}. */
+public class InitWPILibExtensionTest {
 
   static final Command FAKE_COMMAND = new Command() {};
 
@@ -49,7 +48,7 @@ public class WPILibExtensionTest {
     }
   }
 
-  @ExtendWith(WPILibExtension.class)
+  @InitWPILib
   @Tag("ignore-outside-testkit")
   @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
   public static class SampleTest {

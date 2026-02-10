@@ -20,6 +20,7 @@ import edu.wpi.first.networktables.NetworkTableListener;
 import edu.wpi.first.wpilibj.Preferences;
 import java.lang.reflect.Field;
 import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -28,37 +29,39 @@ import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.platform.commons.support.AnnotationSupport;
 
-/**
- * JUnit Jupiter extension for providing an isolated NetworkTableInstance to tests.
- *
- * <p>Example use:
- *
- * <pre>{@code
- * @ExtendWith(IsolatedNetworkTablesExtension.class)
- * public final class IntakeTest {
- *
- *   @Test
- *   public void intakeCoral(NetworkTableInstance ntInstance)  {
- *     // Do something with ntInstance
- *   }
- * }
- * }</pre>
- *
- * @since 2.0.0
- */
-public final class IsolatedNetworkTablesExtension
-    implements Extension, BeforeEachCallback, AfterEachCallback, ParameterResolver {
-  private static final Namespace NAMESPACE = Namespace.create(IsolatedNetworkTablesExtension.class);
+/** JUnit Jupiter extension for providing an isolated NetworkTableInstance to tests. */
+final class ProvideUniqueNetworkTableInstanceExtension
+    implements Extension,
+        BeforeAllCallback,
+        BeforeEachCallback,
+        AfterEachCallback,
+        ParameterResolver {
+  private static final Namespace NAMESPACE =
+      Namespace.create(ProvideUniqueNetworkTableInstanceExtension.class);
   private static final StoreKey<Data> DATA_KEY = StoreKey.of(Data.class);
+  private static final StoreKey<ProvideUniqueNetworkTableInstance> ANNOTATION_KEY =
+      StoreKey.of(ProvideUniqueNetworkTableInstance.class);
+
+  @Override
+  public void beforeAll(ExtensionContext context) {
+    Store store = context.getStore(NAMESPACE);
+    ANNOTATION_KEY.put(store, getAnnotation(context));
+  }
 
   @Override
   public void beforeEach(ExtensionContext context) {
     Store store = context.getStore(NAMESPACE);
     NetworkTableInstance ntInstance =
         DATA_KEY.getOrComputeIfAbsent(store, Data::create).testInstance;
-    Preferences.setNetworkTableInstance(ntInstance);
-    removePreferencesListener();
+
+    ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
+    if (annotation.replacePreferencesNetworkTable()) {
+      Preferences.setNetworkTableInstance(ntInstance);
+      ntInstance.waitForListenerQueue(1);
+      removePreferencesListener();
+    }
   }
 
   @Override
@@ -67,17 +70,22 @@ public final class IsolatedNetworkTablesExtension
     Store store = context.getStore(NAMESPACE);
     Data data = DATA_KEY.remove(store);
     if (data != null) {
-      Preferences.setNetworkTableInstance(data.prevInstance);
+      ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
+      if (!data.prevInstance.equals(Preferences.getNetworkTable().getInstance())) {
+        Preferences.setNetworkTableInstance(data.prevInstance);
+      }
 
       // Clear out the listener queue before destroying our temporary NetworkTableInstance.
       //
       // This works around a race condition in WPILib where a listener registered by Preferences can
       // be called after the NetworkTableInstance was closed (see
       // https://github.com/wpilibsuite/allwpilib/issues/8215).
-      if (!data.testInstance.waitForListenerQueue(.4)) {
-        System.err.println(
-            "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 400ms);"
-                + " will not close temporary NetworkTableInstance");
+      double timeout = annotation.waitForListenerQueueSeconds();
+      if (!data.testInstance.waitForListenerQueue(timeout)) {
+        System.err.printf(
+            "Timed out waiting for the NetworkTableInstance listener queue to empty (waited"
+                + " %dms); will not close temporary NetworkTableInstance%n",
+            Math.round(timeout * 1000));
       } else {
         data.testInstance.close();
       }
@@ -110,6 +118,17 @@ public final class IsolatedNetworkTablesExtension
     }
   }
 
+  private static ProvideUniqueNetworkTableInstance getAnnotation(ExtensionContext context) {
+    return AnnotationSupport.findAnnotation(
+            context.getRequiredTestClass(),
+            ProvideUniqueNetworkTableInstance.class,
+            context.getEnclosingTestClasses())
+        .orElseThrow(
+            () ->
+                new IllegalStateException(
+                    "Could not find an enclosed class annotated with @IsolatedNetworkTables"));
+  }
+
   /**
    * Removes the listener installed by {@link
    * Preferences#setNetworkTableInstance(NetworkTableInstance)}.
@@ -123,7 +142,7 @@ public final class IsolatedNetworkTablesExtension
       NetworkTableListener listener = (NetworkTableListener) listnerField.get(null);
       listnerField.set(null, null);
       listener.close();
-    } catch (NoSuchFieldException | IllegalAccessException e) {
+    } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
     }
   }
 }

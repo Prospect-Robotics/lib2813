@@ -40,6 +40,7 @@ final class IsolatedPreferences extends ExternalResource {
     prevInstance = Preferences.getNetworkTable().getInstance();
     tempInstance = NetworkTableInstance.create();
     Preferences.setNetworkTableInstance(tempInstance);
+    tempInstance.waitForListenerQueue(1);
     removePreferencesListener();
   }
 
@@ -52,7 +53,7 @@ final class IsolatedPreferences extends ExternalResource {
     // This works around a race condition in WPILib where a listener registered by Preferences can
     // be called after the NetworkTableInstance was closed (see
     // https://github.com/wpilibsuite/allwpilib/issues/8215).
-    if (!tempInstance.waitForListenerQueue(4)) {
+    if (!tempInstance.waitForListenerQueue(.4)) {
       System.err.println(
           "Timed out waiting for the NetworkTableInstance listener queue to empty (waited 400ms);"
               + " will not close temporary NetworkTableInstance");
@@ -74,7 +75,7 @@ final class IsolatedPreferences extends ExternalResource {
       NetworkTableListener listener = (NetworkTableListener) listnerField.get(null);
       listnerField.set(null, null);
       listener.close();
-    } catch (NoSuchFieldException | IllegalAccessException e) {
+    } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
     }
   }
 }

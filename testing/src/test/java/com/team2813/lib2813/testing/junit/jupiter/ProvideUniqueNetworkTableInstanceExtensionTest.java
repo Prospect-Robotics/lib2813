@@ -25,14 +25,13 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 
-/** Tests for {@link IsolatedNetworkTablesExtension}. */
-class IsolatedNetworkTablesExtensionTest {
+/** Tests for {@link ProvideUniqueNetworkTableInstanceExtension}. */
+class ProvideUniqueNetworkTableInstanceExtensionTest {
 
-  @ExtendWith(IsolatedNetworkTablesExtension.class)
+  @ProvideUniqueNetworkTableInstance
   @Tag("ignore-outside-testkit")
   @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
   public static class SampleTest {
@@ -45,9 +44,9 @@ class IsolatedNetworkTablesExtensionTest {
     }
 
     @Test
-    public void verifyReplacesPreferencesNetworkTableInstance() {
+    public void verifyDoesNotReplacePreferencesNetworkTableInstanceByDefault() {
       assertThat(Preferences.getNetworkTable().getInstance().getHandle())
-          .isNotEqualTo(NetworkTableInstance.getDefault().getHandle());
+          .isEqualTo(NetworkTableInstance.getDefault().getHandle());
     }
   } // end SampleTest
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.junit.jupiter;
 
+import java.util.List;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
+import org.junit.platform.testkit.engine.Event;
 import org.junit.platform.testkit.engine.Events;
+import org.opentest4j.MultipleFailuresError;
 
 /**
  * A collection of utility methods that support asserting conditions in tests of JUnit Extensions.
@@ -28,7 +31,14 @@ final class ExtensionAssertions {
    *
    * @param events Events fired during execution of a test plan on the JUnit Platform.
    */
-  public static void assertHasNoFailures(Events events) {
+  public static void assertHasNoFailures(Events events, String category) {
+    if (!events.failed().list().isEmpty()) {
+      List<AssertionError> failures =
+          events.failed().stream().map(Event::toString).map(AssertionError::new).toList();
+      throw new MultipleFailuresError(
+          String.format("Expected no failed events with category '%s'", category), failures);
+    }
+
     events.assertStatistics(
         stats -> {
           stats.skipped(0);
@@ -42,8 +52,8 @@ final class ExtensionAssertions {
    * @param results Results of executing a test plan on the JUnit Platform.
    */
   public static void assertHasNoFailures(EngineExecutionResults results) {
-    assertHasNoFailures(results.containerEvents());
-    assertHasNoFailures(results.testEvents());
+    assertHasNoFailures(results.containerEvents(), "container");
+    assertHasNoFailures(results.testEvents(), "test");
   }
 
   private ExtensionAssertions() {
