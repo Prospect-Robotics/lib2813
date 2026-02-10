@@ -15,6 +15,7 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.junit.jupiter;
 
+import edu.wpi.first.wpilibj.TimedRobot;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -42,7 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  *   @Test
  *   public void takesFlight(CommandTester commandTester) {
  *     var flight = new FlightSubsystem();
- *     Command takeOff = flight.createTakeOffCommandCommand();
+ *     Command takeOff = flight.createTakeOffCommand();
  *
  *     commandTester.runUntilComplete(takeOff);
  *
@@ -56,4 +57,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(InitWPILibExtension.class)
-public @interface InitWPILib {}
+public @interface InitWPILib {
+  /**
+   * The time stepped in between each periodic run when running a command. This is equivalent to the
+   * {@code period} argument in {@link TimedRobot#TimedRobot(double)}}.
+   */
+  double periodicPeriod() default TimedRobot.kDefaultPeriod;
+}
