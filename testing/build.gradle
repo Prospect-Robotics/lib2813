@@ -26,12 +26,10 @@ dependencies {
 // the magic line that makes tests work :)
 wpi.java.configureTestTasks(test)
 
-tasks.named('test') {
-    // Support running both JUnit Vintage and JUnit Jupiter tests
+test {
     useJUnitPlatform {
-        excludeTags('ignore-outside-testkit')
+        excludeTags 'ignore-outside-testkit'
     }
-    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
 mavenPublishing {

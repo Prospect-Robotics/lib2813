@@ -19,59 +19,69 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.team2813.lib2813.preferences.PersistedConfiguration.REGISTERED_CLASSES_NETWORK_TABLE_KEY;
 import static java.util.stream.Collectors.toMap;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import com.team2813.lib2813.testing.junit.jupiter.ProvideUniqueNetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableType;
 import edu.wpi.first.networktables.Topic;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Preferences;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.*;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.rules.ErrorCollector;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests for {@link PersistedConfiguration}. */
-@RunWith(Enclosed.class)
+@ProvideUniqueNetworkTableInstance(replacePreferencesNetworkTable = true)
 public final class PersistedConfigurationTest {
   private static final double EPSILON = 0.001;
 
   /** Base class for all nested classes of {@link PersistedConfigurationTest}. */
-  abstract static class PreferencesRegistryTestCase<T extends Record> {
+  @Nested
+  abstract class PreferencesRegistryTestCase<T extends Record> {
+    private final List<Executable> collectedErrors = new ArrayList<>();
     private final String preferenceName;
     private final Class<T> recordClass;
-
-    @Rule public final IsolatedPreferences isolatedPreferences = new IsolatedPreferences();
-    @Rule public final ErrorCollector errorCollector = new ErrorCollector();
+    private NetworkTableInstance ntInstance;
+    private NetworkTable preferencesTable;
 
     protected PreferencesRegistryTestCase(String preferenceName, Class<T> recordClass) {
       this.preferenceName = preferenceName;
       this.recordClass = recordClass;
     }
 
-    @Before
+    @BeforeEach
+    public final void injectNetworkTableInstance(NetworkTableInstance ntInstance) {
+      this.ntInstance = ntInstance;
+      preferencesTable = ntInstance.getTable("Preferences");
+    }
+
+    @BeforeEach
     public final void setTestGlobals() {
       PersistedConfiguration.throwExceptions = true;
       PersistedConfiguration.errorReporter =
-          message ->
-              errorCollector.addError(
-                  new AssertionError("Unexpected warning: \"" + message + "\""));
+          message -> collectedErrors.add(() -> fail("Unexpected warning: \"" + message + "\""));
     }
 
-    @After
+    @AfterEach
     public final void resetTestGlobals() {
       PersistedConfiguration.throwExceptions = false;
       PersistedConfiguration.errorReporter = DataLogManager::log;
+      assertAll(collectedErrors);
     }
 
     protected enum ValuesKind {
@@ -80,7 +90,7 @@ public final class PersistedConfigurationTest {
     }
 
     private NetworkTableEntry getTableEntry(String key, NetworkTableType expectedType) {
-      NetworkTableEntry entry = isolatedPreferences.getPreferencesTable().getEntry(key);
+      NetworkTableEntry entry = preferencesTable.getEntry(key);
       assertThat(entry.getType()).isEqualTo(expectedType);
       return entry;
     }
@@ -102,8 +112,7 @@ public final class PersistedConfigurationTest {
     }
 
     protected final void setIntegerValue(String key, int value) {
-      NetworkTable table = isolatedPreferences.getPreferencesTable();
-      NetworkTableEntry entry = table.getEntry(key);
+      NetworkTableEntry entry = preferencesTable.getEntry(key);
       entry.setInteger(value);
       entry.setPersistent();
     }
@@ -116,15 +125,16 @@ public final class PersistedConfigurationTest {
     }
 
     protected final Map<String, Object> preferenceValues() {
-      NetworkTable table = isolatedPreferences.getPreferencesTable();
       return preferenceKeys().stream()
-          .collect(toMap(Function.identity(), key -> table.getEntry(key).getValue().getValue()));
+          .collect(
+              toMap(
+                  Function.identity(),
+                  key -> preferencesTable.getEntry(key).getValue().getValue()));
     }
 
     protected final Set<String> preferenceKeys() {
-      NetworkTable table = isolatedPreferences.getPreferencesTable();
       Set<String> keys = new HashSet<>();
-      collectKeys(table, keys);
+      collectKeys(preferencesTable, keys);
       return Set.copyOf(keys);
     }
 
@@ -200,11 +210,7 @@ public final class PersistedConfigurationTest {
           .containsMatch("Preference with name '" + preferenceName + "' already registered");
 
       // Assert: topic added under "/PersistedConfiguration", and is not persistent
-      NetworkTable table =
-          isolatedPreferences
-              .getPreferencesTable()
-              .getInstance()
-              .getTable(REGISTERED_CLASSES_NETWORK_TABLE_KEY);
+      NetworkTable table = ntInstance.getTable(REGISTERED_CLASSES_NETWORK_TABLE_KEY);
       NetworkTableEntry entry = table.getEntry(preferenceName);
       assertThat(entry.exists()).isTrue();
       assertThat(entry.isPersistent()).isFalse();
@@ -340,19 +346,16 @@ public final class PersistedConfigurationTest {
     }
   }
 
-  @RunWith(Parameterized.class)
-  public static class BooleanPreferencesTest
+  @Nested
+  @ParameterizedClass(name = "defaultValue={0}")
+  @ValueSource(booleans = {true, false})
+  public class BooleanPreferencesTest
       extends PreferencesRegistryTestCase<BooleanPreferencesTest.RecordWithBooleans> {
     static final String PREFERENCE_NAME = "Booleans";
     static final String BOOLEAN_VALUE_KEY = "Booleans/booleanValue";
     static final String BOOLEAN_SUPPLIER_KEY = "Booleans/booleanSupplier";
     static final Set<String> ALL_KEYS = Set.of(BOOLEAN_VALUE_KEY, BOOLEAN_SUPPLIER_KEY);
     final boolean defaultValue;
-
-    @Parameters(name = "defaultValue={0}")
-    public static Object[] data() {
-      return new Object[] {true, false};
-    }
 
     public BooleanPreferencesTest(boolean defaultValue) {
       super(PREFERENCE_NAME, RecordWithBooleans.class);
@@ -429,18 +432,15 @@ public final class PersistedConfigurationTest {
     }
   }
 
-  @RunWith(Parameterized.class)
-  public static class IntPreferencesTest
+  @Nested
+  @ParameterizedClass(name = "storeAsDoubles={0}")
+  @ValueSource(booleans = {true, false})
+  public class IntPreferencesTest
       extends PreferencesRegistryTestCase<IntPreferencesTest.RecordWithInts> {
     static final String PREFERENCE_NAME = "Integers";
     static final String INT_VALUE_KEY = "Integers/intValue";
     static final String INT_SUPPLIER_KEY = "Integers/intSupplier";
     final boolean storeAsDoubles;
-
-    @Parameters(name = "storeAsDoubles={0}")
-    public static Object[] data() {
-      return new Object[] {true, false};
-    }
 
     public IntPreferencesTest(boolean storeAsDoubles) {
       super(PREFERENCE_NAME, RecordWithInts.class);
@@ -533,7 +533,8 @@ public final class PersistedConfigurationTest {
     }
   }
 
-  public static class LongPreferencesTest
+  @Nested
+  public class LongPreferencesTest
       extends PreferencesRegistryTestCase<LongPreferencesTest.RecordWithLongs> {
     static final String PREFERENCE_NAME = "Longs";
     static final String LONG_VALUE_KEY = "Longs/longValue";
@@ -616,7 +617,8 @@ public final class PersistedConfigurationTest {
     }
   }
 
-  public static class DoublePreferencesTest
+  @Nested
+  public class DoublePreferencesTest
       extends PreferencesRegistryTestCase<DoublePreferencesTest.RecordWithDoubles> {
     static final String PREFERENCE_NAME = "Doubles";
     static final String DOUBLE_VALUE_KEY = "Doubles/doubleValue";
@@ -699,7 +701,8 @@ public final class PersistedConfigurationTest {
     }
   }
 
-  public static class StringPreferencesTest
+  @Nested
+  public class StringPreferencesTest
       extends PreferencesRegistryTestCase<StringPreferencesTest.RecordWithStrings> {
     static final String PREFERENCE_NAME = "Strings";
     static final String STRING_VALUE_KEY = "Strings/stringValue";
@@ -781,7 +784,8 @@ public final class PersistedConfigurationTest {
     }
   }
 
-  public static class RecordPreferencesTest
+  @Nested
+  public class RecordPreferencesTest
       extends PreferencesRegistryTestCase<RecordPreferencesTest.RecordWithRecords> {
     static final String PREFERENCE_NAME = "Records";
     static final String recordValueKey = "Records/recordValue";
