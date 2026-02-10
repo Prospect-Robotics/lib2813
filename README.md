@@ -4,10 +4,6 @@
 
 ### Updating your dependencies
 
-> [!NOTE]
-> The lib2813 jars are not yet published to Maven Central. For the time being, you need to publish
-> them to Maven Local. See [the Contributing page](CONTRIBUTING.md#publishing-to-maven-local) for details.
-
 In your project's "gradle" directory, create a file named `libs.versions.toml` with the following content:
 
 ```toml
