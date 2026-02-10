@@ -126,7 +126,7 @@ final class ProvideUniqueNetworkTableInstanceExtension
         .orElseThrow(
             () ->
                 new IllegalStateException(
-                    "Could not find an enclosed class annotated with" + " @IsolatedNetworkTables"));
+                    "Could not find an enclosed class annotated with @IsolatedNetworkTables"));
   }
 
   /**

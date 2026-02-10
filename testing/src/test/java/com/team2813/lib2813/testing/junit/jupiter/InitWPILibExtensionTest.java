@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 
@@ -49,7 +48,7 @@ public class InitWPILibExtensionTest {
     }
   }
 
-  @ExtendWith(InitWPILibExtension.class)
+  @InitWPILib
   @Tag("ignore-outside-testkit")
   @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
   public static class SampleTest {
