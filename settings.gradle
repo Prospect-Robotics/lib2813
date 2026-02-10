@@ -8,7 +8,5 @@
  */
 
 rootProject.name = 'lib2813'
-include('lib')
-include('limelight')
-include('vision')
-include('testing')
+include 'lib',  'limelight', 'vision', 'testing'
+include 'vendor:ctre'

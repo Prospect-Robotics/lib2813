@@ -13,29 +13,28 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package com.team2813.lib2813.util;
+package com.team2813.lib2813.vendor.ctre;
 
-import com.revrobotics.REVLibError;
+import com.ctre.phoenix6.StatusCode;
 import edu.wpi.first.wpilibj.DriverStation;
 import java.util.function.Supplier;
 
-public class ConfigUtils {
+public class PhoenixUtils {
   private static final int ATTEMPTS = 10;
 
-  // make class non-instantiable
-  private ConfigUtils() {
-    throw new AssertionError("cannot create ConfigUtils instance");
-  }
-
-  public static void revConfig(Supplier<REVLibError> configMethod) {
-    REVLibError errorCode = configMethod.get();
-    for (int i = 1; i <= ATTEMPTS && errorCode != REVLibError.kOk; i++) {
+  public static void phoenix6Config(Supplier<StatusCode> configMethod) {
+    StatusCode errorCode = configMethod.get();
+    for (int i = 1; i <= ATTEMPTS && errorCode != StatusCode.OK; i++) {
       DriverStation.reportError(
           String.format("%s: Config Attempt %d Failed", errorCode.toString(), i), false);
       errorCode = configMethod.get();
     }
-    if (errorCode != REVLibError.kOk) {
+    if (errorCode != StatusCode.OK) {
       DriverStation.reportError(String.format("%s: Config Failed", errorCode.toString()), false);
     }
+  }
+
+  private PhoenixUtils() {
+    throw new AssertionError("Not instantiable");
   }
 }

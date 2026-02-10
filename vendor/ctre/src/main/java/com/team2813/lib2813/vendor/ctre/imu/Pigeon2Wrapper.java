@@ -13,12 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package com.team2813.lib2813.control.imu;
+package com.team2813.lib2813.vendor.ctre.imu;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
-import com.team2813.lib2813.control.DeviceInformation;
-import com.team2813.lib2813.util.ConfigUtils;
+import com.team2813.lib2813.vendor.ctre.DeviceInformation;
+import com.team2813.lib2813.vendor.ctre.PhoenixUtils;
 
 public class Pigeon2Wrapper {
   private final Pigeon2 pigeon;
@@ -74,7 +74,7 @@ public class Pigeon2Wrapper {
   }
 
   public void setHeading(double angle) {
-    ConfigUtils.phoenix6Config(() -> pigeon.setYaw(angle));
+    PhoenixUtils.phoenix6Config(() -> pigeon.setYaw(angle));
     currentHeading = angle;
   }
 

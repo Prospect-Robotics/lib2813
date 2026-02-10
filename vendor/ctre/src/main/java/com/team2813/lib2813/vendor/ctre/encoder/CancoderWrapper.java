@@ -13,13 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package com.team2813.lib2813.control.encoders;
+package com.team2813.lib2813.vendor.ctre.encoder;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.control.Encoder;
-import com.team2813.lib2813.util.ConfigUtils;
+import com.team2813.lib2813.vendor.ctre.DeviceInformation;
+import com.team2813.lib2813.vendor.ctre.PhoenixUtils;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -78,7 +78,7 @@ public class CancoderWrapper implements Encoder {
 
   @Override
   public void setPosition(Angle position) {
-    ConfigUtils.phoenix6Config(() -> cancoder.setPosition(position.in(Units.Rotations)));
+    PhoenixUtils.phoenix6Config(() -> cancoder.setPosition(position.in(Units.Rotations)));
   }
 
   public CANcoder encoder() {

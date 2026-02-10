@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package com.team2813.lib2813.control.motors;
+package com.team2813.lib2813.vendor.ctre.motor;
 
 import static com.team2813.lib2813.util.InputValidation.checkCanId;
 
@@ -24,14 +24,16 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.team2813.lib2813.control.ControlMode;
-import com.team2813.lib2813.control.DeviceInformation;
 import com.team2813.lib2813.control.InvertType;
 import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.subsystems.MotorSubsystem;
 import com.team2813.lib2813.util.InvalidCanIdException;
+import com.team2813.lib2813.vendor.ctre.DeviceInformation;
+import com.team2813.lib2813.vendor.ctre.InvertTypes;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -63,18 +65,15 @@ public class TalonFXWrapper implements PIDMotor {
    * @throws InvalidCanIdException if the CAN id is invalid
    */
   public TalonFXWrapper(int canID, CANBus canbus, InvertType invertType) {
-    Objects.requireNonNull(invertType, "invertType should not be null");
     Objects.requireNonNull(canbus, "canbus should not be null");
+    InvertedValue invertedValue = toInvertedValue(invertType);
     if (!InvertType.rotationValues.contains(invertType)) {
       throw new IllegalArgumentException("invertType invalid");
     }
     motor = new TalonFX(checkCanId(canID), canbus);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
-    // should never throw anything, as the tests guarantee that everything in
-    // rotationValues
-    // returns a non-empty value with phoenixInvert
-    config.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
+    config.MotorOutput.Inverted = invertedValue;
     config.CurrentLimits =
         new CurrentLimitsConfigs().withStatorCurrentLimit(40).withSupplyCurrentLimitEnable(true);
     TalonFXConfigurator configurator = motor.getConfigurator();
@@ -117,17 +116,11 @@ public class TalonFXWrapper implements PIDMotor {
    * @throws InvalidCanIdException if the CAN id is invalid
    */
   public TalonFXWrapper(int canID, InvertType invertType) {
-    Objects.requireNonNull(invertType, "invertType should not be null");
+    InvertedValue invertedValue = toInvertedValue(invertType);
     motor = new TalonFX(checkCanId(canID));
-    if (!InvertType.rotationValues.contains(invertType)) {
-      throw new IllegalArgumentException("invertType invalid");
-    }
 
     TalonFXConfiguration config = new TalonFXConfiguration();
-    // should never throw anything, as the tests guarantee that everything in
-    // rotationValues
-    // returns a non-empty value with phoenixInvert
-    config.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
+    config.MotorOutput.Inverted = invertedValue;
     config.CurrentLimits =
         new CurrentLimitsConfigs().withStatorCurrentLimit(40).withSupplyCurrentLimitEnable(true);
     TalonFXConfigurator configurator = motor.getConfigurator();
@@ -245,8 +238,7 @@ public class TalonFXWrapper implements PIDMotor {
     Optional<MotorAlignmentValue> alignmentValue = toMotorAlignmentValue(invertType);
     if (alignmentValue.isEmpty()) {
       TalonFXConfiguration conf = new TalonFXConfiguration();
-      // guaranteed to succeed
-      conf.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
+      conf.MotorOutput.Inverted = toInvertedValue(invertType);
       follower.setControl(new StrictFollower(information.id()));
     } else {
       follower.setControl(new Follower(information.id(), alignmentValue.get()));
@@ -259,8 +251,7 @@ public class TalonFXWrapper implements PIDMotor {
     Optional<MotorAlignmentValue> alignmentValue = toMotorAlignmentValue(invertType);
     if (alignmentValue.isEmpty()) {
       TalonFXConfiguration conf = new TalonFXConfiguration();
-      // guaranteed to succeed
-      conf.MotorOutput.Inverted = invertType.phoenixInvert().orElseThrow(AssertionError::new);
+      conf.MotorOutput.Inverted = toInvertedValue(invertType);
       follower.setControl(new StrictFollower(information.id()));
     } else {
       follower.setControl(new Follower(information.id(), alignmentValue.get()));
@@ -269,11 +260,20 @@ public class TalonFXWrapper implements PIDMotor {
   }
 
   private static Optional<MotorAlignmentValue> toMotorAlignmentValue(InvertType invertType) {
+    Objects.requireNonNull(invertType, "invertType should not be null");
     if (InvertType.rotationValues.contains(invertType)) {
       return Optional.empty();
     }
     return invertType.equals(InvertType.FOLLOW_MASTER)
         ? Optional.of(MotorAlignmentValue.Aligned)
         : Optional.of(MotorAlignmentValue.Opposed);
+  }
+
+  private static InvertedValue toInvertedValue(InvertType invertType) {
+    Objects.requireNonNull(invertType, "invertType should not be null");
+    return InvertTypes.toInvertValue(invertType)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException("invertType must be CLOCKWISE or COUNTER_CLOCKWISE"));
   }
 }

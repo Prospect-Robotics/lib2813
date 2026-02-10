@@ -1,5 +1,5 @@
 /*
-Copyright 2024-2025 Prospect Robotics SWENext Club
+Copyright 2024-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,33 +18,16 @@ package com.team2813.lib2813.control;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.ctre.phoenix6.signals.InvertedValue;
 import org.junit.Test;
 
 public class InvertTypeTest {
-  @Test
-  public void phoenixInvertsExist() {
-    for (InvertType v : InvertType.rotationValues) {
-      assertTrue(
-          String.format("No phoenix invert exists for InvertType %s.", v),
-          v.phoenixInvert().isPresent());
-    }
-  }
 
   @Test
   public void sparkMaxInvertsExist() {
     for (InvertType v : InvertType.rotationValues) {
       assertTrue(
           String.format("No spark max invert exists for InvertType %s.", v),
-          v.phoenixInvert().isPresent());
-    }
-  }
-
-  @Test
-  public void fromPhoenixInvertTest() {
-    for (InvertType v : InvertType.rotationValues) {
-      InvertedValue val = v.phoenixInvert().orElseThrow();
-      assertEquals(v, InvertType.fromPhoenixInvert(val).orElse(null));
+          v.sparkMaxInvert().isPresent());
     }
   }
 
