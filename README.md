@@ -28,8 +28,8 @@ dependencies {
     
     // Lib2813 dependencies
     implementation libs.lib2813.lib
-    implementation libs.lib2813.vendor-ctre
-    implementation libs.lib2813.vendor-rev
+    implementation libs.lib2813.vendor.ctre
+    implementation libs.lib2813.vendor.rev
     implementation libs.lib2813.vision
     implementation libs.lib2813.limelight
     testImplementation libs.lib2813.testing
