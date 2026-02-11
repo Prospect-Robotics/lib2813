@@ -38,7 +38,7 @@ dependencies {
 
 Note: You do not need to include all the dependencies. For example, if you don't use REV Robotics
 hardware (i.e. you don't have `REVLib.json` in your `vendordeps` directory) then you do not need
-to add `libs.lib2813.vendor-rev` to your dependencies.
+to add `libs.lib2813.vendor.rev` to your dependencies.
 
 ### Upgrading
 
