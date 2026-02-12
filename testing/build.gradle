@@ -10,7 +10,7 @@ dependencies {
     implementation 'com.google.truth:truth:1.4.4'
     implementation(platform('org.junit:junit-bom:5.13.1'))
     implementation('org.junit.jupiter:junit-jupiter')
-    implementation project(':lib')
+    implementation project(':core')
     nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
     nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
     simulationDebug wpi.sim.enableDebug()

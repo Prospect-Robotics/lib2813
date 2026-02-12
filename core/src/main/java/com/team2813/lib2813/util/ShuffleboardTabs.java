@@ -1,5 +1,5 @@
 /*
-Copyright 2023-2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,24 +15,12 @@ limitations under the License.
 */
 package com.team2813.lib2813.util;
 
-public class Units2813 {
-  private Units2813() {
-    throw new AssertionError("non-instantiable");
-  }
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
-  public static double ticksToMotorRevs(double ticks, int cpr) {
-    return ticks / cpr;
-  }
+/** Wrapper around {@link Shuffleboard#getTab}, for providing a seam for testing. */
+public interface ShuffleboardTabs {
+  ShuffleboardTab getTab(String title);
 
-  public static int motorRevsToTicks(double revs, int cpr) {
-    return (int) (revs * cpr);
-  }
-
-  public static double motorRevsToWheelRevs(double revs, double gearRatio) {
-    return revs * gearRatio;
-  }
-
-  public static double wheelRevsToMotorRevs(double revs, double gearRatio) {
-    return revs / gearRatio;
-  }
+  void selectTab(String title);
 }

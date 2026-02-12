@@ -12,7 +12,7 @@ content:
 lib2813 = "2.0.0-rc-3"
 
 [libraries]
-lib2813-lib = { module = "com.team2813.lib2813:lib", version.ref="lib2813" }
+lib2813-lib = { module = "com.team2813.lib2813:core", version.ref="lib2813" }
 lib2813-vendor-ctre = { module = "com.team2813.lib2813:vendor-ctre", version.ref="lib2813" }
 lib2813-vendor-rev = { module = "com.team2813.lib2813:vendor-rev", version.ref="lib2813" }
 lib2813-vision = { module = "com.team2813.lib2813:vision", version.ref="lib2813" }
@@ -27,7 +27,7 @@ dependencies {
     // Existing dependencies here
     
     // Lib2813 dependencies
-    implementation libs.lib2813.lib
+    implementation libs.lib2813.core
     implementation libs.lib2813.vendor.ctre
     implementation libs.lib2813.vendor.rev
     implementation libs.lib2813.vision
@@ -47,7 +47,7 @@ To upgrade the version of the lib2813 libraries you are using, simply update the
 
 ### Vendordeps
 
-- `com.team2813.lib2813:lib`:
+- `com.team2813.lib2813:core`:
   - `WPILibNewCommands.json`
 - `com.team2813.lib2813:vendor-ctre`:
   - `Phoenix6.json`
