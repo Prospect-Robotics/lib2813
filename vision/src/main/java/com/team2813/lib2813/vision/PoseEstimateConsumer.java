@@ -20,14 +20,16 @@ import org.photonvision.EstimatedRobotPose;
 /**
  * Represents an operation that accepts estimated robot positions.
  *
+ * @param <C> the type for the camera
  * @since 2.0.0
  */
 @FunctionalInterface
-public interface PoseEstimateConsumer {
+public interface PoseEstimateConsumer<C extends Camera> {
   /**
    * Performs an operation on the given estimated robot positions.
    *
    * @param estimatedPose The estimated robot positions.
+   * @param camera The camera.
    */
-  void addEstimatedRobotPose(EstimatedRobotPose estimatedPose);
+  void addEstimatedRobotPose(EstimatedRobotPose estimatedPose, C camera);
 }
