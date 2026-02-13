@@ -34,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -379,24 +381,44 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   }
 
   /**
-   * Sends all unread robot-pose estimations from all cameras to the provided consumer.
+   * Sends all validated unread robot-pose estimations from all cameras to the provided consumer.
    *
-   * <p>This method is supposed to be called from a routine updating drive-train pose with pose
-   * estimates from the photon vision cameras.
+   * <p>This method should be called from a routine updating drive-train pose with pose estimates
+   * from the photon vision cameras.
    *
-   * @param poseEstimateConsumer Functional interface for consuming computed pose estimates.
+   * @param poseEstimateConsumer Consumer for validated pose estimates.
    */
   public void processAllUnreadResults(PoseEstimateConsumer<C> poseEstimateConsumer) {
+    processAllUnreadResults(poseEstimateConsumer, pose -> {});
+  }
+
+  /**
+   * Sends all unread robot-pose estimations from all cameras to the provided consumers.
+   *
+   * <p>This method should be called from a routine updating drive-train pose with pose estimates
+   * from the photon vision cameras.
+   *
+   * @param poseEstimateConsumer Consumer for validated pose estimates.
+   * @param rejectedPoseConsumer Consumer for rejected pose estimates.
+   */
+  public void processAllUnreadResults(
+      PoseEstimateConsumer<C> poseEstimateConsumer,
+      Consumer<EstimatedRobotPose> rejectedPoseConsumer) {
     for (PhotonCameraWrapper<C> cameraWrapper : cameraWrappers) {
-      List<EstimatedRobotPose> poses =
+      Map<Boolean, List<EstimatedRobotPose>> poses =
           cameraWrapper.photonCamera.getAllUnreadResults().stream()
               .map(cameraWrapper.estimator::update) // PhotonPipelineResult -> EstimatedRobotPose
               .flatMap(Optional::stream) // Convert Stream<Optional<P>> -> Stream<P>
-              .filter(isPoseValid)
-              .toList();
+              .collect(Collectors.partitioningBy(isPoseValid));
 
-      poses.forEach(pose -> poseEstimateConsumer.addEstimatedRobotPose(pose, cameraWrapper.camera));
-      cameraWrapper.robotPosePublisher.publish(poses);
+      List<EstimatedRobotPose> validatedPoses = poses.get(Boolean.TRUE);
+      for (EstimatedRobotPose pose : validatedPoses) {
+        poseEstimateConsumer.addEstimatedRobotPose(pose, cameraWrapper.camera);
+      }
+      cameraWrapper.robotPosePublisher.publish(validatedPoses);
+
+      List<EstimatedRobotPose> rejectedPoses = poses.get(Boolean.FALSE);
+      rejectedPoses.forEach(rejectedPoseConsumer);
     }
   }
 
