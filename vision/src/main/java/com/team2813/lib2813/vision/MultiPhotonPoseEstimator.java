@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -63,6 +64,7 @@ import org.photonvision.simulation.VisionSystemSim;
  */
 public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable {
   private final List<PhotonCameraWrapper<C>> cameraWrappers;
+  private final Predicate<EstimatedRobotPose> isPoseValid;
   private PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
 
   /** A builder for {@code MultiPhotonPoseEstimator}. */
@@ -71,6 +73,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
     private final AprilTagFieldLayout aprilTagFieldLayout;
     private final NetworkTableInstance ntInstance;
     private final PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
+    private Predicate<EstimatedRobotPose> isPoseValid = pose -> true;
 
     Builder(
         NetworkTableInstance ntInstance,
@@ -95,6 +98,19 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
         throw new IllegalArgumentException(
             String.format("Already a camera with name '%s'", camera.name()));
       }
+      return this;
+    }
+
+    /**
+     * Sets the filter to use deciding which estimates to consider.
+     *
+     * @param isPoseValid A predicate that returns {@code true} if the pose should be considered
+     *     valid.
+     * @return Builder instance.
+     * @since 2.1.0
+     */
+    public Builder<C> withPoseFilter(Predicate<EstimatedRobotPose> isPoseValid) {
+      this.isPoseValid = isPoseValid;
       return this;
     }
 
@@ -233,6 +249,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   /** Creates an instance using values from a {@code Builder}. */
   private MultiPhotonPoseEstimator(Builder<C> builder) {
     poseEstimatorStrategy = builder.poseEstimatorStrategy;
+    isPoseValid = poseIsInField(builder.aprilTagFieldLayout).and(builder.isPoseValid);
     cameraWrappers =
         builder.cameras.values().stream()
             .map(camera -> createCameraWrapper(builder, camera))
@@ -377,6 +394,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
           cameraWrapper.photonCamera.getAllUnreadResults().stream()
               .map(cameraWrapper.estimator::update) // PhotonPipelineResult -> EstimatedRobotPose
               .flatMap(Optional::stream) // Convert Stream<Optional<P>> -> Stream<P>
+              .filter(isPoseValid)
               .toList();
 
       poses.forEach(pose -> poseEstimateConsumer.addEstimatedRobotPose(pose, cameraWrapper.camera));
@@ -388,5 +406,20 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   public void close() {
     cameraWrappers.forEach(PhotonCameraWrapper::close);
     cameraWrappers.clear();
+  }
+
+  /** Creates a predicate that determines if a pose is inside the field. */
+  private static <C extends Camera> Predicate<EstimatedRobotPose> poseIsInField(
+      AprilTagFieldLayout aprilTagFieldLayout) {
+    return pose -> {
+      Pose3d estimate = pose.estimatedPose;
+      double x = estimate.getX();
+      double y = estimate.getY();
+
+      return x >= 0.0
+          && x <= aprilTagFieldLayout.getFieldLength()
+          && y >= 0.0
+          && y <= aprilTagFieldLayout.getFieldWidth();
+    };
   }
 }
