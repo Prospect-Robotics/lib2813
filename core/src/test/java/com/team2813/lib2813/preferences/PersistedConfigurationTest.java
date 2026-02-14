@@ -48,6 +48,7 @@ import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests for {@link PersistedConfiguration}. */
+@Execution(ExecutionMode.SAME_THREAD) // Test updates static state
 @ProvideUniqueNetworkTableInstance(replacePreferencesNetworkTable = true)
 public final class PersistedConfigurationTest {
   private static final double EPSILON = 0.001;
