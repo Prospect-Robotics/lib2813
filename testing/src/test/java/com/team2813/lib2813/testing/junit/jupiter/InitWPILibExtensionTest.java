@@ -83,6 +83,7 @@ public class InitWPILibExtensionTest {
     @Test
     @Order(2)
     public void verifyFakeCommandNotScheduledAfterTest(CommandTester commandTester) {
+      assertThat(commandTester).isNotNull();
       CommandScheduler commandScheduler = CommandScheduler.getInstance();
       assertWithMessage("Expect all commands to have been cancelled")
           .that(commandScheduler.isScheduled(FAKE_COMMAND))
@@ -223,44 +224,43 @@ public class InitWPILibExtensionTest {
   }
 
   private static class PeriodicElapsedCommand extends Command {
-    private boolean finished = false;
-    private boolean ex1Exists;
-    private boolean ex2Exists;
+    private boolean completed;
+    private int executeCount;
     private double ex1Time;
     private double ex2Time;
 
     @Override
     public void initialize() {
-      ex1Exists = false;
-      ex2Exists = false;
-      finished = false;
+      executeCount = 0;
+      completed = false;
     }
 
     @Override
     public void execute() {
-      if (!ex1Exists) {
-        ex1Time = Timer.getFPGATimestamp();
-        ex1Exists = true;
+      executeCount++;
+      assertWithMessage("execute() must only be called twice!").that(executeCount).isLessThan(3);
+
+      double now = Timer.getFPGATimestamp();
+      if (executeCount == 1) {
+        ex1Time = now;
       } else {
-        assertWithMessage("execute() must only be called twice!").that(ex2Exists).isFalse();
-        ex2Time = Timer.getFPGATimestamp();
-        ex2Exists = true;
+        ex2Time = now;
       }
     }
 
     @Override
     public boolean isFinished() {
-      return ex2Exists;
+      return executeCount == 2;
     }
 
     @Override
     public void end(boolean interrupted) {
-      finished = !interrupted;
+      completed = !interrupted;
     }
 
     public double executionTime() {
       assertWithMessage("This command must run to completion before getting the execution time!")
-          .that(finished)
+          .that(completed)
           .isTrue();
       return ex2Time - ex1Time;
     }
