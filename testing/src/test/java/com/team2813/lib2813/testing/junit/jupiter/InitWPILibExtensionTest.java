@@ -23,6 +23,8 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -81,6 +83,7 @@ public class InitWPILibExtensionTest {
     @Test
     @Order(2)
     public void verifyFakeCommandNotScheduledAfterTest(CommandTester commandTester) {
+      assertThat(commandTester).isNotNull();
       CommandScheduler commandScheduler = CommandScheduler.getInstance();
       assertWithMessage("Expect all commands to have been cancelled")
           .that(commandScheduler.isScheduled(FAKE_COMMAND))
@@ -143,6 +146,52 @@ public class InitWPILibExtensionTest {
     }
   }
 
+  @InitWPILib(periodicPeriod = 0.05)
+  @Tag("ignore-outside-testkit")
+  public static class PeriodicDurationHalfTest {
+    @Test
+    public void periodicPeriodIsCorrectTest(CommandTester commandTester) {
+      PeriodicElapsedCommand command = new PeriodicElapsedCommand();
+      commandTester.runUntilComplete(command);
+      assertThat(command.executionTime()).isWithin(0.1).of(0.05);
+    }
+  }
+
+  @InitWPILib(periodicPeriod = 0.08)
+  @Tag("ignore-outside-testkit")
+  public static class PeriodicDurationFourFifthsTest {
+    @Test
+    public void periodicPeriodIsCorrectTest(CommandTester commandTester) {
+      PeriodicElapsedCommand command = new PeriodicElapsedCommand();
+      commandTester.runUntilComplete(command);
+      assertThat(command.executionTime()).isWithin(0.1).of(0.08);
+    }
+  }
+
+  @InitWPILib
+  @Tag("ignore-outside-testkit")
+  public static class PeriodicDurationDefaultTest {
+    @Test
+    public void periodicPeriodIsCorrectTest(CommandTester commandTester) {
+      PeriodicElapsedCommand command = new PeriodicElapsedCommand();
+      commandTester.runUntilComplete(command);
+      assertThat(command.executionTime()).isWithin(0.1).of(TimedRobot.kDefaultPeriod);
+    }
+  }
+
+  @Test
+  void verifyPeriodicPeriodConfig() {
+    EngineExecutionResults results =
+        EngineTestKit.engine("junit-jupiter")
+            .selectors(
+                selectClass(PeriodicDurationHalfTest.class),
+                selectClass(PeriodicDurationFourFifthsTest.class),
+                selectClass(PeriodicDurationDefaultTest.class))
+            .execute();
+
+    assertHasNoFailures(results);
+  }
+
   private static class VerifiableCommand extends Command {
     private static final int EXPECTED_EXECUTION_COUNT = 4;
     private int initializedCount = 0;
@@ -171,6 +220,49 @@ public class InitWPILibExtensionTest {
     @Override
     public boolean isFinished() {
       return executionCount >= EXPECTED_EXECUTION_COUNT;
+    }
+  }
+
+  private static class PeriodicElapsedCommand extends Command {
+    private boolean completed;
+    private int executeCount;
+    private double ex1Time;
+    private double ex2Time;
+
+    @Override
+    public void initialize() {
+      executeCount = 0;
+      completed = false;
+    }
+
+    @Override
+    public void execute() {
+      executeCount++;
+      assertWithMessage("execute() must only be called twice!").that(executeCount).isLessThan(3);
+
+      double now = Timer.getFPGATimestamp();
+      if (executeCount == 1) {
+        ex1Time = now;
+      } else {
+        ex2Time = now;
+      }
+    }
+
+    @Override
+    public boolean isFinished() {
+      return executeCount == 2;
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+      completed = !interrupted;
+    }
+
+    public double executionTime() {
+      assertWithMessage("This command must run to completion before getting the execution time!")
+          .that(completed)
+          .isTrue();
+      return ex2Time - ex1Time;
     }
   }
 }

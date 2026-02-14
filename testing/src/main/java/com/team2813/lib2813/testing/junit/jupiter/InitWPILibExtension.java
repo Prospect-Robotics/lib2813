@@ -17,7 +17,6 @@ package com.team2813.lib2813.testing.junit.jupiter;
 
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.wpilibj.RuntimeType;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj.simulation.SimHooks;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -26,9 +25,12 @@ import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
+import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.platform.commons.support.AnnotationSupport;
 
 /** JUnit Jupiter extension for testing code that depends on WPILib. */
 final class InitWPILibExtension
@@ -38,9 +40,13 @@ final class InitWPILibExtension
         BeforeAllCallback,
         ParameterResolver {
   private static final double NANOS_PER_SECOND = 1_000_000_000d;
+  private static final Namespace NAMESPACE = Namespace.create(InitWPILibExtension.class);
+  private static final StoreKey<InitWPILib> ANNOTATION_KEY = StoreKey.of(InitWPILib.class);
 
   @Override
   public void beforeAll(ExtensionContext context) {
+    Store store = context.getStore(NAMESPACE);
+    ANNOTATION_KEY.put(store, getAnnotation(context));
     // Ensure the Hardware Abstraction Layer is initialized before we try to use it. This logic is
     // based on a comment from Peter Johnson at
     // https://www.chiefdelphi.com/t/driverstation-getalliance-in-gradle-test/
@@ -85,6 +91,7 @@ final class InitWPILibExtension
   public CommandTester resolveParameter(
       ParameterContext parameterContext, ExtensionContext extensionContext) {
     CommandScheduler scheduler = CommandScheduler.getInstance();
+    InitWPILib annotation = ANNOTATION_KEY.get(extensionContext.getStore(NAMESPACE));
 
     return command -> {
       SimHooks.pauseTiming();
@@ -92,11 +99,20 @@ final class InitWPILibExtension
         scheduler.schedule(command);
         do {
           scheduler.run();
-          SimHooks.stepTiming(TimedRobot.kDefaultPeriod);
+          SimHooks.stepTiming(annotation.periodicPeriod());
         } while (scheduler.isScheduled(command));
       } finally {
         SimHooks.resumeTiming();
       }
     };
+  }
+
+  private static InitWPILib getAnnotation(ExtensionContext context) {
+    return AnnotationSupport.findAnnotation(
+            context.getRequiredTestClass(), InitWPILib.class, context.getEnclosingTestClasses())
+        .orElseThrow(
+            () ->
+                new IllegalStateException(
+                    "Could not find enclosed class annotated with @InitWPILib"));
   }
 }
