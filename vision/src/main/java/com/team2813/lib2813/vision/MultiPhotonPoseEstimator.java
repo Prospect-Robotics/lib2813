@@ -226,7 +226,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
     public void close() {
       photonCamera.close();
       cameraPosePublisher.close();
-      // TODO: Update PhotonVisionPosePublisher to support close() and call it here
+      robotPosePublisher.close();
     }
   }
 
