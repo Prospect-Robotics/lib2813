@@ -27,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.platform.commons.support.AnnotationSupport;
 
 /** JUnit Jupiter extension for providing an isolated NetworkTableInstance to tests. */
@@ -56,6 +57,11 @@ final class ProvideUniqueNetworkTableInstanceExtension
 
     ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
     if (annotation.replacePreferencesNetworkTable()) {
+      if (ExecutionMode.CONCURRENT == context.getExecutionMode()) {
+        throw new IllegalStateException(
+            "Tests that use ProvideUniqueNetworkTableInstance with replacePreferencesNetworkTable"
+                + " set to true must not use ExecutionMode.CONCURRENT");
+      }
       Preferences.setNetworkTableInstance(ntInstance);
     }
     ntInstance.startLocal();
