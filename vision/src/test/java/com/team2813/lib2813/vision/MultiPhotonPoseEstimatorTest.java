@@ -48,12 +48,14 @@ class MultiPhotonPoseEstimatorTest {
           0.1708140348,
           new Rotation3d(0, -0.1745329252, -0.5235987756));
 
+  private static final Camera FRONT_CAMERA = new Camera("front", FRONT_CAMERA_TRANSFORM);
+
   @ParameterizedTest
   @EnumSource(value = PoseStrategy.class)
   void getPrimaryStrategy(PoseStrategy poseStrategy, NetworkTableInstance ntInstance) {
     try (var estimator =
-        new MultiPhotonPoseEstimator.Builder(ntInstance, createFieldLayout(), poseStrategy)
-            .addCamera("front", FRONT_CAMERA_TRANSFORM)
+        MultiPhotonPoseEstimator.builder(ntInstance, createFieldLayout(), poseStrategy)
+            .addCamera(FRONT_CAMERA)
             .build()) {
       assertThat(estimator.getPrimaryStrategy()).isEqualTo(poseStrategy);
     }
