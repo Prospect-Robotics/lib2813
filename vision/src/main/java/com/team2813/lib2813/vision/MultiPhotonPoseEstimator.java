@@ -90,6 +90,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
      * @return Builder instance.
      */
     public Builder<C> addCamera(C camera) {
+      Objects.requireNonNull(camera, "camera cannot be null");
       if (cameras.put(camera.name(), camera) != null) {
         throw new IllegalArgumentException(
             String.format("Already a camera with name '%s'", camera.name()));
