@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.team2813.lib2813'
-version = "2.0.0-rc-3"
+version = "2.0.0"
 
 mavenPublishing {
 
