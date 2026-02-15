@@ -16,9 +16,7 @@ limitations under the License.
 package com.team2813.lib2813.testing.junit.jupiter;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.NetworkTableListener;
 import edu.wpi.first.wpilibj.Preferences;
-import java.lang.reflect.Field;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -59,8 +57,10 @@ final class ProvideUniqueNetworkTableInstanceExtension
     ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
     if (annotation.replacePreferencesNetworkTable()) {
       Preferences.setNetworkTableInstance(ntInstance);
+    }
+    ntInstance.startLocal();
+    if (annotation.replacePreferencesNetworkTable()) {
       ntInstance.waitForListenerQueue(1);
-      removePreferencesListener();
     }
   }
 
@@ -71,9 +71,6 @@ final class ProvideUniqueNetworkTableInstanceExtension
     Data data = DATA_KEY.remove(store);
     if (data != null) {
       ProvideUniqueNetworkTableInstance annotation = ANNOTATION_KEY.get(store);
-      if (!data.prevInstance.equals(Preferences.getNetworkTable().getInstance())) {
-        Preferences.setNetworkTableInstance(data.prevInstance);
-      }
 
       // Clear out the listener queue before destroying our temporary NetworkTableInstance.
       //
@@ -81,13 +78,16 @@ final class ProvideUniqueNetworkTableInstanceExtension
       // be called after the NetworkTableInstance was closed (see
       // https://github.com/wpilibsuite/allwpilib/issues/8215).
       double timeout = annotation.waitForListenerQueueSeconds();
-      if (!data.testInstance.waitForListenerQueue(timeout)) {
+      boolean closeInstance = data.testInstance.waitForListenerQueue(timeout);
+
+      Preferences.setNetworkTableInstance(data.prevInstance);
+      if (closeInstance) {
+        data.testInstance.close();
+      } else {
         System.err.printf(
             "Timed out waiting for the NetworkTableInstance listener queue to empty (waited"
                 + " %dms); will not close temporary NetworkTableInstance%n",
             Math.round(timeout * 1000));
-      } else {
-        data.testInstance.close();
       }
     }
   }
@@ -127,22 +127,5 @@ final class ProvideUniqueNetworkTableInstanceExtension
             () ->
                 new IllegalStateException(
                     "Could not find an enclosed class annotated with @IsolatedNetworkTables"));
-  }
-
-  /**
-   * Removes the listener installed by {@link
-   * Preferences#setNetworkTableInstance(NetworkTableInstance)}.
-   *
-   * <p>The listener is a constant source of SIGSEGVs in our GitHub test actions.
-   */
-  private static void removePreferencesListener() {
-    try {
-      Field listnerField = Preferences.class.getDeclaredField("m_listener");
-      listnerField.setAccessible(true);
-      NetworkTableListener listener = (NetworkTableListener) listnerField.get(null);
-      listnerField.set(null, null);
-      listener.close();
-    } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
-    }
   }
 }

@@ -42,16 +42,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests for {@link PersistedConfiguration}. */
+@Execution(ExecutionMode.SAME_THREAD) // Test updates static state
 @ProvideUniqueNetworkTableInstance(replacePreferencesNetworkTable = true)
 public final class PersistedConfigurationTest {
   private static final double EPSILON = 0.001;
 
   /** Base class for all nested classes of {@link PersistedConfigurationTest}. */
   @Nested
+  @Execution(ExecutionMode.SAME_THREAD)
   abstract class PreferencesRegistryTestCase<T extends Record> {
     private final List<Executable> collectedErrors = new ArrayList<>();
     private final String preferenceName;
