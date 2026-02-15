@@ -56,6 +56,7 @@ To upgrade the version of the lib2813 libraries you are using, simply update the
 - `com.team2813.lib2813:limelight`:
   - `Phoenix6.json`
 - `com.team2813.lib2813:vision`:
+  - `WPILibNewCommands.json`
   - `photonlib.json`
 - `com.team2813.lib2813:testing`:
   - `WPILibNewCommands.json`
