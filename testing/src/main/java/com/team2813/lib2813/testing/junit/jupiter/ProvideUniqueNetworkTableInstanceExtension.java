@@ -139,13 +139,15 @@ final class ProvideUniqueNetworkTableInstanceExtension
    * <p>The listener is a constant source of SIGSEGVs in our GitHub test actions.
    */
   private static void removePreferencesListener() {
-    try {
-      Field listenerField = Preferences.class.getDeclaredField("m_listener");
-      listenerField.setAccessible(true);
-      NetworkTableListener listener = (NetworkTableListener) listenerField.get(null);
-      listenerField.set(null, null);
-      listener.close();
-    } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
+    synchronized (Preferences.class) {
+      try {
+        Field listenerField = Preferences.class.getDeclaredField("m_listener");
+        listenerField.setAccessible(true);
+        NetworkTableListener listener = (NetworkTableListener) listenerField.get(null);
+        listenerField.set(null, null);
+        listener.close();
+      } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
+      }
     }
   }
 }
