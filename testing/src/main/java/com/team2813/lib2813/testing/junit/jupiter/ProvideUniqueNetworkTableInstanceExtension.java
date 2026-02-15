@@ -16,9 +16,7 @@ limitations under the License.
 package com.team2813.lib2813.testing.junit.jupiter;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.NetworkTableListener;
 import edu.wpi.first.wpilibj.Preferences;
-import java.lang.reflect.Field;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -63,7 +61,6 @@ final class ProvideUniqueNetworkTableInstanceExtension
     ntInstance.startLocal();
     if (annotation.replacePreferencesNetworkTable()) {
       ntInstance.waitForListenerQueue(1);
-      removePreferencesListener();
     }
   }
 
@@ -130,24 +127,5 @@ final class ProvideUniqueNetworkTableInstanceExtension
             () ->
                 new IllegalStateException(
                     "Could not find an enclosed class annotated with @IsolatedNetworkTables"));
-  }
-
-  /**
-   * Removes the listener installed by {@link
-   * Preferences#setNetworkTableInstance(NetworkTableInstance)}.
-   *
-   * <p>The listener is a constant source of SIGSEGVs in our GitHub test actions.
-   */
-  private static void removePreferencesListener() {
-    synchronized (Preferences.class) {
-      try {
-        Field listenerField = Preferences.class.getDeclaredField("m_listener");
-        listenerField.setAccessible(true);
-        NetworkTableListener listener = (NetworkTableListener) listenerField.get(null);
-        listenerField.set(null, null);
-        listener.close();
-      } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
-      }
-    }
   }
 }
