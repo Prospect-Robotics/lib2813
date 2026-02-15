@@ -3,12 +3,13 @@ plugins {
 }
 
 group = 'com.team2813.lib2813'
-version = "2.0.0"
+version = '2.0.0'
 
 mavenPublishing {
 
     publishToMavenCentral()
     if (gradle.startParameter.taskNames.any { it.contains('MavenCentral') }) {
+        assert version != '2.0.0': 'Update the version before publishing to Maven Central'
         signAllPublications()
     }
 
