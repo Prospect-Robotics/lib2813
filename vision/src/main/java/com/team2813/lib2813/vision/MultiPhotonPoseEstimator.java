@@ -355,11 +355,8 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   }
 
   public void resetHeadingData(double timestampSeconds, Rotation3d heading) {
-    // TODO: Use PhotonPoseEstimator.resetHeadingData(double, Rotation2d) once we use a version of
-    // PhotonVision that includes it (see  https://github.com/PhotonVision/photonvision/pull/2013).
     for (PhotonCameraWrapper<C> cameraWrapper : cameraWrappers) {
-      cameraWrapper.estimator.resetHeadingData(timestampSeconds, heading.toRotation2d());
-      cameraWrapper.estimator.addHeadingData(timestampSeconds, heading);
+      cameraWrapper.estimator.resetHeadingData(timestampSeconds, heading);
     }
   }
 
