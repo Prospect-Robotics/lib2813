@@ -57,7 +57,11 @@ public class Camera {
    */
   public Camera(
       String name, Transform3d robotToCamera, Supplier<SimCameraProperties> simPropertiesSupplier) {
-    this(name, robotToCamera, Optional.of(simPropertiesSupplier));
+    this(
+        name,
+        robotToCamera,
+        Optional.of(
+            Objects.requireNonNull(simPropertiesSupplier, "simPropertiesSupplier cannot be null")));
   }
 
   private Camera(
