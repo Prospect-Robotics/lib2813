@@ -21,7 +21,6 @@ import com.team2813.lib2813.control.Motor;
 import com.team2813.lib2813.control.PIDMotor;
 import com.team2813.lib2813.robot.PeriodicRegistry;
 import com.team2813.lib2813.robot.RobotState;
-import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.BooleanPublisher;
@@ -34,6 +33,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
+import edu.wpi.first.wpilibj.DriverStation;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.apiguardian.api.API;
@@ -60,7 +60,7 @@ import org.apiguardian.api.API;
  * #set(ControlMode, double)}. The PID Mode is interrupted and disengaged, and the provided demand
  * will be directly sent to the motor.
  *
- * <p>To stop the motor, call {@link #disable()}.
+ * <p>To stop the motor, call {@link #stopMotor()}.
  *
  * @param <P> an enum implementing {@link Supplier<Angle>} used to specify setpoints.
  */
@@ -454,8 +454,7 @@ public final class PositionalMotor<P extends Enum<P> & Supplier<Angle>>
             try {
               controller.setIZone(toSet);
             } catch (IllegalArgumentException e) {
-              MathSharedStore.reportError(
-                  "IZone must be a non-negative number!", e.getStackTrace());
+              DriverStation.reportError("IZone must be a non-negative number!", e.getStackTrace());
             }
           });
       builder.addDoubleProperty(
