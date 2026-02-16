@@ -1,0 +1,25 @@
+[versions]
+wpilib = "2026.2.1"
+spotless = "7.2.1"
+junit = "5.13.1"
+truth = "1.4.4"
+autovalue = "1.11.0"
+gson = "2.12.1"
+json = "20240205"
+
+[libraries]
+wpilib-newcommands = { module = "edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java", version.ref = "wpilib" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-testkit = { module = "org.junit.platform:junit-platform-testkit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+autovalue-processor = { module = "com.google.auto.value:auto-value", version.ref = "autovalue" }
+autovalue-annotations = { module = "com.google.auto.value:auto-value-annotations", version.ref = "autovalue" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+json = { module = "org.json:json", version.ref = "json" }
+
+
+[plugins]
+gradlerio = { id = "edu.wpi.first.GradleRIO", version.ref = "wpilib" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
