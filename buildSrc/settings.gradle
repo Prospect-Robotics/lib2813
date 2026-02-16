@@ -1,3 +1,4 @@
+// Make the 'libs' version catalog accessible from `buildSrc`
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
