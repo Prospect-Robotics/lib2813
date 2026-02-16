@@ -1,18 +1,18 @@
 plugins {
     id 'java-common-conventions'
     id 'publishing-conventions'
-    id 'edu.wpi.first.GradleRIO' version '2026.1.1'
+    alias libs.plugins.gradlerio
 }
 
 dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
-    implementation 'com.google.code.gson:gson:2.12.1'
+    implementation libs.gson
 
-    api "org.json:json:20240205"
+    api libs.json
 
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'com.google.truth:truth:1.4.4'
+    testImplementation libs.truth
     testImplementation project(':testing')
 
     nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)

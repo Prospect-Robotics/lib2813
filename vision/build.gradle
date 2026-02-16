@@ -1,7 +1,7 @@
 plugins {
     id 'java-common-conventions'
     id 'publishing-conventions'
-    id 'edu.wpi.first.GradleRIO' version '2026.1.1'
+    alias libs.plugins.gradlerio
 }
 
 dependencies {
@@ -9,11 +9,11 @@ dependencies {
     implementation wpi.java.vendor.java()
     implementation project(':core')
 
-    testImplementation(platform('org.junit:junit-bom:5.13.1'))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testImplementation 'com.google.truth:truth:1.4.4'
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation libs.truth
     testImplementation project(':testing')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    testRuntimeOnly(libs.junit.platform.launcher)
 
     nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
     nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
