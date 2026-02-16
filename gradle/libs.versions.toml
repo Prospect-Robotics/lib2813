@@ -6,6 +6,8 @@ truth = "1.4.4"
 autovalue = "1.11.0"
 gson = "2.12.1"
 json = "20240205"
+mockito = "5.14.2"
+maven-publish = "0.34.0"
 
 [libraries]
 wpilib-newcommands = { module = "edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java", version.ref = "wpilib" }
@@ -18,8 +20,9 @@ autovalue-processor = { module = "com.google.auto.value:auto-value", version.ref
 autovalue-annotations = { module = "com.google.auto.value:auto-value-annotations", version.ref = "autovalue" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 json = { module = "org.json:json", version.ref = "json" }
-
+mockito-core = { module = "org.mockito:mockito-core", version.ref="mockito" }
 
 [plugins]
 gradlerio = { id = "edu.wpi.first.GradleRIO", version.ref = "wpilib" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+maven-publish = { id = "com.vanniktech.maven.publish.base", version.ref = "maven-publish" }
