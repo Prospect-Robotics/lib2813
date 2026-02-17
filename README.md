@@ -9,10 +9,10 @@ content:
 
 ```toml
 [versions]
-lib2813 = "2.0.0-rc-3"
+lib2813 = "2.0.0"
 
 [libraries]
-lib2813-lib = { module = "com.team2813.lib2813:core", version.ref="lib2813" }
+lib2813-core = { module = "com.team2813.lib2813:core", version.ref="lib2813" }
 lib2813-vendor-ctre = { module = "com.team2813.lib2813:vendor-ctre", version.ref="lib2813" }
 lib2813-vendor-rev = { module = "com.team2813.lib2813:vendor-rev", version.ref="lib2813" }
 lib2813-vision = { module = "com.team2813.lib2813:vision", version.ref="lib2813" }
@@ -51,7 +51,7 @@ To upgrade the version of the lib2813 libraries you are using, simply update the
   - `WPILibNewCommands.json`
 - `com.team2813.lib2813:vendor-ctre`:
   - `Phoenix6.json`
-- `com.team2813.lib2813:vendor-ctre`:
+- `com.team2813.lib2813:vendor-rev`:
   - `REVLib.json`
 - `com.team2813.lib2813:limelight`:
   - `Phoenix6.json`
