@@ -1,0 +1,8 @@
+// Make the 'libs' version catalog accessible from `buildSrc`
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
+}

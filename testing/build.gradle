@@ -1,15 +1,16 @@
 plugins {
     id 'java-common-conventions'
     id 'publishing-conventions'
-    id 'edu.wpi.first.GradleRIO' version '2026.1.1'
+    alias libs.plugins.gradlerio
 }
 
 dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
-    implementation 'com.google.truth:truth:1.4.4'
-    implementation(platform('org.junit:junit-bom:5.13.1'))
-    implementation('org.junit.jupiter:junit-jupiter')
+    implementation libs.wpilib.newcommands
+    implementation libs.truth
+    implementation(platform(libs.junit.bom))
+    implementation(libs.junit.jupiter)
     implementation project(':core')
     nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
     nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
@@ -19,8 +20,8 @@ dependencies {
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
 
-    testImplementation('org.junit.platform:junit-platform-testkit')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    testImplementation(libs.junit.platform.testkit)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 // the magic line that makes tests work :)

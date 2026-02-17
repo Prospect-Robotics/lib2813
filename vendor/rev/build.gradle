@@ -1,7 +1,7 @@
 plugins {
     id 'java-common-conventions'
     id 'publishing-conventions'
-    id 'edu.wpi.first.GradleRIO' version '2026.1.1'
+    alias libs.plugins.gradlerio
 }
 
 dependencies {
@@ -17,10 +17,10 @@ dependencies {
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
 
-    testImplementation(platform('org.junit:junit-bom:5.13.1'))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testImplementation('com.google.truth:truth:1.4.4')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.truth)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 // the magic line that makes tests work :)
@@ -33,7 +33,7 @@ tasks.named('test') {
 mavenPublishing {
     pom {
         name = '2813 REV Robotics Vendor Library'
-        description = 'REV Robotics extensions to team2813:lib'
+        description = 'REV Robotics extensions to team2813:core'
         developers {
             developer {
                 id = 'cuttestkittensrule'
