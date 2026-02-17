@@ -39,21 +39,22 @@ import java.util.Set;
 import java.util.function.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests for {@link PersistedConfiguration}. */
-@Disabled("WPILib will often crash due to https://github.com/wpilibsuite/allwpilib/issues/8215")
 @ProvideUniqueNetworkTableInstance(replacePreferencesNetworkTable = true)
 public final class PersistedConfigurationTest {
   private static final double EPSILON = 0.001;
 
   /** Base class for all nested classes of {@link PersistedConfigurationTest}. */
   @Nested
+  @Execution(ExecutionMode.SAME_THREAD) // Test updates static state
   abstract class PreferencesRegistryTestCase<T extends Record> {
     private final List<Executable> collectedErrors = new ArrayList<>();
     private final String preferenceName;
