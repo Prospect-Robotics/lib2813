@@ -15,8 +15,7 @@ limitations under the License.
 */
 package com.team2813.lib2813.limelight;
 
-import static com.ctre.phoenix6.Utils.getCurrentTimeSeconds;
-
+import edu.wpi.first.wpilibj.Timer;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -56,7 +55,7 @@ class DataCollection implements Runnable {
     @Override
     public BodySubscriber<Result> apply(ResponseInfo responseInfo) {
       // Get the timestamp before we parse the JSON.
-      double responseTimestamp = getCurrentTimeSeconds();
+      double responseTimestamp = Timer.getFPGATimestamp();
 
       return BodySubscribers.mapping(
           BodyHandlers.ofString(Charset.defaultCharset()).apply(responseInfo),
