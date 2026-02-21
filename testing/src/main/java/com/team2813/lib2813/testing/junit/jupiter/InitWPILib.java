@@ -25,7 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 /**
  * JUnit Jupiter annotation used to signal tests that depends on WPILib.
  *
- * <p>Also provides a {@link CommandTester} for tests.
+ * <p>Also provides a {@link CommandsTester} for tests.
  *
  * <p>Example use:
  *
@@ -41,11 +41,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
  *   }
  *
  *   @Test
- *   public void takesFlight(CommandTester commandTester) {
+ *   public void takesFlight(CommandsTester commandsTester) {
  *     var flight = new FlightSubsystem();
  *     Command takeOff = flight.createTakeOffCommand();
  *
- *     commandTester.runUntilComplete(takeOff);
+ *     commandsTester.withTimeout(Seconds.of(10)).runUntilComplete(takeOff);
  *
  *     assertThat(flight.inAir()).isTrue();
  *   }

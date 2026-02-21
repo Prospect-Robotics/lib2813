@@ -39,7 +39,6 @@ final class InitWPILibExtension
         AfterEachCallback,
         BeforeAllCallback,
         ParameterResolver {
-  private static final double NANOS_PER_SECOND = 1_000_000_000d;
   private static final Namespace NAMESPACE = Namespace.create(InitWPILibExtension.class);
   private static final StoreKey<InitWPILib> ANNOTATION_KEY = StoreKey.of(InitWPILib.class);
 
@@ -84,27 +83,14 @@ final class InitWPILibExtension
   public boolean supportsParameter(
       ParameterContext parameterContext, ExtensionContext extensionContext)
       throws ParameterResolutionException {
-    return CommandTester.class.equals(parameterContext.getParameter().getType());
+    return parameterContext.getParameter().getType().isAssignableFrom(CommandsTester.class);
   }
 
   @Override
   public CommandTester resolveParameter(
       ParameterContext parameterContext, ExtensionContext extensionContext) {
-    CommandScheduler scheduler = CommandScheduler.getInstance();
     InitWPILib annotation = ANNOTATION_KEY.get(extensionContext.getStore(NAMESPACE));
-
-    return command -> {
-      SimHooks.pauseTiming();
-      try {
-        scheduler.schedule(command);
-        do {
-          scheduler.run();
-          SimHooks.stepTiming(annotation.periodicPeriod());
-        } while (scheduler.isScheduled(command));
-      } finally {
-        SimHooks.resumeTiming();
-      }
-    };
+    return new CommandsTester(annotation);
   }
 
   private static InitWPILib getAnnotation(ExtensionContext context) {
