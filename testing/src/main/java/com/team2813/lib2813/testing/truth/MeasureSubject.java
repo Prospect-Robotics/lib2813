@@ -51,9 +51,9 @@ public class MeasureSubject<U extends Unit> extends Subject {
         checkTolerance(tolerance);
         if (!equalWithinTolerance(actual, expected, tolerance)) {
           failWithoutActual(
-              fact("expected", expected.toLongString()),
-              fact("but was", actual.toLongString()),
-              fact("outside tolerance", tolerance.toLongString()));
+              fact("expected", formatUnit(expected)),
+              fact("but was", formatUnit(actual)),
+              fact("outside tolerance", formatUnit(tolerance)));
         }
       }
     };
@@ -67,9 +67,9 @@ public class MeasureSubject<U extends Unit> extends Subject {
         checkTolerance(tolerance);
         if (!notEqualWithinTolerance(actual, expected, tolerance)) {
           failWithoutActual(
-              fact("expected not to be", expected.toLongString()),
-              fact("but was", actual.toLongString()),
-              fact("within tolerance", tolerance.toLongString()));
+              fact("expected not to be", formatUnit(expected)),
+              fact("but was", formatUnit(actual)),
+              fact("within tolerance", formatUnit(tolerance)));
         }
       }
     };
@@ -90,6 +90,10 @@ public class MeasureSubject<U extends Unit> extends Subject {
     } else {
       return false;
     }
+  }
+
+  private static <U extends Unit> String formatUnit(Measure<U> measure) {
+    return String.format("%g %s", measure.magnitude(), measure.unit().name());
   }
 
   private void checkTolerance(Measure<U> tolerance) {
