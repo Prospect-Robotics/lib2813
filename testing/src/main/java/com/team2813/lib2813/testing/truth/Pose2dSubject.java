@@ -62,6 +62,16 @@ public final class Pose2dSubject extends Subject {
     };
   }
 
+  public TolerantComparison<Pose2d> isNotWithin(double tolerance) {
+    return new TolerantComparison<Pose2d>() {
+      @Override
+      public void of(Pose2d expected) {
+        translation().isNotWithin(tolerance).of(expected.getTranslation());
+        rotation().isWithin(tolerance).of(expected.getRotation());
+      }
+    };
+  }
+
   public Translation2dSubject translation() {
     return check("getTranslation()")
         .about(Translation2dSubject.translation2ds())

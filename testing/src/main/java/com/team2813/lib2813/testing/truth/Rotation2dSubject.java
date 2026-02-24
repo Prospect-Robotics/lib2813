@@ -58,6 +58,15 @@ public final class Rotation2dSubject extends Subject {
     };
   }
 
+  public TolerantComparison<Rotation2d> isNotWithin(double tolerance) {
+    return new TolerantComparison<Rotation2d>() {
+      @Override
+      public void of(Rotation2d expected) {
+        getRadians().isNotWithin(tolerance).of(expected.getRadians());
+      }
+    };
+  }
+
   public void isZero() {
     if (!Rotation2d.kZero.equals(actual)) {
       failWithActual(simpleFact("expected to be zero"));

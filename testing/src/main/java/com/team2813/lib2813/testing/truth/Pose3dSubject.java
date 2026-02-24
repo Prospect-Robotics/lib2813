@@ -62,6 +62,16 @@ public final class Pose3dSubject extends Subject {
     };
   }
 
+  public TolerantComparison<Pose3d> isNotWithin(double tolerance) {
+    return new TolerantComparison<Pose3d>() {
+      @Override
+      public void of(Pose3d expected) {
+        translation().isNotWithin(tolerance).of(expected.getTranslation());
+        rotation().isNotWithin(tolerance).of(expected.getRotation());
+      }
+    };
+  }
+
   // Chained subjects methods below this point
 
   public Translation3dSubject translation() {
