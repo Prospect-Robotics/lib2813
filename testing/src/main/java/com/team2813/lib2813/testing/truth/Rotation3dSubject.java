@@ -60,6 +60,17 @@ public final class Rotation3dSubject extends Subject {
     };
   }
 
+  public TolerantComparison<Rotation3d> isNotWithin(double tolerance) {
+    return new TolerantComparison<Rotation3d>() {
+      @Override
+      public void of(Rotation3d expected) {
+        x().isNotWithin(tolerance).of(expected.getX()); // roll, in radians
+        y().isNotWithin(tolerance).of(expected.getY()); // pitch, in radians
+        z().isNotWithin(tolerance).of(expected.getZ()); // yaw, in radians
+      }
+    };
+  }
+
   public void isZero() {
     if (!Rotation3d.kZero.equals(actual)) {
       failWithActual(simpleFact("expected to be zero"));
