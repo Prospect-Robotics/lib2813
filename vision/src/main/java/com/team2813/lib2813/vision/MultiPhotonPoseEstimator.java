@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -63,7 +66,10 @@ import org.photonvision.simulation.VisionSystemSim;
  */
 public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable {
   private final List<PhotonCameraWrapper<C>> cameraWrappers;
+  private final Predicate<EstimatedRobotPose> isPoseValid;
+  private final PhotonPoseEstimator.PoseStrategy fallbackStrategy;
   private PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
+  private boolean needHeadingData;
 
   /** A builder for {@code MultiPhotonPoseEstimator}. */
   public static final class Builder<C extends Camera> {
@@ -71,6 +77,9 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
     private final AprilTagFieldLayout aprilTagFieldLayout;
     private final NetworkTableInstance ntInstance;
     private final PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
+    private PhotonPoseEstimator.PoseStrategy fallbackStrategy =
+        PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY;
+    private Predicate<EstimatedRobotPose> isPoseValid = pose -> true;
 
     Builder(
         NetworkTableInstance ntInstance,
@@ -95,6 +104,39 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
         throw new IllegalArgumentException(
             String.format("Already a camera with name '%s'", camera.name()));
       }
+      return this;
+    }
+
+    /**
+     * Sets the filter to use deciding which estimates to consider.
+     *
+     * @param isPoseValid A predicate that returns {@code true} if the pose should be considered
+     *     valid.
+     * @return Builder instance.
+     * @since 2.1.0
+     */
+    public Builder<C> withPoseFilter(Predicate<EstimatedRobotPose> isPoseValid) {
+      this.isPoseValid = isPoseValid;
+      return this;
+    }
+
+    /**
+     * Set the Position Estimation Strategy used in multi-tag mode when only one tag can be seen.
+     * Must NOT be {@link PhotonPoseEstimator.PoseStrategy#MULTI_TAG_PNP_ON_COPROCESSOR} or {@link
+     * PhotonPoseEstimator.PoseStrategy#MULTI_TAG_PNP_ON_RIO}.
+     *
+     * <p>If this is not called, {@link PhotonPoseEstimator.PoseStrategy#LOWEST_AMBIGUITY} will be
+     * used.
+     *
+     * @param strategy the strategy to set
+     * @return Builder instance.
+     * @since 2.1.0
+     */
+    public Builder<C> withMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy strategy) {
+      if (isMultiTagStrategy(strategy)) {
+        throw new IllegalArgumentException("Fallback strategy cannot be " + strategy);
+      }
+      fallbackStrategy = strategy;
       return this;
     }
 
@@ -233,10 +275,13 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   /** Creates an instance using values from a {@code Builder}. */
   private MultiPhotonPoseEstimator(Builder<C> builder) {
     poseEstimatorStrategy = builder.poseEstimatorStrategy;
+    fallbackStrategy = builder.fallbackStrategy;
+    isPoseValid = poseIsInField(builder.aprilTagFieldLayout).and(builder.isPoseValid);
     cameraWrappers =
         builder.cameras.values().stream()
             .map(camera -> createCameraWrapper(builder, camera))
             .collect(toCollection(ArrayList::new));
+    needHeadingData = calculateNeedHeadingData();
   }
 
   /**
@@ -251,6 +296,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
     PhotonPoseEstimator estimator =
         new PhotonPoseEstimator(
             builder.aprilTagFieldLayout, builder.poseEstimatorStrategy, camera.robotToCamera());
+    estimator.setMultiTagFallbackStrategy(builder.fallbackStrategy);
 
     // Create NetworkTables publishers for 1) the position of the camera relative to the robot and
     // 2) the estimated position provided by the camera.
@@ -283,6 +329,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
     if (!poseStrategy.equals(poseEstimatorStrategy)) {
       cameraWrappers.forEach(wrapper -> wrapper.estimator.setPrimaryStrategy(poseStrategy));
       poseEstimatorStrategy = poseStrategy;
+      needHeadingData = calculateNeedHeadingData();
     }
   }
 
@@ -292,10 +339,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
    * @return {@code true} if the pose strategy is documented to require addHeadingData().
    */
   public boolean poseStrategyRequiresHeadingData() {
-    return switch (poseEstimatorStrategy) {
-      case PNP_DISTANCE_TRIG_SOLVE, CONSTRAINED_SOLVEPNP -> true;
-      default -> false;
-    };
+    return needHeadingData;
   }
 
   /**
@@ -364,23 +408,45 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   }
 
   /**
-   * Sends all unread robot-pose estimations from all cameras to the provided consumer.
+   * Sends all validated unread robot-pose estimations from all cameras to the provided consumer.
    *
-   * <p>This method is supposed to be called from a routine updating drive-train pose with pose
-   * estimates from the photon vision cameras.
+   * <p>This method should be called from a routine updating drive-train pose with pose estimates
+   * from the photon vision cameras.
    *
-   * @param poseEstimateConsumer Functional interface for consuming computed pose estimates.
+   * @param poseEstimateConsumer Consumer for validated pose estimates.
    */
   public void processAllUnreadResults(PoseEstimateConsumer<C> poseEstimateConsumer) {
+    processAllUnreadResults(poseEstimateConsumer, pose -> {});
+  }
+
+  /**
+   * Sends all unread robot-pose estimations from all cameras to the provided consumers.
+   *
+   * <p>This method should be called from a routine updating drive-train pose with pose estimates
+   * from the photon vision cameras.
+   *
+   * @param poseEstimateConsumer Consumer for validated pose estimates.
+   * @param rejectedPoseConsumer Consumer for rejected pose estimates.
+   * @since 2.1.0
+   */
+  public void processAllUnreadResults(
+      PoseEstimateConsumer<C> poseEstimateConsumer,
+      Consumer<EstimatedRobotPose> rejectedPoseConsumer) {
     for (PhotonCameraWrapper<C> cameraWrapper : cameraWrappers) {
-      List<EstimatedRobotPose> poses =
+      Map<Boolean, List<EstimatedRobotPose>> poses =
           cameraWrapper.photonCamera.getAllUnreadResults().stream()
               .map(cameraWrapper.estimator::update) // PhotonPipelineResult -> EstimatedRobotPose
               .flatMap(Optional::stream) // Convert Stream<Optional<P>> -> Stream<P>
-              .toList();
+              .collect(Collectors.partitioningBy(isPoseValid));
 
-      poses.forEach(pose -> poseEstimateConsumer.addEstimatedRobotPose(pose, cameraWrapper.camera));
-      cameraWrapper.robotPosePublisher.publish(poses);
+      List<EstimatedRobotPose> validatedPoses = poses.get(Boolean.TRUE);
+      for (EstimatedRobotPose pose : validatedPoses) {
+        poseEstimateConsumer.addEstimatedRobotPose(pose, cameraWrapper.camera);
+      }
+      cameraWrapper.robotPosePublisher.publish(validatedPoses);
+
+      List<EstimatedRobotPose> rejectedPoses = poses.get(Boolean.FALSE);
+      rejectedPoses.forEach(rejectedPoseConsumer);
     }
   }
 
@@ -388,5 +454,43 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   public void close() {
     cameraWrappers.forEach(PhotonCameraWrapper::close);
     cameraWrappers.clear();
+  }
+
+  private static boolean poseStrategyRequiresHeadingData(
+      PhotonPoseEstimator.PoseStrategy strategy) {
+    return switch (strategy) {
+      case PNP_DISTANCE_TRIG_SOLVE, CONSTRAINED_SOLVEPNP -> true;
+      default -> false;
+    };
+  }
+
+  private static boolean isMultiTagStrategy(PhotonPoseEstimator.PoseStrategy strategy) {
+    return switch (strategy) {
+      case MULTI_TAG_PNP_ON_COPROCESSOR, MULTI_TAG_PNP_ON_RIO -> true;
+      default -> false;
+    };
+  }
+
+  private boolean calculateNeedHeadingData() {
+    if (poseStrategyRequiresHeadingData(poseEstimatorStrategy)) {
+      return true;
+    }
+    return isMultiTagStrategy(poseEstimatorStrategy)
+        && poseStrategyRequiresHeadingData(fallbackStrategy);
+  }
+
+  /** Creates a predicate that determines if a pose is inside the field. */
+  private static <C extends Camera> Predicate<EstimatedRobotPose> poseIsInField(
+      AprilTagFieldLayout aprilTagFieldLayout) {
+    return pose -> {
+      Pose3d estimate = pose.estimatedPose;
+      double x = estimate.getX();
+      double y = estimate.getY();
+
+      return x >= 0.0
+          && x <= aprilTagFieldLayout.getFieldLength()
+          && y >= 0.0
+          && y <= aprilTagFieldLayout.getFieldWidth();
+    };
   }
 }
