@@ -27,6 +27,15 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Unit;
 import javax.annotation.Nullable;
 
+/**
+ * Truth subject for making assertions about {@link Measure} values.
+ *
+ * <p>See <a href="https://truth.dev/extension">Writing your own custom subject</a> to learn about
+ * creating custom Truth subjects.
+ *
+ * @param <U> The WPILib Unit type of the {@link Measure}
+ * @since 2.1.0
+ */
 public class MeasureSubject<U extends Unit> extends Subject {
   public static <U extends Unit> MeasureSubject<U> assertThat(@Nullable Measure<U> measure) {
     return assertAbout(MeasureSubject.<U>measures()).that(measure);
