@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Prospect Robotics SWENext Club
+Copyright 2025-2026 Prospect Robotics SWENext Club
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  * data that takes longer to produce than the frequency of the robot's event loop (for example,
  * estimated robot pose data produced by a camera).
  */
-final class TimestampedStructPublisher<S> {
+final class TimestampedStructPublisher<S> implements AutoCloseable {
   private static final long MICROS_PER_SECOND = 1_000_000;
 
   /**
@@ -104,6 +104,11 @@ final class TimestampedStructPublisher<S> {
       }
       publishedZeroValue = false;
     }
+  }
+
+  @Override
+  public void close() {
+    publisher.close();
   }
 
   private long currentTimeMicros() {
