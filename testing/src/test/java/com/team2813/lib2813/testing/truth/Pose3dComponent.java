@@ -18,27 +18,29 @@ package com.team2813.lib2813.testing.truth;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import java.util.stream.Stream;
 
-enum Pose3dComponent {
-  X {
+/** Represents component in a three-dimensional coordinate system. */
+enum Pose3dComponent implements Component {
+  X(Type.TRANSLATION) {
     @Override
     Pose3d add(Pose3d pose, double value) {
       return new Pose3d(pose.getX() + value, pose.getY(), pose.getZ(), pose.getRotation());
     }
   },
-  Y {
+  Y(Type.TRANSLATION) {
     @Override
     Pose3d add(Pose3d pose, double value) {
       return new Pose3d(pose.getX(), pose.getY() + value, pose.getZ(), pose.getRotation());
     }
   },
-  Z {
+  Z(Type.TRANSLATION) {
     @Override
     Pose3d add(Pose3d pose, double value) {
       return new Pose3d(pose.getX(), pose.getY(), pose.getZ() + value, pose.getRotation());
     }
   },
-  ROLL {
+  ROLL(Type.ROTATION) {
     @Override
     Pose3d add(Pose3d pose, double value) {
       Rotation3d rotation = pose.getRotation();
@@ -47,7 +49,7 @@ enum Pose3dComponent {
           new Rotation3d(rotation.getX() + value, rotation.getY(), rotation.getZ()));
     }
   },
-  PITCH {
+  PITCH(Type.ROTATION) {
     @Override
     Pose3d add(Pose3d pose, double value) {
       Rotation3d rotation = pose.getRotation();
@@ -56,7 +58,7 @@ enum Pose3dComponent {
           new Rotation3d(rotation.getX(), rotation.getY() + value, rotation.getZ()));
     }
   },
-  YAW {
+  YAW(Type.ROTATION) {
     @Override
     Pose3d add(Pose3d pose, double value) {
       Rotation3d rotation = pose.getRotation();
@@ -65,6 +67,31 @@ enum Pose3dComponent {
           new Rotation3d(rotation.getX(), rotation.getY(), rotation.getZ() + value));
     }
   };
+
+  /** An arguments provider for Pose3dComponent values that represent translations. */
+  static class TranslationsArgumentsProvider extends ComponentArgumentsProvider<Pose3dComponent> {
+    TranslationsArgumentsProvider() {
+      super(Type.TRANSLATION, Stream.of(Pose3dComponent.values()));
+    }
+  }
+
+  /** An arguments provider for Pose3dComponent values that represent rotations. */
+  static class RotationsArgumentsProvider extends ComponentArgumentsProvider<Pose3dComponent> {
+    RotationsArgumentsProvider() {
+      super(Type.ROTATION, Stream.of(Pose3dComponent.values()));
+    }
+  }
+
+  private final Type componentType;
+
+  Pose3dComponent(Type componentType) {
+    this.componentType = componentType;
+  }
+
+  @Override
+  public final Type getType() {
+    return componentType;
+  }
 
   abstract Pose3d add(Pose3d pose, double value);
 

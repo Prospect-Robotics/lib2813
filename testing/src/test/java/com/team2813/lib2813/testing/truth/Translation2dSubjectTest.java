@@ -19,16 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 /** Tests for {@link Translation2dSubject}. */
 class Translation2dSubjectTest {
   private static final Translation2d TRANSLATION = new Translation2d(7.353, 0.706);
 
   @ParameterizedTest
-  @EnumSource(
-      value = Pose2dComponent.class,
-      names = {"X", "Y"})
+  @ArgumentsSource(Pose2dComponent.TranslationsArgumentsProvider.class)
   public void isWithin_valueWithinTolerance_doesNotThrow(Pose2dComponent component) {
     Translation2d closeTranslation = component.add(TRANSLATION, 0.009);
 
@@ -36,9 +34,7 @@ class Translation2dSubjectTest {
   }
 
   @ParameterizedTest
-  @EnumSource(
-      value = Pose2dComponent.class,
-      names = {"X", "Y"})
+  @ArgumentsSource(Pose2dComponent.TranslationsArgumentsProvider.class)
   public void isWithin_valueNotWithinTolerance_throws(Pose2dComponent component) {
     Translation2d closeTranslation = component.add(TRANSLATION, 0.011);
 

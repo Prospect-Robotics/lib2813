@@ -24,8 +24,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 /** Tests for {@link Pose2dSubject}. */
 class Pose2dSubjectTest {
-  private static final Pose2d POSE =
-      new Pose2d(7.353, 0.706, new Rotation2d(Math.toRadians(6.81), Math.toRadians(-25.67)));
+  private static final Pose2d POSE = new Pose2d(7.353, 0.706, new Rotation2d(Math.PI / 6));
 
   @ParameterizedTest
   @EnumSource(Pose2dComponent.class)

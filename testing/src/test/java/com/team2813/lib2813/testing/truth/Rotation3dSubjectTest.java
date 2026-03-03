@@ -19,16 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import edu.wpi.first.math.geometry.Rotation3d;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 /** Tests for {@link Rotation3dSubject}. */
 class Rotation3dSubjectTest {
   private static final Rotation3d ROTATION = new Rotation3d(6.81, -25.67, 3.16);
 
   @ParameterizedTest
-  @EnumSource(
-      value = Pose3dComponent.class,
-      names = {"ROLL", "PITCH", "YAW"})
+  @ArgumentsSource(Pose3dComponent.RotationsArgumentsProvider.class)
   public void isWithin_valueWithinTolerance_doesNotThrow(Pose3dComponent component) {
     Rotation3d closeRotation = component.add(ROTATION, 0.009);
 
@@ -36,9 +34,7 @@ class Rotation3dSubjectTest {
   }
 
   @ParameterizedTest
-  @EnumSource(
-      value = Pose3dComponent.class,
-      names = {"ROLL", "PITCH", "YAW"})
+  @ArgumentsSource(Pose3dComponent.RotationsArgumentsProvider.class)
   public void isWithin_valueNotWithinTolerance_throws(Pose3dComponent component) {
     Rotation3d closeRotation = component.add(ROTATION, 0.011);
 

@@ -18,27 +18,47 @@ package com.team2813.lib2813.testing.truth;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import java.util.stream.Stream;
 
-enum Pose2dComponent {
-  X {
+/** Represents component in a two-dimensional coordinate system. */
+enum Pose2dComponent implements Component {
+  X(Type.TRANSLATION) {
     @Override
     Pose2d add(Pose2d pose, double value) {
       return new Pose2d(pose.getX() + value, pose.getY(), pose.getRotation());
     }
   },
-  Y {
+  Y(Type.TRANSLATION) {
     @Override
     Pose2d add(Pose2d pose, double value) {
       return new Pose2d(pose.getX(), pose.getY() + value, pose.getRotation());
     }
   },
-  R {
+  R(Type.ROTATION) {
     @Override
     Pose2d add(Pose2d pose, double value) {
       return new Pose2d(
           pose.getTranslation(), new Rotation2d(pose.getRotation().getRadians() + value));
     }
   };
+
+  /** An arguments provider for Pose3dComponent values that represent translations. */
+  static class TranslationsArgumentsProvider extends ComponentArgumentsProvider<Pose2dComponent> {
+    TranslationsArgumentsProvider() {
+      super(Type.TRANSLATION, Stream.of(Pose2dComponent.values()));
+    }
+  }
+
+  private final Type componentType;
+
+  Pose2dComponent(Type componentType) {
+    this.componentType = componentType;
+  }
+
+  @Override
+  public final Type getType() {
+    return componentType;
+  }
 
   abstract Pose2d add(Pose2d pose, double value);
 

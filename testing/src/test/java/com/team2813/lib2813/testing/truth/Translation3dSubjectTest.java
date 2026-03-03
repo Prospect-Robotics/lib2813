@@ -15,20 +15,18 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.truth;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import edu.wpi.first.math.geometry.Translation3d;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 /** Tests for {@link Translation3dSubject}. */
 class Translation3dSubjectTest {
   private static final Translation3d TRANSLATION = new Translation3d(7.353, 0.706, 42.00);
 
   @ParameterizedTest
-  @EnumSource(
-      value = Pose3dComponent.class,
-      names = {"X", "Y", "Z"})
+  @ArgumentsSource(Pose3dComponent.TranslationsArgumentsProvider.class)
   public void isWithin_valueWithinTolerance_doesNotThrow(Pose3dComponent component) {
     Translation3d closeTranslation = component.add(TRANSLATION, 0.009);
 
@@ -36,9 +34,7 @@ class Translation3dSubjectTest {
   }
 
   @ParameterizedTest
-  @EnumSource(
-      value = Pose3dComponent.class,
-      names = {"X", "Y", "Z"})
+  @ArgumentsSource(Pose3dComponent.TranslationsArgumentsProvider.class)
   public void isWithin_valueNotWithinTolerance_throws(Pose3dComponent component) {
     Translation3d closeTranslation = component.add(TRANSLATION, 0.011);
 

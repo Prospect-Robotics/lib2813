@@ -22,8 +22,7 @@ import org.junit.jupiter.api.Test;
 
 /** Tests for {@link Rotation2dSubject}. */
 class Rotation2dSubjectTest {
-  private static final Rotation2d ROTATION =
-      new Rotation2d(Math.toRadians(6.81), Math.toRadians(-25.67));
+  private static final Rotation2d ROTATION = new Rotation2d(Math.PI / 6);
 
   @Test
   public void isWithin_valueWithinTolerance_doesNotThrow() {
