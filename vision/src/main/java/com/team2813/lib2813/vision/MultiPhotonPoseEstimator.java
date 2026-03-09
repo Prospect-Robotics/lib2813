@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -192,6 +193,21 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
    * @param simVisionSystem The simulated visual system.
    */
   public void addCamerasToSimulator(VisionSystemSim simVisionSystem) {
+    addCamerasToSimulator(simVisionSystem, (camera, simCamera) -> {});
+  }
+
+  /**
+   * Adds all cameras to a simulated vision system, updating camera properties
+   *
+   * <p>Note that the robot code is responsible for calling {@link VisionSystemSim#update(Pose2d)}
+   * or {@link VisionSystemSim#update(Pose3d)} in {@code simulationPeriodic()}.
+   *
+   * @param simVisionSystem The simulated visual system.
+   * @param simCameraUpdater Callback that is called for each new simulated camera.
+   * @since 2.1.0
+   */
+  public void addCamerasToSimulator(
+      VisionSystemSim simVisionSystem, BiConsumer<C, PhotonCameraSim> simCameraUpdater) {
     // Validate all inputs and create SimCameraProperties for each camera.
     Map<String, SimCameraProperties> cameraNameToSimProperties =
         cameraWrappers.stream()
@@ -203,6 +219,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
         wrapper -> {
           SimCameraProperties cameraProps = cameraNameToSimProperties.get(wrapper.camera.name());
           PhotonCameraSim simCamera = new PhotonCameraSim(wrapper.photonCamera, cameraProps);
+          simCameraUpdater.accept(wrapper.camera, simCamera);
           simVisionSystem.addCamera(simCamera, wrapper.estimator.getRobotToCameraTransform());
         });
   }
