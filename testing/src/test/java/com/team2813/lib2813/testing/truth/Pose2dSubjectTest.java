@@ -36,27 +36,10 @@ class Pose2dSubjectTest {
 
   @ParameterizedTest
   @EnumSource(Pose2dComponent.class)
-  public void isNotWithin_valueWithinTolerance_throws(Pose2dComponent component) {
-    Pose2d closePose = component.add(POSE, 0.009);
-
-    assertThrows(
-        AssertionError.class, () -> Pose2dSubject.assertThat(closePose).isNotWithin(0.01).of(POSE));
-  }
-
-  @ParameterizedTest
-  @EnumSource(Pose2dComponent.class)
   public void isWithin_valueNotWithinTolerance_throws(Pose2dComponent component) {
     Pose2d closePose = component.add(POSE, 0.011);
 
     assertThrows(
         AssertionError.class, () -> Pose2dSubject.assertThat(closePose).isWithin(0.01).of(POSE));
-  }
-
-  @ParameterizedTest
-  @EnumSource(Pose2dComponent.class)
-  public void isNotWithin_valueNotWithinTolerance_doesNotThrow(Pose2dComponent component) {
-    Pose2d closePose = component.add(POSE, 0.011);
-
-    Pose2dSubject.assertThat(closePose).isNotWithin(0.01).of(POSE);
   }
 }

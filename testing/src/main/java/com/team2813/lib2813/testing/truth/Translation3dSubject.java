@@ -61,17 +61,6 @@ public final class Translation3dSubject extends Subject {
     };
   }
 
-  public TolerantComparison<Translation3d> isNotWithin(double tolerance) {
-    return new TolerantComparison<Translation3d>() {
-      @Override
-      public void of(Translation3d expected) {
-        x().isNotWithin(tolerance).of(expected.getX());
-        y().isNotWithin(tolerance).of(expected.getY());
-        z().isNotWithin(tolerance).of(expected.getZ());
-      }
-    };
-  }
-
   public void isZero() {
     if (!Translation3d.kZero.equals(actual)) {
       failWithActual(simpleFact("expected to be zero"));

@@ -60,16 +60,6 @@ public final class Translation2dSubject extends Subject {
     };
   }
 
-  public TolerantComparison<Translation2d> isNotWithin(double tolerance) {
-    return new TolerantComparison<Translation2d>() {
-      @Override
-      public void of(Translation2d expected) {
-        x().isNotWithin(tolerance).of(expected.getX());
-        y().isNotWithin(tolerance).of(expected.getY());
-      }
-    };
-  }
-
   public void isZero() {
     if (!Translation2d.kZero.equals(actual)) {
       failWithActual(simpleFact("expected to be zero"));
