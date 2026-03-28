@@ -1,4 +1,10 @@
-# User Documentation
+# lib2813
+
+[![Gradle](https://github.com/Prospect-Robotics/lib2813/actions/workflows/gradle.yml/badge.svg?branch=main)](https://github.com/Prospect-Robotics/lib2813/actions/workflows/gradle.yml)
+[![Java Documentation](https://img.shields.io/badge/documentation-java-blue)](https://team2813.com/javadoc/latest/)
+[![core version](https://img.shields.io/maven-central/v/com.team2813.lib2813/core)](https://mvnrepository.com/artifact/com.team2813.lib2813)
+
+The Prospect Robotics SWENext Club welcomes you to lib2813.
 
 ## Using the libraries
 
