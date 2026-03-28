@@ -39,4 +39,20 @@ class Rotation2dSubjectTest {
         AssertionError.class,
         () -> Rotation2dSubject.assertThat(closeRotation).isWithin(0.01).of(ROTATION));
   }
+
+  @Test
+  public void isNotWithin_valueWithinTolerance_throws() {
+    Rotation2d closeRotation = Pose2dComponent.R.add(ROTATION, 0.009);
+
+    assertThrows(
+        AssertionError.class,
+        () -> Rotation2dSubject.assertThat(closeRotation).isNotWithin(0.01).of(ROTATION));
+  }
+
+  @Test
+  public void isNotWithin_valueNotWithinTolerance_doesNotThrow() {
+    Rotation2d closeRotation = Pose2dComponent.R.add(ROTATION, 0.011);
+
+    Rotation2dSubject.assertThat(closeRotation).isNotWithin(0.01).of(ROTATION);
+  }
 }
