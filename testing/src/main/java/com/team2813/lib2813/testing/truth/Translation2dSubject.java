@@ -64,8 +64,8 @@ public final class Translation2dSubject extends Subject {
     return new TolerantComparison<Translation2d>() {
       @Override
       public void of(Translation2d expected) {
-        x().isWithin(tolerance).of(expected.getX());
-        y().isWithin(tolerance).of(expected.getY());
+        x().isNotWithin(tolerance).of(expected.getX());
+        y().isNotWithin(tolerance).of(expected.getY());
       }
     };
   }

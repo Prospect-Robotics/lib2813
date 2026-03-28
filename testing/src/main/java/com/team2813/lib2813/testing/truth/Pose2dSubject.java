@@ -67,7 +67,7 @@ public final class Pose2dSubject extends Subject {
       @Override
       public void of(Pose2d expected) {
         translation().isNotWithin(tolerance).of(expected.getTranslation());
-        rotation().isWithin(tolerance).of(expected.getRotation());
+        rotation().isNotWithin(tolerance).of(expected.getRotation());
       }
     };
   }
