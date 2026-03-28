@@ -41,7 +41,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
  *
  * @since 2.0.0
  */
-public final class PhotonVisionPosePublisher {
+public final class PhotonVisionPosePublisher implements AutoCloseable {
   /**
    * How much time we expect to pass between receiving pose estimates from PhotonVision when an
    * AprilTag is visible. Empirically, this is 0.1 seconds.
@@ -103,6 +103,15 @@ public final class PhotonVisionPosePublisher {
             .flatMap(Optional::stream) // Convert Stream<Optional<V>> -> Stream<V>
             .toList();
     aprilTagPosePublisher.publish(aprilTagPoses);
+  }
+
+  /**
+   * @since 2.1.0
+   */
+  @Override
+  public void close() {
+    robotPosePublisher.close();
+    aprilTagPosePublisher.close();
   }
 
   /** Gets the robot pose from the EstimatedRobotPose and converts it to a timestamped value. */
