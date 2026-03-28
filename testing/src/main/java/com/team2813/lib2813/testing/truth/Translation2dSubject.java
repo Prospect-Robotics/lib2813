@@ -54,10 +54,31 @@ public final class Translation2dSubject extends Subject {
     return new TolerantComparison<Translation2d>() {
       @Override
       public void of(Translation2d expected) {
-        x().isWithin(tolerance).of(expected.getX());
-        y().isWithin(tolerance).of(expected.getY());
+        if (expected == null) {
+          throw new NullPointerException("Expected value cannot be null.");
+        }
+        checkDistance(expected).isWithin(tolerance).of(0);
       }
     };
+  }
+
+  public TolerantComparison<Translation2d> isNotWithin(double tolerance) {
+    return new TolerantComparison<Translation2d>() {
+      @Override
+      public void of(Translation2d expected) {
+        if (expected == null) {
+          throw new NullPointerException("Expected value cannot be null.");
+        }
+        checkDistance(expected).isNotWithin(tolerance).of(0);
+      }
+    };
+  }
+
+  private DoubleSubject checkDistance(Translation2d expected) {
+    if (expected == null) {
+      throw new NullPointerException("Expected value cannot be null.");
+    }
+    return check("%s", actual).that(nonNullActual().getDistance(expected));
   }
 
   public void isZero() {
