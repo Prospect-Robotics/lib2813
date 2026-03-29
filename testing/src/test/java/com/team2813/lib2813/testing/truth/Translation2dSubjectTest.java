@@ -35,7 +35,7 @@ class Translation2dSubjectTest {
         assertThrows(
             AssertionError.class,
             () -> Translation2dSubject.assertThat(actual).isWithin(0.01).of(TRANSLATION));
-    assertThat(e).hasMessageThat().contains("non-null");
+    assertThat(e).hasMessageThat().contains(": null");
   }
 
   @Test

@@ -15,8 +15,10 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.truth;
 
+import static com.google.common.truth.Fact.fact;
 import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.team2813.lib2813.testing.truth.SubjectHelper.checkTolerance;
 
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
@@ -56,8 +58,20 @@ public final class Pose3dSubject extends Subject {
     return new TolerantComparison<Pose3d>() {
       @Override
       public void of(Pose3d expected) {
-        translation().isWithin(tolerance).of(expected.getTranslation());
-        rotation().isWithin(tolerance).of(expected.getRotation());
+        if (expected == null) {
+          throw new NullPointerException("Expected value cannot be null.");
+        }
+        checkTolerance(tolerance);
+        Pose3d actual = nonNullActualPose();
+        if (!Translation3dSubject.equalWithinTolerance(
+                expected.getTranslation(), actual.getTranslation(), tolerance)
+            || !Rotation3dSubject.equalWithinTolerance(
+                expected.getRotation(), actual.getRotation(), tolerance)) {
+          failWithoutActual(
+              fact("expected", expected),
+              fact("but was", actual),
+              fact("outside tolerance", tolerance));
+        }
       }
     };
   }
