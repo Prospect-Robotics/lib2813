@@ -70,24 +70,6 @@ public final class Translation2dSubject extends Subject {
     };
   }
 
-  public TolerantComparison<Translation2d> isNotWithin(double tolerance) {
-    return new TolerantComparison<>() {
-      @Override
-      public void of(Translation2d expected) {
-        if (expected == null) {
-          throw new NullPointerException("Expected value cannot be null.");
-        }
-        checkTolerance(tolerance);
-        if (equalWithinTolerance(expected, nonNullActual(), tolerance)) {
-          failWithoutActual(
-              fact("expected not to be", expected),
-              fact("but was", actual),
-              fact("within tolerance", tolerance));
-        }
-      }
-    };
-  }
-
   static boolean equalWithinTolerance(
       Translation2d translation1, Translation2d translation2, double tolerance) {
     double distance = translation1.getDistance(translation2);
