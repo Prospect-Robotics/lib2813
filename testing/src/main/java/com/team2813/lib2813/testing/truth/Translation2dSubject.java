@@ -53,7 +53,7 @@ public final class Translation2dSubject extends Subject {
   // User-defined test assertion SPI below this point
 
   public TolerantComparison<Translation2d> isWithin(double tolerance) {
-    return new TolerantComparison<Translation2d>() {
+    return new TolerantComparison<>() {
       @Override
       public void of(Translation2d expected) {
         if (expected == null) {
@@ -71,7 +71,7 @@ public final class Translation2dSubject extends Subject {
   }
 
   public TolerantComparison<Translation2d> isNotWithin(double tolerance) {
-    return new TolerantComparison<Translation2d>() {
+    return new TolerantComparison<>() {
       @Override
       public void of(Translation2d expected) {
         if (expected == null) {

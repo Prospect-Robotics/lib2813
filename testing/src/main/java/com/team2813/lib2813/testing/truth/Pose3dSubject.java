@@ -55,7 +55,7 @@ public final class Pose3dSubject extends Subject {
   // User-defined test assertion SPI below this point
 
   public TolerantComparison<Pose3d> isWithin(double tolerance) {
-    return new TolerantComparison<Pose3d>() {
+    return new TolerantComparison<>() {
       @Override
       public void of(Pose3d expected) {
         if (expected == null) {

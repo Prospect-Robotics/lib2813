@@ -52,7 +52,7 @@ public final class Rotation2dSubject extends Subject {
   // User-defined test assertion SPI below this point
 
   public TolerantComparison<Rotation2d> isWithin(double tolerance) {
-    return new TolerantComparison<Rotation2d>() {
+    return new TolerantComparison<>() {
       @Override
       public void of(Rotation2d expected) {
         if (expected == null) {
