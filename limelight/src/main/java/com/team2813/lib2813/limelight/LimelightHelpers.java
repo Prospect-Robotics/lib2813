@@ -1645,10 +1645,7 @@ class LimelightHelpers {
 
   /** Asynchronously take snapshot. */
   public static CompletableFuture<Boolean> takeSnapshot(String tableName, String snapshotName) {
-    return CompletableFuture.supplyAsync(
-        () -> {
-          return SYNCH_TAKESNAPSHOT(tableName, snapshotName);
-        });
+    return CompletableFuture.supplyAsync(() -> SYNCH_TAKESNAPSHOT(tableName, snapshotName));
   }
 
   private static boolean SYNCH_TAKESNAPSHOT(String tableName, String snapshotName) {
