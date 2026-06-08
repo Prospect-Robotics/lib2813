@@ -30,6 +30,8 @@ import java.lang.reflect.*;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -357,7 +359,7 @@ public final class PersistedConfiguration {
    * Type-safe functional interface for creating an instance of a type using data in Preferences.
    */
   @FunctionalInterface
-  private interface GenericPreferenceFetcher<T> {
+  private interface PreferenceFetcher<T> {
     /**
      * Gets a value from Preferences for the given component.
      *
@@ -376,45 +378,17 @@ public final class PersistedConfiguration {
         ListenerRegistry listenerRegistry);
   }
 
-  /**
-   * Functional interface for creating an instance of a type using data in Preferences.
-   *
-   * <p>Note: this interface exists to avoid ugly casts in the code that uses the reflection APIs.
-   */
-  @FunctionalInterface
-  private interface PreferenceFetcher {
-    /**
-     * Gets a value from Preferences for the given component.
-     *
-     * @param component Provides dynamic access to the component of the record class.
-     * @param key The Preference key that should be used when initializing the Preference.
-     * @param defaultValue The default value that should be used when initializing the Preference.
-     * @param initializePreference Whether the preference should be initialized.
-     * @param listenerRegistry Registry that supports adding Preference value listeners.
-     * @return The value; will match the type in "component";
-     */
-    Object getValue(
-        RecordComponent component,
-        String key,
-        Object defaultValue,
-        boolean initializePreference,
-        ListenerRegistry listenerRegistry);
-  }
-
-  private static final Map<Type, PreferenceFetcher> TYPE_TO_FETCHER = new HashMap<>();
+  private static final Map<Type, PreferenceFetcher<?>> TYPE_TO_FETCHER = new HashMap<>();
 
   /**
    * Registers a preference fetcher with a type.
    *
+   * <p>This ensures that the types for the fetcher matches the type being registered.
+   *
    * @param type The type to register.
-   * @param simpleFetcher The fetcher that should be used to create values of the given type.
+   * @param fetcher The fetcher that should be used to create values of the given type.
    */
-  @SuppressWarnings("unchecked")
-  private static <T> void register(Class<T> type, GenericPreferenceFetcher<T> simpleFetcher) {
-    PreferenceFetcher fetcher =
-        (component, key, defaultValue, initializePreference, listenerConsumers) ->
-            simpleFetcher.getValue(
-                component, key, (T) defaultValue, initializePreference, listenerConsumers);
+  private static <T> void register(Class<T> type, PreferenceFetcher<T> fetcher) {
     TYPE_TO_FETCHER.put(type, fetcher);
   }
 
@@ -721,7 +695,8 @@ public final class PersistedConfiguration {
   /** Registry that supports adding Preference value listeners. */
   private static class ListenerRegistry {
     private static final String PREFERENCE_TABLE_NAME = "Preferences";
-    private final Map<Integer, Consumer<NetworkTableValue>> topicToConsumer = new HashMap<>();
+    private final ConcurrentMap<Integer, Consumer<NetworkTableValue>> topicToConsumer =
+        new ConcurrentHashMap<>();
     private final NetworkTable preferencesTable;
 
     ListenerRegistry(NetworkTableInstance ntInstance, String preferenceName) {
