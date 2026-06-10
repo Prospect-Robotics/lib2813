@@ -87,7 +87,7 @@ public class MeasureSubject<U extends Unit> extends Subject {
   private static <U extends Unit> boolean equalWithinTolerance(
       Measure<U> left, Measure<U> right, Measure<U> tolerance) {
     return Math.abs(left.baseUnitMagnitude() - right.baseUnitMagnitude())
-        <= Math.abs(tolerance.baseUnitMagnitude());
+        <= tolerance.baseUnitMagnitude();
   }
 
   private static <U extends Unit> boolean notEqualWithinTolerance(
@@ -95,7 +95,7 @@ public class MeasureSubject<U extends Unit> extends Subject {
     double leftD = left.baseUnitMagnitude();
     double rightD = right.baseUnitMagnitude();
     if (Doubles.isFinite(leftD) && Doubles.isFinite(rightD)) {
-      return Math.abs(leftD - rightD) > Math.abs(tolerance.baseUnitMagnitude());
+      return Math.abs(leftD - rightD) > tolerance.baseUnitMagnitude();
     } else {
       return false;
     }
@@ -106,9 +106,15 @@ public class MeasureSubject<U extends Unit> extends Subject {
   }
 
   private void checkTolerance(Measure<U> tolerance) {
+    // TOOO: Replace with call to SubjectHelper.checkTolerance when Prospect-Robotics/lib2813#156
+    // gets fully merged into main
     double mag = tolerance.baseUnitMagnitude();
     checkArgument(!Double.isNaN(mag), "tolerance cannot be NaN");
     checkArgument(mag >= 0, "tolerance (%s) cannot be negative", tolerance);
+    checkArgument(
+        Double.doubleToLongBits(mag) != Double.doubleToLongBits(-0.0),
+        "tolerance (%s) cannot be negative",
+        tolerance);
     checkArgument(
         mag != Double.POSITIVE_INFINITY, "tolerance cannot be POSITIVE_INFINITY", tolerance);
   }
