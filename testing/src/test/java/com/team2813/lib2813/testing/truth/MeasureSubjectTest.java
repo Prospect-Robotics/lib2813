@@ -17,15 +17,22 @@ package com.team2813.lib2813.testing.truth;
 
 import static com.google.common.truth.ExpectFailure.assertThat;
 import static com.google.common.truth.Truth.assertThat;
-import static edu.wpi.first.units.Units.Volts;
+import static com.team2813.lib2813.testing.truth.MeasureSubject.assertThat;
+import static edu.wpi.first.units.Units.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.common.truth.ExpectFailure;
+import edu.wpi.first.units.TemperatureUnit;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import org.junit.jupiter.api.Test;
 
 /** Tests for {@link MeasureSubject}. */
 class MeasureSubjectTest {
+  /** The Rankine unit of temperature. It's just Fahrenheit with 0°Ra being absolute zero. */
+  private static final TemperatureUnit Rankine =
+      derive(Units.Fahrenheit).offset(-459.67).named("Rankine").symbol("°Ra").make();
 
   @Test
   public void isWithin_toleranceIsNegative_throwsIllegalArgumentException() {
@@ -289,5 +296,74 @@ class MeasureSubjectTest {
     ExpectFailure.assertThat(e).factValue("expected not to be").matches("Infinity Volt");
     ExpectFailure.assertThat(e).factValue("but was").matches("Infinity Volt");
     ExpectFailure.assertThat(e).factValue("within tolerance").matches("0\\.1.*Volt");
+  }
+
+  @Test
+  public void isWithin_rankineTolerance_withinTolerance_doesNotThrow() {
+    Temperature expected = Fahrenheit.of(60);
+    Temperature actual = Fahrenheit.of(60.05);
+    Temperature tolerance = Rankine.of(0.1);
+
+    assertThat(actual).isWithin(tolerance).of(expected);
+  }
+
+  @Test
+  public void isWithin_rankineTolerance_notWithinTolerance_throws() {
+    Temperature expected = Fahrenheit.of(60.1);
+    Temperature actual = Fahrenheit.of(60.5);
+    Temperature tolerance = Rankine.of(0.1);
+
+    AssertionError e =
+        assertThrows(
+            AssertionError.class, () -> assertThat(actual).isWithin(tolerance).of(expected));
+    ExpectFailure.assertThat(e).factValue("expected").matches("60\\.1.*Fahrenheit");
+    ExpectFailure.assertThat(e).factValue("but was").matches("60\\.5.*Fahrenheit");
+    ExpectFailure.assertThat(e).factValue("outside tolerance").matches("0\\.1.*Rankine");
+  }
+
+  @Test
+  public void isWithin_rankineExpected_withinTolerance_doesNotThrow() {
+    Temperature expected = Rankine.of(519.67);
+    Temperature actual = Fahrenheit.of(60.05);
+    Temperature tolerance = Fahrenheit.of(0.1);
+
+    assertThat(actual).isWithin(tolerance).of(expected);
+  }
+
+  @Test
+  public void isWithin_rankineExpected_notWithinTolerance_throws() {
+    Temperature expected = Rankine.of(519.77);
+    Temperature actual = Fahrenheit.of(60.5);
+    Temperature tolerance = Fahrenheit.of(0.1);
+
+    AssertionError e =
+        assertThrows(
+            AssertionError.class, () -> assertThat(actual).isWithin(tolerance).of(expected));
+    ExpectFailure.assertThat(e).factValue("expected").matches("519\\.77.*Rankine");
+    ExpectFailure.assertThat(e).factValue("but was").matches("60\\.5.*Fahrenheit");
+    ExpectFailure.assertThat(e).factValue("outside tolerance").matches("0\\.1.*Fahrenheit");
+  }
+
+  @Test
+  public void isWithin_rankineActual_withinTolerance_doesNotThrow() {
+    Temperature expected = Fahrenheit.of(60);
+    Temperature actual = Rankine.of(519.72);
+    Temperature tolerance = Fahrenheit.of(0.1);
+
+    assertThat(actual).isWithin(tolerance).of(expected);
+  }
+
+  @Test
+  public void isWithin_rankineActual_notWithinTolerance_throws() {
+    Temperature expected = Fahrenheit.of(60.1);
+    Temperature actual = Rankine.of(520.17);
+    Temperature tolerance = Fahrenheit.of(0.1);
+
+    AssertionError e =
+        assertThrows(
+            AssertionError.class, () -> assertThat(actual).isWithin(tolerance).of(expected));
+    ExpectFailure.assertThat(e).factValue("expected").matches("60\\.1.*Fahrenheit");
+    ExpectFailure.assertThat(e).factValue("but was").matches("520\\.17.*Rankine");
+    ExpectFailure.assertThat(e).factValue("outside tolerance").matches("0\\.1.*Fahrenheit");
   }
 }

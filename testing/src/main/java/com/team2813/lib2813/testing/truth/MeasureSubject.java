@@ -86,8 +86,10 @@ public class MeasureSubject<U extends Unit> extends Subject {
 
   private static <U extends Unit> boolean equalWithinTolerance(
       Measure<U> left, Measure<U> right, Measure<U> tolerance) {
-    return Math.abs(left.baseUnitMagnitude() - right.baseUnitMagnitude())
-        <= tolerance.baseUnitMagnitude();
+    // If there is an offset, 0 of tolerance's unit is not 0 in the base unit. Explicitly subtract
+    // them so that the tolerance acts as expected (a delta from 0 of the unit)
+    double baseTolerance = tolerance.baseUnitMagnitude() - tolerance.unit().toBaseUnits(0);
+    return Math.abs(left.baseUnitMagnitude() - right.baseUnitMagnitude()) <= baseTolerance;
   }
 
   private static <U extends Unit> boolean notEqualWithinTolerance(
@@ -95,7 +97,8 @@ public class MeasureSubject<U extends Unit> extends Subject {
     double leftD = left.baseUnitMagnitude();
     double rightD = right.baseUnitMagnitude();
     if (Doubles.isFinite(leftD) && Doubles.isFinite(rightD)) {
-      return Math.abs(leftD - rightD) > tolerance.baseUnitMagnitude();
+      double baseTolerance = tolerance.baseUnitMagnitude() - tolerance.unit().toBaseUnits(0);
+      return Math.abs(leftD - rightD) > baseTolerance;
     } else {
       return false;
     }
