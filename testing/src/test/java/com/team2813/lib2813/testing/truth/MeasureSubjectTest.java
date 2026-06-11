@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.google.common.truth.ExpectFailure;
 import edu.wpi.first.units.TemperatureUnit;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import org.junit.jupiter.api.Test;
@@ -365,5 +366,74 @@ class MeasureSubjectTest {
     ExpectFailure.assertThat(e).factValue("expected").matches("60\\.1.*Fahrenheit");
     ExpectFailure.assertThat(e).factValue("but was").matches("520\\.17.*Rankine");
     ExpectFailure.assertThat(e).factValue("outside tolerance").matches("0\\.1.*Fahrenheit");
+  }
+
+  @Test
+  public void isWithin_centimeterTolerance_withinTolerance_doesNotThrow() {
+    Distance expected = Meters.of(28.13);
+    Distance actual = Meters.of(28.14);
+    Distance tolerance = Centimeters.of(2);
+
+    assertThat(actual).isWithin(tolerance).of(expected);
+  }
+
+  @Test
+  public void isWithin_centimeterTolerance_notWithinTolerance_throws() {
+    Distance expected = Meters.of(28.13);
+    Distance actual = Meters.of(28.16);
+    Distance tolerance = Centimeters.of(2);
+
+    AssertionError e =
+        assertThrows(
+            AssertionError.class, () -> assertThat(actual).isWithin(tolerance).of(expected));
+    ExpectFailure.assertThat(e).factValue("expected").matches("28\\.13.*Meter");
+    ExpectFailure.assertThat(e).factValue("but was").matches("28\\.16.*Meter");
+    ExpectFailure.assertThat(e).factValue("outside tolerance").matches("2.*Centimeter");
+  }
+
+  @Test
+  public void isWithin_centimeterActual_withinTolerance_doesNotThrow() {
+    Distance expected = Meters.of(28.13);
+    Distance actual = Centimeters.of(2814);
+    Distance tolerance = Meters.of(0.02);
+
+    assertThat(actual).isWithin(tolerance).of(expected);
+  }
+
+  @Test
+  public void isWithin_centimeterActual_notWithinTolerance_throws() {
+    Distance expected = Meters.of(28.13);
+    Distance actual = Centimeters.of(2816);
+    Distance tolerance = Meters.of(0.02);
+
+    AssertionError e =
+        assertThrows(
+            AssertionError.class, () -> assertThat(actual).isWithin(tolerance).of(expected));
+    ExpectFailure.assertThat(e).factValue("expected").matches("28\\.13.*Meter");
+    ExpectFailure.assertThat(e).factValue("but was").matches("2816.*Centimeter");
+    ExpectFailure.assertThat(e).factValue("outside tolerance").matches("0\\.02.*Meter");
+  }
+
+  @Test
+  public void isWithin_centimeterExpected_withinTolerance_doesNotThrow() {
+    Distance expected = Centimeters.of(2813);
+    Distance actual = Meters.of(28.14);
+    Distance tolerance = Meters.of(0.02);
+
+    assertThat(actual).isWithin(tolerance).of(expected);
+  }
+
+  @Test
+  public void isWithin_centimeterExpected_notWithinTolerance_throws() {
+    Distance expected = Centimeters.of(2813);
+    Distance actual = Meters.of(28.16);
+    Distance tolerance = Meters.of(0.02);
+
+    AssertionError e =
+        assertThrows(
+            AssertionError.class, () -> assertThat(actual).isWithin(tolerance).of(expected));
+    ExpectFailure.assertThat(e).factValue("expected").matches("2813.*Centimeter");
+    ExpectFailure.assertThat(e).factValue("but was").matches("28\\.16.*Meter");
+    ExpectFailure.assertThat(e).factValue("outside tolerance").matches("0\\.02.*Meter");
   }
 }
