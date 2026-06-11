@@ -15,7 +15,6 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.truth;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.truth.Fact.fact;
 import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
@@ -109,17 +108,8 @@ public class MeasureSubject<U extends Unit> extends Subject {
   }
 
   private void checkTolerance(Measure<U> tolerance) {
-    // TOOO: Replace with call to SubjectHelper.checkTolerance when Prospect-Robotics/lib2813#156
-    // gets fully merged into main
-    double mag = tolerance.baseUnitMagnitude();
-    checkArgument(!Double.isNaN(mag), "tolerance cannot be NaN");
-    checkArgument(mag >= 0, "tolerance (%s) cannot be negative", tolerance);
-    checkArgument(
-        Double.doubleToLongBits(mag) != Double.doubleToLongBits(-0.0),
-        "tolerance (%s) cannot be negative",
-        tolerance);
-    checkArgument(
-        mag != Double.POSITIVE_INFINITY, "tolerance cannot be POSITIVE_INFINITY", tolerance);
+    double baseTolerance = tolerance.baseUnitMagnitude() - tolerance.unit().toBaseUnits(0);
+    SubjectHelper.checkTolerance(baseTolerance);
   }
 
   private Measure<U> nonNullActual() {
