@@ -66,4 +66,22 @@ class Translation3dSubjectTest {
         AssertionError.class,
         () -> Translation3dSubject.assertThat(closeTranslation).isWithin(0.01).of(TRANSLATION));
   }
+
+  @ParameterizedTest
+  @ArgumentsSource(Pose3dComponent.TranslationsArgumentsProvider.class)
+  public void isNotWithin_valueNotWithinTolerance_doesNotThrow(Pose3dComponent component) {
+    Translation3d closeTranslation = component.add(TRANSLATION, 0.016);
+
+    Translation3dSubject.assertThat(closeTranslation).isNotWithin(0.01).of(TRANSLATION);
+  }
+
+  @ParameterizedTest
+  @ArgumentsSource(Pose3dComponent.TranslationsArgumentsProvider.class)
+  public void isNotWithin_valueWithinTolerance_throws(Pose3dComponent component) {
+    Translation3d closeTranslation = component.add(TRANSLATION, 0.009);
+
+    assertThrows(
+        AssertionError.class,
+        () -> Translation3dSubject.assertThat(closeTranslation).isNotWithin(0.01).of(TRANSLATION));
+  }
 }
