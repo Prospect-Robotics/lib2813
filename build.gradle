@@ -26,3 +26,31 @@ allprojects {
         }
     }
 }
+
+tasks.register('archiveJavadoc', Tar) {
+    archiveFileName = 'javadoc.tar.gz'
+    compression = Compression.GZIP
+    destinationDirectory = layout.buildDirectory.dir("docs/javadoc")
+
+    from(tasks.named('generateJavadocIndex'))
+
+    subprojects.forEach { sub ->
+        sub.tasks.withType(Javadoc).configureEach { javadocTask ->
+            from(javadocTask.destinationDir) {
+                into sub.name
+            }
+        }
+    }
+}
+
+tasks.register('generateJavadocIndex', Copy) {
+    from 'site/javadoc/latest'
+    include 'index.j2.html'
+    into layout.buildDirectory.dir("docs/javadoc")
+
+    // Rename the file during the copy process
+    rename { 'index.html' }
+
+    // This performs the variable substitution
+    expand([version: gradle.lib_version])
+}

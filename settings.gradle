@@ -8,5 +8,6 @@
  */
 
 rootProject.name = 'lib2813'
+gradle.ext.lib_version = "2.0.0"
 include 'core', 'limelight', 'vision', 'testing'
 include 'vendor:ctre', 'vendor:rev'
