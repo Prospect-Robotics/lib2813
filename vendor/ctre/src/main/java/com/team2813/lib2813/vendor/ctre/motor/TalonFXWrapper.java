@@ -190,7 +190,7 @@ public class TalonFXWrapper implements PIDMotor {
    *   <li>Brake: The motor stops applying an input, and actively opposes its inertia.
    * </ul>
    *
-   * @param mode
+   * @param mode the state of the motor controller bridge when output is neutral or disabled
    */
   public void setNeutralMode(NeutralModeValue mode) {
     motor.setNeutralMode(mode);
