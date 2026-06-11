@@ -16,4 +16,7 @@ Before publishing to Maven Central, consider publishing to Maven Local.
 9. Decrypt `lib2813-maven-publishing.tar.gz.gpg`
 10. Copy the last five lines of the decrypted file to your personal `gradle.properties` file
 11. Run `./gradlew publishToMavenCentral`
-12. Celebrate!
+12. Generate Javadoc by running `./gradlew archiveJavadoc`
+13. Copy `build/docs/javadoc/javadoc.tar.gz` to the web site and extract it
+14. Update the 'latest' symlink to point to the latest javadoc
+15. Celebrate!

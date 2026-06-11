@@ -1,0 +1,6 @@
+body > header {
+  --accent-bg: #4D7A97;
+}
+:root {
+  --accent: #4D7A97;
+}

@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.team2813.lib2813'
-version = "2.0.0"
+version = gradle.lib_version
 
 mavenPublishing {
 
