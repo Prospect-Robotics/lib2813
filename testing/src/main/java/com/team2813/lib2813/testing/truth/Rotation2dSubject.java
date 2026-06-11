@@ -69,12 +69,6 @@ public final class Rotation2dSubject extends Subject {
     };
   }
 
-  static boolean equalWithinTolerance(
-      Rotation2d rotation1, Rotation2d rotation2, double tolerance) {
-    double distance = rotation1.getRadians() - rotation2.getRadians();
-    return Math.abs(distance) < tolerance;
-  }
-
   public TolerantComparison<Rotation2d> isNotWithin(double tolerance) {
     return new TolerantComparison<>() {
       @Override
