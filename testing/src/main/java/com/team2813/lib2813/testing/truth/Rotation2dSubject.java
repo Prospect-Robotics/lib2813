@@ -69,10 +69,28 @@ public final class Rotation2dSubject extends Subject {
     };
   }
 
+  public TolerantComparison<Rotation2d> isNotWithin(double tolerance) {
+    return new TolerantComparison<>() {
+      @Override
+      public void of(Rotation2d expected) {
+        if (expected == null) {
+          throw new NullPointerException("Expected value cannot be null.");
+        }
+        checkTolerance(tolerance);
+        if (equalWithinTolerance(expected, nonNullActual(), tolerance)) {
+          failWithoutActual(
+              fact("expected", expected),
+              fact("but was", actual),
+              fact("outside tolerance", tolerance));
+        }
+      }
+    };
+  }
+
   static boolean equalWithinTolerance(
       Rotation2d rotation1, Rotation2d rotation2, double tolerance) {
     double distance = rotation1.getRadians() - rotation2.getRadians();
-    return Math.abs(distance) < tolerance;
+    return Math.abs(distance) <= tolerance;
   }
 
   public void isZero() {
