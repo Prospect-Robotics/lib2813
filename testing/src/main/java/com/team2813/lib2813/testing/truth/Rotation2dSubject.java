@@ -15,8 +15,10 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.truth;
 
+import static com.google.common.truth.Fact.fact;
 import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.team2813.lib2813.testing.truth.SubjectHelper.checkTolerance;
 
 import com.google.common.truth.DoubleSubject;
 import com.google.common.truth.FailureMetadata;
@@ -50,12 +52,27 @@ public final class Rotation2dSubject extends Subject {
   // User-defined test assertion SPI below this point
 
   public TolerantComparison<Rotation2d> isWithin(double tolerance) {
-    return new TolerantComparison<Rotation2d>() {
+    return new TolerantComparison<>() {
       @Override
       public void of(Rotation2d expected) {
-        getRadians().isWithin(tolerance).of(expected.getRadians());
+        if (expected == null) {
+          throw new NullPointerException("Expected value cannot be null.");
+        }
+        checkTolerance(tolerance);
+        if (!equalWithinTolerance(expected, nonNullActual(), tolerance)) {
+          failWithoutActual(
+              fact("expected", expected),
+              fact("but was", actual),
+              fact("outside tolerance", tolerance));
+        }
       }
     };
+  }
+
+  static boolean equalWithinTolerance(
+      Rotation2d rotation1, Rotation2d rotation2, double tolerance) {
+    double distance = rotation1.getRadians() - rotation2.getRadians();
+    return Math.abs(distance) < tolerance;
   }
 
   public void isZero() {

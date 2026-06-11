@@ -15,8 +15,10 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.truth;
 
+import static com.google.common.truth.Fact.fact;
 import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.team2813.lib2813.testing.truth.SubjectHelper.checkTolerance;
 
 import com.google.common.truth.DoubleSubject;
 import com.google.common.truth.FailureMetadata;
@@ -51,14 +53,27 @@ public final class Translation3dSubject extends Subject {
   // User-defined test assertion SPI below this point
 
   public TolerantComparison<Translation3d> isWithin(double tolerance) {
-    return new TolerantComparison<Translation3d>() {
+    return new TolerantComparison<>() {
       @Override
       public void of(Translation3d expected) {
-        x().isWithin(tolerance).of(expected.getX());
-        y().isWithin(tolerance).of(expected.getY());
-        z().isWithin(tolerance).of(expected.getZ());
+        if (expected == null) {
+          throw new NullPointerException("Expected value cannot be null.");
+        }
+        checkTolerance(tolerance);
+        if (!equalWithinTolerance(expected, nonNullActual(), tolerance)) {
+          failWithoutActual(
+              fact("expected", expected),
+              fact("but was", actual),
+              fact("outside tolerance", tolerance));
+        }
       }
     };
+  }
+
+  static boolean equalWithinTolerance(
+      Translation3d translation1, Translation3d translation2, double tolerance) {
+    double distance = translation1.getDistance(translation2);
+    return Math.abs(distance) < tolerance;
   }
 
   public void isZero() {

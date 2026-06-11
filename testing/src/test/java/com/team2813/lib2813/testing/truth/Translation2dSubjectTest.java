@@ -15,15 +15,39 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.truth;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 /** Tests for {@link Translation2dSubject}. */
 class Translation2dSubjectTest {
   private static final Translation2d TRANSLATION = new Translation2d(7.353, 0.706);
+
+  @Test
+  public void isWithin_nullActual_throws() {
+    Translation2d actual = null;
+
+    AssertionError e =
+        assertThrows(
+            AssertionError.class,
+            () -> Translation2dSubject.assertThat(actual).isWithin(0.01).of(TRANSLATION));
+    assertThat(e).hasMessageThat().contains(": null");
+  }
+
+  @Test
+  public void isWithin_nullExpected_throwsNullPointerException() {
+    Translation2d expected = null;
+
+    NullPointerException e =
+        assertThrows(
+            NullPointerException.class,
+            () -> Translation2dSubject.assertThat(TRANSLATION).isWithin(0.01).of(expected));
+    assertThat(e).hasMessageThat().contains("cannot be null");
+  }
 
   @ParameterizedTest
   @ArgumentsSource(Pose2dComponent.TranslationsArgumentsProvider.class)
@@ -36,7 +60,7 @@ class Translation2dSubjectTest {
   @ParameterizedTest
   @ArgumentsSource(Pose2dComponent.TranslationsArgumentsProvider.class)
   public void isWithin_valueNotWithinTolerance_throws(Pose2dComponent component) {
-    Translation2d closeTranslation = component.add(TRANSLATION, 0.011);
+    Translation2d closeTranslation = component.add(TRANSLATION, 0.016);
 
     assertThrows(
         AssertionError.class,

@@ -141,7 +141,7 @@ abstract class LimelightTestCase {
     var blueEstimate = locationalData.getBotPoseEstimateBlue().get();
     assertThat(blueEstimate.timestampSeconds()).isGreaterThan(0.0);
     var expectedPoseEstimate = new Pose2d(15.62, 4.52, rotation.toRotation2d());
-    assertThat(blueEstimate.pose()).isWithin(0.005).of(expectedPoseEstimate);
+    assertThat(blueEstimate.pose()).isWithin(0.01).of(expectedPoseEstimate);
 
     assertThat(locationalData.getBotPoseEstimateRed()).isPresent();
     var redEstimate = locationalData.getBotPoseEstimateRed().get();
@@ -173,7 +173,7 @@ abstract class LimelightTestCase {
     Rotation3d rotation =
         new Rotation3d(Math.toRadians(-5.18), Math.toRadians(-24.32), Math.toRadians(-164.64));
     Pose3d expectedPose = new Pose3d(7.469, 0.81, 1.01, rotation);
-    assertThat(actualPose).isWithin(0.005).of(expectedPose);
+    assertThat(actualPose).isWithin(0.01).of(expectedPose);
 
     assertThat(locationalData.getBotPoseEstimateBlue()).isPresent();
     var blueEstimate = locationalData.getBotPoseEstimateBlue().get();
@@ -201,7 +201,7 @@ abstract class LimelightTestCase {
     Pose3d actualPose = botposeBlue.get();
     Rotation3d expectedRotation = new Rotation3d(0, 0, Math.toRadians(-123.49));
     Pose3d expectedPose = new Pose3d(4.72, 5.20, 0, expectedRotation);
-    assertThat(actualPose).isWithin(0.005).of(expectedPose);
+    assertThat(actualPose).isWithin(0.01).of(expectedPose);
   }
 
   @Test
@@ -218,7 +218,7 @@ abstract class LimelightTestCase {
 
     Rotation3d expectedRotation = new Rotation3d(0, 0, Math.toRadians(56.51));
     Pose3d expectedPose = new Pose3d(11.83, 3.01, 0, expectedRotation);
-    assertThat(actualPose).isWithin(0.005).of(expectedPose);
+    assertThat(actualPose).isWithin(0.01).of(expectedPose);
   }
 
   @Test
