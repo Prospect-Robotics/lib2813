@@ -65,7 +65,6 @@ public final class Rotation2dSubject extends Subject {
               fact("but was", actual),
               fact("outside tolerance", tolerance));
         }
-        getRadians().isWithin(tolerance).of(expected.getRadians());
       }
     };
   }

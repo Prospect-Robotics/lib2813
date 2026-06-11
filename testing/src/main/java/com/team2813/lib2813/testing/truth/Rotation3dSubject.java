@@ -65,9 +65,6 @@ public final class Rotation3dSubject extends Subject {
               fact("but was", actual),
               fact("outside tolerance", tolerance));
         }
-        x().isWithin(tolerance).of(expected.getX());
-        y().isWithin(tolerance).of(expected.getY());
-        z().isWithin(tolerance).of(expected.getZ());
       }
     };
   }
