@@ -77,7 +77,7 @@ public final class Rotation2dSubject extends Subject {
           throw new NullPointerException("Expected value cannot be null.");
         }
         checkTolerance(tolerance);
-        if (!equalWithinTolerance(expected, nonNullActual(), tolerance)) {
+        if (equalWithinTolerance(expected, nonNullActual(), tolerance)) {
           failWithoutActual(
               fact("expected", expected),
               fact("but was", actual),
@@ -90,7 +90,7 @@ public final class Rotation2dSubject extends Subject {
   static boolean equalWithinTolerance(
       Rotation2d rotation1, Rotation2d rotation2, double tolerance) {
     double distance = rotation1.getRadians() - rotation2.getRadians();
-    return Math.abs(distance) < tolerance;
+    return Math.abs(distance) <= tolerance;
   }
 
   public void isZero() {
