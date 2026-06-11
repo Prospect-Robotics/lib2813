@@ -41,7 +41,7 @@ public class BuildConstantsPublisherTest {
 
   // Fake constants copied and adapted from this article
   // https://docs.wpilib.org/en/stable/docs/software/advanced-gradlerio/deploy-git-data.html
-  public final class FakeBuildConstants {
+  public static final class FakeBuildConstants {
     public static final String MAVEN_GROUP = "";
     public static final String MAVEN_NAME = "2813Robot";
     public static final String VERSION = "unspecified";
@@ -60,9 +60,10 @@ public class BuildConstantsPublisherTest {
    * A Truth {@link Subject} for asserting properties of strings that should parse as {@link
    * LocalDateTime}.
    *
-   * <p>Composed with the help of Gemini: https://g.co/gemini/share/d8db68a8fbaf
+   * <p>Composed with the help of Gemini: <a
+   * href="https://g.co/gemini/share/d8db68a8fbaf">thread</a>
    */
-  private class DateTimeStringSubject extends Subject {
+  private static class DateTimeStringSubject extends Subject {
     private final String actual;
 
     private DateTimeStringSubject(FailureMetadata metadata, String actual) {
