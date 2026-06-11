@@ -7,16 +7,13 @@
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value/1.11.0/d1fd0e74d20e922145c3fede3f05e246bb6be281/auto-value-1.11.0.jar" />
         </processorPath>
-        <module name="lib2813.core.main" />
+        <module name="lib2813.lib.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17" />
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="lib2813.core" options="-XDstringConcat=inline" />
-      <module name="lib2813.core.main" options="-XDstringConcat=inline" />
-      <module name="lib2813.core.test" options="-XDstringConcat=inline" />
       <module name="lib2813.lib" options="-XDstringConcat=inline" />
       <module name="lib2813.lib.main" options="-XDstringConcat=inline" />
       <module name="lib2813.lib.test" options="-XDstringConcat=inline" />
@@ -26,15 +23,6 @@
       <module name="lib2813.testing" options="-XDstringConcat=inline" />
       <module name="lib2813.testing.main" options="-XDstringConcat=inline" />
       <module name="lib2813.testing.test" options="-XDstringConcat=inline" />
-      <module name="lib2813.vendor.ctre" options="-XDstringConcat=inline" />
-      <module name="lib2813.vendor.ctre.main" options="-XDstringConcat=inline" />
-      <module name="lib2813.vendor.ctre.test" options="-XDstringConcat=inline" />
-      <module name="lib2813.vendor.rev" options="-XDstringConcat=inline" />
-      <module name="lib2813.vendor.rev.main" options="-XDstringConcat=inline" />
-      <module name="lib2813.vendor.rev.test" options="-XDstringConcat=inline" />
-      <module name="lib2813.vision" options="-XDstringConcat=inline" />
-      <module name="lib2813.vision.main" options="-XDstringConcat=inline" />
-      <module name="lib2813.vision.test" options="-XDstringConcat=inline" />
     </option>
   </component>
 </project>
