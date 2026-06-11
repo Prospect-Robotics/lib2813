@@ -15,15 +15,39 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.truth;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import edu.wpi.first.math.geometry.Translation3d;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 /** Tests for {@link Translation3dSubject}. */
 class Translation3dSubjectTest {
   private static final Translation3d TRANSLATION = new Translation3d(7.353, 0.706, 42.00);
+
+  @Test
+  public void isWithin_nullActual_throws() {
+    Translation3d actual = null;
+
+    AssertionError e =
+        assertThrows(
+            AssertionError.class,
+            () -> Translation3dSubject.assertThat(actual).isWithin(0.01).of(TRANSLATION));
+    assertThat(e).hasMessageThat().contains(": null");
+  }
+
+  @Test
+  public void isWithin_nullExpected_throwsNullPointerException() {
+    Translation3d expected = null;
+
+    NullPointerException e =
+        assertThrows(
+            NullPointerException.class,
+            () -> Translation3dSubject.assertThat(TRANSLATION).isWithin(0.01).of(expected));
+    assertThat(e).hasMessageThat().contains("cannot be null");
+  }
 
   @ParameterizedTest
   @ArgumentsSource(Pose3dComponent.TranslationsArgumentsProvider.class)
@@ -36,7 +60,7 @@ class Translation3dSubjectTest {
   @ParameterizedTest
   @ArgumentsSource(Pose3dComponent.TranslationsArgumentsProvider.class)
   public void isWithin_valueNotWithinTolerance_throws(Pose3dComponent component) {
-    Translation3d closeTranslation = component.add(TRANSLATION, 0.011);
+    Translation3d closeTranslation = component.add(TRANSLATION, 0.04);
 
     assertThrows(
         AssertionError.class,

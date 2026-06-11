@@ -15,8 +15,10 @@ limitations under the License.
 */
 package com.team2813.lib2813.testing.truth;
 
+import static com.google.common.truth.Fact.fact;
 import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.team2813.lib2813.testing.truth.SubjectHelper.checkTolerance;
 
 import com.google.common.truth.DoubleSubject;
 import com.google.common.truth.FailureMetadata;
@@ -50,14 +52,35 @@ public final class Rotation3dSubject extends Subject {
   // User-defined test assertion SPI below this point
 
   public TolerantComparison<Rotation3d> isWithin(double tolerance) {
-    return new TolerantComparison<Rotation3d>() {
+    return new TolerantComparison<>() {
       @Override
       public void of(Rotation3d expected) {
-        x().isWithin(tolerance).of(expected.getX()); // roll, in radians
-        y().isWithin(tolerance).of(expected.getY()); // pitch, in radians
-        z().isWithin(tolerance).of(expected.getZ()); // yaw, in radians
+        if (expected == null) {
+          throw new NullPointerException("Expected value cannot be null.");
+        }
+        checkTolerance(tolerance);
+        if (!equalWithinTolerance(expected, nonNullActual(), tolerance)) {
+          failWithoutActual(
+              fact("expected", expected),
+              fact("but was", actual),
+              fact("outside tolerance", tolerance));
+        }
       }
     };
+  }
+
+  static boolean equalWithinTolerance(
+      Rotation3d rotation1, Rotation3d rotation2, double tolerance) {
+    double distance = rotation1.getX() - rotation2.getX(); // roll, in radians
+    if (Math.abs(distance) >= tolerance) {
+      return false;
+    }
+    distance = rotation1.getY() - rotation2.getY(); // pitch, in radians
+    if (Math.abs(distance) >= tolerance) {
+      return false;
+    }
+    distance = rotation1.getZ() - rotation2.getZ(); // yaw, in radians
+    return Math.abs(distance) < tolerance;
   }
 
   public void isZero() {
