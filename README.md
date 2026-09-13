@@ -60,7 +60,7 @@ To upgrade the version of the lib2813 libraries you are using, simply update the
 - `com.team2813.lib2813:vendor-rev`:
   - `REVLib.json`
 - `com.team2813.lib2813:limelight`:
-  - `Phoenix6.json`
+  - none
 - `com.team2813.lib2813:vision`:
   - `photonlib.json`
 - `com.team2813.lib2813:testing`:
