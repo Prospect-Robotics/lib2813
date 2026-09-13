@@ -51,6 +51,15 @@ public class MeasureSubject<U extends Unit> extends Subject {
     this.actual = subject;
   }
 
+  /**
+   * Prepares for a check that the actual value is within the given tolerance
+   * of an expected value that will be provided in the next call in the
+   * fluent chain.
+   *
+   * @param tolerance an inclusive upper bound on the difference between the
+   *     actual value and expected value allowed by the check, which must be a
+   *     non-negative value.
+   */
   public TolerantComparison<Measure<U>> isWithin(Measure<U> tolerance) {
     return new TolerantComparison<Measure<U>>() {
       @Override
@@ -67,6 +76,15 @@ public class MeasureSubject<U extends Unit> extends Subject {
     };
   }
 
+  /**
+   * Prepares for a check that the actual value is not within the given
+   * tolerance of an expected value that will be provided in the next call in
+   * the fluent chain.
+   *
+   * @param tolerance an exclusive lower bound on the difference between the
+   *     actual value and expected value allowed by the check, which must be a
+   *     non-negative value.
+   */
   public TolerantComparison<Measure<U>> isNotWithin(Measure<U> tolerance) {
     return new TolerantComparison<Measure<U>>() {
       @Override

@@ -52,6 +52,15 @@ public final class Translation2dSubject extends Subject {
 
   // User-defined test assertion SPI below this point
 
+  /**
+   * Prepares for a check that the actual value is within the given tolerance
+   * of an expected value that will be provided in the next call in the
+   * fluent chain.
+   *
+   * @param tolerance an inclusive upper bound on the difference between the
+   *     actual value and expected value allowed by the check, which must be a
+   *     non-negative value.
+   */
   public TolerantComparison<Translation2d> isWithin(double tolerance) {
     return new TolerantComparison<>() {
       @Override
@@ -70,6 +79,16 @@ public final class Translation2dSubject extends Subject {
     };
   }
 
+  /**
+   * Prepares for a check that the actual value is not within the given
+   * tolerance of an expected value that will be provided in the next call in
+   * the fluent chain.
+   *
+   * @param tolerance an exclusive lower bound on the difference between the
+   *     actual value and expected value allowed by the check, which must be a
+   *     non-negative value.
+   * @since 2.1.0
+   */
   public TolerantComparison<Translation2d> isNotWithin(double tolerance) {
     return new TolerantComparison<>() {
       @Override
