@@ -148,7 +148,8 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   }
 
   /**
-   * Creates a builder for building {@link MultiPhotonPoseEstimator} instances.
+   * Creates a builder for building {@link MultiPhotonPoseEstimator} instances with a custom Camera
+   * type.
    *
    * @param ntInstance Network table instance used to log the pose of AprilTag detections as well as
    *     pose estimates.
@@ -167,8 +168,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   }
 
   /**
-   * Creates a builder for building {@link MultiPhotonPoseEstimator} instances with a custom Camera
-   * type,
+   * Creates a builder for building {@link MultiPhotonPoseEstimator} instances.
    *
    * @param ntInstance Network table instance used to log the pose of AprilTag detections as well as
    *     pose estimates.
