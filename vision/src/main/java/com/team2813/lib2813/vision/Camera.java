@@ -35,7 +35,7 @@ public class Camera {
   protected final Optional<Supplier<SimCameraProperties>> simPropertiesSupplier;
 
   /**
-   * Adds a camera and associated simulator properties to the multi pose estimator.
+   * Creates a camera.
    *
    * @param name Unique name of the camera. It is recommended for this to describe the camera's
    *     location (ex: "frontLeft").
@@ -46,7 +46,7 @@ public class Camera {
   }
 
   /**
-   * Adds a camera and associated simulator properties to the multi pose estimator.
+   * Creates a camera with a supplier for getting simulated camera properties.
    *
    * @param name Unique name of the camera. It is recommended for this to describe the camera's
    *     location (ex: "frontLeft").
