@@ -53,6 +53,9 @@ import org.photonvision.simulation.VisionSystemSim;
  * combining readings from AprilTags visible from the cameras. It also supports adding the cameras
  * to PhotonVision's simulated vision system.
  *
+ * <p>This class publishes location data to {@code "photonvision/[cameraName]/LatestPose"} using
+ * {@link PhotonVisionPosePublisher}.
+ *
  * <p>Note that, when we are dealing with 2D and 3D poses, we follow <a
  * href="https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/coordinate-systems.html"
  * target="_top">the transformation conventions</a> established by WPILib and PhotonVision.
