@@ -18,5 +18,6 @@ Before publishing to Maven Central, consider publishing to Maven Local.
 11. Run `./gradlew publishToMavenCentral`
 12. Generate Javadoc by running `./gradlew archiveJavadoc`
 13. Copy `build/docs/javadoc/javadoc.tar.gz` to the web site and extract it
+    - scp build/docs/javadoc/javadoc.tar.gz root@team2813.com:/var/www/wordpress/javadoc/
 14. Update the 'latest' symlink to point to the latest javadoc
 15. Celebrate!
