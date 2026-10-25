@@ -9,6 +9,7 @@ mavenPublishing {
 
     publishToMavenCentral()
     if (gradle.startParameter.taskNames.any { it.contains('MavenCentral') }) {
+        assert version != '2.0.0': 'Update the version before publishing to Maven Central'
         signAllPublications()
     }
 
