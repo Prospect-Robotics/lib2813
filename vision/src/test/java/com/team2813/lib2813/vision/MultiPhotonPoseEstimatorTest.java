@@ -18,6 +18,7 @@ package com.team2813.lib2813.vision;
 import static com.google.common.truth.Truth.assertThat;
 import static com.team2813.lib2813.testing.truth.Pose3dSubject.assertThat;
 import static com.team2813.lib2813.vision.MultiPhotonPoseEstimator.UNSUPPORTED_POSE_STRATEGIES;
+import static com.team2813.lib2813.vision.PoseEstimationStrategy.estimateLowestAmbiguityPose;
 import static edu.wpi.first.units.Units.Meters;
 
 import com.team2813.lib2813.testing.junit.jupiter.InitWPILib;
@@ -58,6 +59,7 @@ class MultiPhotonPoseEstimatorTest {
 
   @ParameterizedTest
   @EnumSource(value = PoseStrategy.class)
+  @SuppressWarnings("deprecation")
   void getPrimaryStrategy(PoseStrategy poseStrategy, NetworkTableInstance ntInstance) {
     PoseStrategy expectedStrategy =
         UNSUPPORTED_POSE_STRATEGIES.contains(poseStrategy)
@@ -99,7 +101,7 @@ class MultiPhotonPoseEstimatorTest {
             SimCameraProperties::PERFECT_90DEG);
 
     try (var estimator =
-        MultiPhotonPoseEstimator.builder(ntInstance, fieldLayout, PoseStrategy.LOWEST_AMBIGUITY)
+        MultiPhotonPoseEstimator.builder(ntInstance, fieldLayout, estimateLowestAmbiguityPose())
             .addCamera(camera)
             .build()) {
       estimator.addCamerasToSimulator(
@@ -148,7 +150,7 @@ class MultiPhotonPoseEstimatorTest {
             SimCameraProperties::PERFECT_90DEG);
 
     try (var estimator =
-        MultiPhotonPoseEstimator.builder(ntInstance, fieldLayout, PoseStrategy.LOWEST_AMBIGUITY)
+        MultiPhotonPoseEstimator.builder(ntInstance, fieldLayout, estimateLowestAmbiguityPose())
             .addCamera(camera)
             .build()) {
       estimator.addCamerasToSimulator(
