@@ -17,6 +17,7 @@ package com.team2813.lib2813.vision;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.team2813.lib2813.testing.truth.Pose3dSubject.assertThat;
+import static com.team2813.lib2813.vision.MultiPhotonPoseEstimator.UNSUPPORTED_POSE_STRATEGIES;
 import static edu.wpi.first.units.Units.Meters;
 
 import com.team2813.lib2813.testing.junit.jupiter.InitWPILib;
@@ -58,12 +59,17 @@ class MultiPhotonPoseEstimatorTest {
   @ParameterizedTest
   @EnumSource(value = PoseStrategy.class)
   void getPrimaryStrategy(PoseStrategy poseStrategy, NetworkTableInstance ntInstance) {
+    PoseStrategy expectedStrategy =
+        UNSUPPORTED_POSE_STRATEGIES.contains(poseStrategy)
+            ? PoseStrategy.LOWEST_AMBIGUITY
+            : poseStrategy;
+
     try (var estimator =
         MultiPhotonPoseEstimator.builder(
                 ntInstance, ReefscapeAprilTag.createFieldLayout(), poseStrategy)
             .addCamera(FRONT_CAMERA)
             .build()) {
-      assertThat(estimator.getPrimaryStrategy()).isEqualTo(poseStrategy);
+      assertThat(estimator.getPrimaryStrategy()).isEqualTo(expectedStrategy);
     }
   }
 
