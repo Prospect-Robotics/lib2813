@@ -28,12 +28,14 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.DriverStation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -69,6 +71,14 @@ import org.photonvision.simulation.VisionSystemSim;
  * @since 2.0.0
  */
 public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable {
+  static Set<PhotonPoseEstimator.PoseStrategy> UNSUPPORTED_POSE_STRATEGIES =
+      Set.of(
+          // Caller cannot access PhotonPoseEstimator so they cannot call setReferencePose().
+          PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE,
+          // Requires cameraMatrix and distCoeffs, which processAllUnreadResults() doesn't provide.
+          PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_RIO,
+          // Requires cameraMatrix and distCoeffs, which processAllUnreadResults() doesn't provide.
+          PhotonPoseEstimator.PoseStrategy.CONSTRAINED_SOLVEPNP);
   private final List<PhotonCameraWrapper<C>> cameraWrappers;
   private final Predicate<EstimatedRobotPose> isPoseValid;
   private final PhotonPoseEstimator.PoseStrategy fallbackStrategy;
@@ -93,7 +103,9 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
       this.aprilTagFieldLayout =
           Objects.requireNonNull(aprilTagFieldLayout, "aprilTagFieldLayout cannot be null");
       this.poseEstimatorStrategy =
-          Objects.requireNonNull(poseEstimatorStrategy, "poseEstimatorStrategy cannot be null");
+          warnIfNotSupported(
+              Objects.requireNonNull(
+                  poseEstimatorStrategy, "poseEstimatorStrategy cannot be null"));
     }
 
     /**
@@ -140,7 +152,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
       if (isMultiTagStrategy(strategy)) {
         throw new IllegalArgumentException("Fallback strategy cannot be " + strategy);
       }
-      fallbackStrategy = strategy;
+      fallbackStrategy = warnIfNotSupported(strategy);
       return this;
     }
 
@@ -252,7 +264,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
      *
      * @param robotPose 3D field-centric (relative to blue origin) pose of the drive train.
      */
-    void publishCameraPose(Pose3d robotPose) {
+    void publishCameraPoseRelativeTo(Pose3d robotPose) {
       cameraPosePublisher.set(robotPose.plus(camera.robotToCamera()));
     }
 
@@ -262,7 +274,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
      * @throws IllegalStateException if the caller did not provide a supplier.
      * @throws NullPointerException if the caller-provided supplier returns {@code null}.
      */
-    private SimCameraProperties createSimProperties() {
+    SimCameraProperties createSimProperties() {
       SimCameraProperties simProperties =
           camera
               .simPropertiesSupplier
@@ -302,6 +314,16 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
             .map(camera -> createCameraWrapper(builder, camera))
             .collect(toCollection(ArrayList::new));
     needHeadingData = calculateNeedHeadingData();
+  }
+
+  private static PhotonPoseEstimator.PoseStrategy warnIfNotSupported(
+      PhotonPoseEstimator.PoseStrategy poseStrategy) {
+    if (UNSUPPORTED_POSE_STRATEGIES.contains(poseStrategy)) {
+      DriverStation.reportWarning(
+          String.format("%s not supported; using LOWEST_AMBIGUITY", poseStrategy), true);
+      return PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY;
+    }
+    return poseStrategy;
   }
 
   /**
@@ -372,7 +394,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   public void publishCameraPosesRelativeTo(Pose2d pose) {
     Pose3d pose3d = new Pose3d(pose);
     for (PhotonCameraWrapper<C> cameraWrapper : cameraWrappers) {
-      cameraWrapper.publishCameraPose(pose3d);
+      cameraWrapper.publishCameraPoseRelativeTo(pose3d);
     }
   }
 
