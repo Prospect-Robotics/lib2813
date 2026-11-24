@@ -46,6 +46,7 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 /**
  * Provides estimated robot positions, in field pose, from multiple PhotonVision cameras.
@@ -81,8 +82,8 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
           PhotonPoseEstimator.PoseStrategy.CONSTRAINED_SOLVEPNP);
   private final List<PhotonCameraWrapper<C>> cameraWrappers;
   private final Predicate<EstimatedRobotPose> isPoseValid;
-  private final PhotonPoseEstimator.PoseStrategy fallbackStrategy;
   private PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
+  private PoseEstimationStrategy.Factory fallbackFactory;
   private boolean needHeadingData;
 
   /** A builder for {@code MultiPhotonPoseEstimator}. */
@@ -93,19 +94,19 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
     private final PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy;
     private PhotonPoseEstimator.PoseStrategy fallbackStrategy =
         PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY;
+    private PoseEstimationStrategy.Factory strategyFactory;
     private Predicate<EstimatedRobotPose> isPoseValid = pose -> true;
 
     Builder(
         NetworkTableInstance ntInstance,
         AprilTagFieldLayout aprilTagFieldLayout,
-        PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy) {
+        PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy,
+        PoseEstimationStrategy.Factory estimationStrategyFactory) {
       this.ntInstance = Objects.requireNonNull(ntInstance, "ntInstance cannot be null");
       this.aprilTagFieldLayout =
           Objects.requireNonNull(aprilTagFieldLayout, "aprilTagFieldLayout cannot be null");
-      this.poseEstimatorStrategy =
-          warnIfNotSupported(
-              Objects.requireNonNull(
-                  poseEstimatorStrategy, "poseEstimatorStrategy cannot be null"));
+      this.poseEstimatorStrategy = poseEstimatorStrategy;
+      this.strategyFactory = estimationStrategyFactory;
     }
 
     /**
@@ -147,7 +148,9 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
      * @param strategy the strategy to set
      * @return Builder instance.
      * @since 2.1.0
+     * @deprecated
      */
+    @Deprecated(forRemoval = true)
     public Builder<C> withMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy strategy) {
       if (isMultiTagStrategy(strategy)) {
         throw new IllegalArgumentException("Fallback strategy cannot be " + strategy);
@@ -173,13 +176,40 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
    * @param poseEstimatorStrategy Posing strategy (for instance, multi tag PnP, closest to camera
    *     tag, etc.)
    * @param cameraType The type for the camera.
+   * @deprecated Use {@link #builder(NetworkTableInstance, AprilTagFieldLayout,
+   *     PoseEstimationStrategy.Factory, Class)}.
    */
+  @Deprecated(forRemoval = true)
   public static <C extends Camera> Builder<C> builder(
       NetworkTableInstance ntInstance,
       AprilTagFieldLayout aprilTagFieldLayout,
       PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy,
       Class<C> cameraType) {
-    return new Builder<>(ntInstance, aprilTagFieldLayout, poseEstimatorStrategy);
+    Objects.requireNonNull(poseEstimatorStrategy, "poseEstimatorStrategy cannot be null");
+    return new Builder<>(
+        ntInstance, aprilTagFieldLayout, warnIfNotSupported(poseEstimatorStrategy), null);
+  }
+
+  /**
+   * Creates a builder for building {@link MultiPhotonPoseEstimator} instances with a custom Camera
+   * type.
+   *
+   * @param ntInstance Network table instance used to log the pose of AprilTag detections as well as
+   *     pose estimates.
+   * @param aprilTagFieldLayout WPILib field description (dimensions) including AprilTag 3D
+   *     locations.
+   * @param estimationStrategyFactory Factory to use to create the strategy. Callers will often pass
+   *     a factory function from {@link PoseEstimationStrategy}.
+   * @param cameraType The type for the camera.
+   * @since 2.2
+   */
+  public static <C extends Camera> Builder<C> builder(
+      NetworkTableInstance ntInstance,
+      AprilTagFieldLayout aprilTagFieldLayout,
+      PoseEstimationStrategy.Factory estimationStrategyFactory,
+      Class<C> cameraType) {
+    Objects.requireNonNull(estimationStrategyFactory, "estimationStrategyFactory cannot be null");
+    return new Builder<>(ntInstance, aprilTagFieldLayout, null, estimationStrategyFactory);
   }
 
   /**
@@ -191,12 +221,33 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
    *     locations.
    * @param poseEstimatorStrategy Posing strategy (for instance, multi tag PnP, closest to camera
    *     tag, etc.)
+   * @deprecated Use {@link #builder(NetworkTableInstance, AprilTagFieldLayout,
+   *     PoseEstimationStrategy.Factory)}.
    */
+  @Deprecated(forRemoval = true)
   public static Builder<Camera> builder(
       NetworkTableInstance ntInstance,
       AprilTagFieldLayout aprilTagFieldLayout,
       PhotonPoseEstimator.PoseStrategy poseEstimatorStrategy) {
     return builder(ntInstance, aprilTagFieldLayout, poseEstimatorStrategy, Camera.class);
+  }
+
+  /**
+   * Creates a builder for building {@link MultiPhotonPoseEstimator} instances.
+   *
+   * @param ntInstance Network table instance used to log the pose of AprilTag detections as well as
+   *     pose estimates.
+   * @param aprilTagFieldLayout WPILib field description (dimensions) including AprilTag 3D
+   *     locations.
+   * @param estimationStrategyFactory Factory to use to create the strategy. Callers will often pass
+   *     a factory function from {@link PoseEstimationStrategy}.
+   * @since 2.2
+   */
+  public static Builder<Camera> builder(
+      NetworkTableInstance ntInstance,
+      AprilTagFieldLayout aprilTagFieldLayout,
+      PoseEstimationStrategy.Factory estimationStrategyFactory) {
+    return builder(ntInstance, aprilTagFieldLayout, estimationStrategyFactory, Camera.class);
   }
 
   /**
@@ -239,25 +290,70 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
         });
   }
 
-  /**
-   * Wrapper containing a PhotonVision camera, pose estimator and publishers.
-   *
-   * @param camera The camera.
-   * @param photonCamera A camera connected to PhotonVision.
-   * @param estimator A pose estimator configured for this camera.
-   * @param robotPosePublisher A publisher reporting PhotonVision pose detections to NetworkTables
-   *     during the robot runtime.
-   * @param cameraPosePublisher A publisher reporting the position of the camera in field-centric
-   *     coordinates. In other words, this is the pose most recently set by {@link @setDrivePose}
-   *     with the camera's own robotToCamera pose appended to it.
-   */
-  private record PhotonCameraWrapper<C extends Camera>(
-      C camera,
-      PhotonCamera photonCamera,
-      PhotonPoseEstimator estimator,
-      PhotonVisionPosePublisher robotPosePublisher,
-      StructPublisher<Pose3d> cameraPosePublisher)
-      implements AutoCloseable {
+  /** Wrapper containing a PhotonVision camera, pose estimator and publishers. */
+  private static final class PhotonCameraWrapper<C extends Camera> implements AutoCloseable {
+    final C camera;
+
+    /** A camera connected to PhotonVision. */
+    final PhotonCamera photonCamera;
+
+    /** A pose estimator configured for this camera. */
+    final PhotonPoseEstimator estimator;
+
+    /**
+     * A publisher reporting PhotonVision pose detections to NetworkTables during the robot runtime.
+     */
+    final PhotonVisionPosePublisher robotPosePublisher;
+
+    /**
+     * A publisher reporting the position of the camera in field-centric coordinates. In other
+     * words, this is the pose most recently set by {@link @setDrivePose} with the camera's own
+     * robotToCamera pose appended to it.
+     */
+    final StructPublisher<Pose3d> cameraPosePublisher;
+
+    PoseEstimationStrategy estimationStrategy;
+
+    /**
+     * @param camera The camera.
+     * @param photonCamera A camera connected to PhotonVision.
+     * @param estimator A pose estimator configured for this camera.
+     * @param robotPosePublisher A publisher reporting PhotonVision pose detections to NetworkTables
+     *     during the robot runtime.
+     * @param cameraPosePublisher A publisher reporting the position of the camera in field-centric
+     *     coordinates. In other words, this is the pose most recently set by {@link @setDrivePose}
+     *     with the camera's own robotToCamera pose appended to it.
+     */
+    PhotonCameraWrapper(
+        C camera,
+        PhotonCamera photonCamera,
+        PhotonPoseEstimator estimator,
+        PhotonVisionPosePublisher robotPosePublisher,
+        StructPublisher<Pose3d> cameraPosePublisher,
+        PoseEstimationStrategy.Factory strategyFactory) {
+      this.camera = camera;
+      this.photonCamera = photonCamera;
+      this.estimator = estimator;
+      this.robotPosePublisher = robotPosePublisher;
+      this.cameraPosePublisher = cameraPosePublisher;
+      this.estimationStrategy = strategyFactory.create(estimator);
+    }
+
+    boolean requiresHeadingData() {
+      return estimationStrategy.requiresHeadingData();
+    }
+
+    void setStrategy(PoseEstimationStrategy.Factory strategyFactory) {
+      estimationStrategy = strategyFactory.create(estimator);
+    }
+
+    Optional<EstimatedRobotPose> update(PhotonPipelineResult cameraResult) {
+      return estimationStrategy.estimate(cameraResult);
+    }
+
+    void setLastPose(Pose3d lastPose) {
+      estimationStrategy.setLastPose(lastPose);
+    }
 
     /**
      * Publishes the position of this camera.
@@ -284,14 +380,14 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
                           String.format(
                               "Must pass Supplier<SimCameraProperties> to addCamera() to use camera"
                                   + " %s in simulation",
-                              camera().name())))
+                              camera.name())))
               .get();
       if (simProperties == null) {
         throw new NullPointerException(
             String.format(
                 "Supplier<SimCameraProperties> passed to addCamera(\"%s\", ...) cannot provide null"
                     + " values",
-                camera().name()));
+                camera.name()));
       }
       return simProperties;
     }
@@ -307,13 +403,40 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   /** Creates an instance using values from a {@code Builder}. */
   private MultiPhotonPoseEstimator(Builder<C> builder) {
     poseEstimatorStrategy = builder.poseEstimatorStrategy;
-    fallbackStrategy = builder.fallbackStrategy;
+    fallbackFactory = createStrategyFactory(builder.fallbackStrategy, null);
+    if (builder.strategyFactory == null) {
+      builder.strategyFactory =
+          createStrategyFactory(builder.poseEstimatorStrategy, fallbackFactory);
+    }
     isPoseValid = poseIsInField(builder.aprilTagFieldLayout).and(builder.isPoseValid);
     cameraWrappers =
         builder.cameras.values().stream()
             .map(camera -> createCameraWrapper(builder, camera))
             .collect(toCollection(ArrayList::new));
     needHeadingData = calculateNeedHeadingData();
+  }
+
+  private static PoseEstimationStrategy.Factory createStrategyFactory(
+      PhotonPoseEstimator.PoseStrategy primaryPoseStrategy,
+      PoseEstimationStrategy.Factory fallbackFactory) {
+    return switch (warnIfNotSupported(primaryPoseStrategy)) {
+      case LOWEST_AMBIGUITY -> PoseEstimationStrategy.estimateLowestAmbiguityPose();
+      case CLOSEST_TO_CAMERA_HEIGHT -> PoseEstimationStrategy.estimateClosestToCameraHeightPose();
+      case CLOSEST_TO_LAST_POSE -> PoseEstimationStrategy.estimateClosestToLastPose();
+      case AVERAGE_BEST_TARGETS -> PoseEstimationStrategy.estimateAverageBestTargetsPose();
+      case MULTI_TAG_PNP_ON_COPROCESSOR -> {
+        if (fallbackFactory == null) {
+          fallbackFactory = PoseEstimationStrategy.estimateLowestAmbiguityPose();
+        }
+        yield PoseEstimationStrategy.estimateCoprocMultiTagPose(fallbackFactory);
+      }
+      case PNP_DISTANCE_TRIG_SOLVE -> PoseEstimationStrategy.estimatePnpDistanceTrigSolvePose();
+      default -> {
+        DriverStation.reportWarning(
+            String.format("%s not supported; using LOWEST_AMBIGUITY", primaryPoseStrategy), true);
+        yield PoseEstimationStrategy.estimateLowestAmbiguityPose();
+      }
+    };
   }
 
   private static PhotonPoseEstimator.PoseStrategy warnIfNotSupported(
@@ -336,9 +459,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
       Builder<C> builder, C camera) {
     PhotonCamera photonCamera = new PhotonCamera(builder.ntInstance, camera.name());
     PhotonPoseEstimator estimator =
-        new PhotonPoseEstimator(
-            builder.aprilTagFieldLayout, builder.poseEstimatorStrategy, camera.robotToCamera());
-    estimator.setMultiTagFallbackStrategy(builder.fallbackStrategy);
+        new PhotonPoseEstimator(builder.aprilTagFieldLayout, camera.robotToCamera());
 
     // Create NetworkTables publishers for 1) the position of the camera relative to the robot and
     // 2) the estimated position provided by the camera.
@@ -349,14 +470,21 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
         new PhotonVisionPosePublisher(parentTable, builder.aprilTagFieldLayout);
 
     return new PhotonCameraWrapper<>(
-        camera, photonCamera, estimator, estimatedPosePublisher, cameraPosePublisher);
+        camera,
+        photonCamera,
+        estimator,
+        estimatedPosePublisher,
+        cameraPosePublisher,
+        builder.strategyFactory);
   }
 
   /**
    * Gets the Position Estimation Strategy being used by the Position Estimators.
    *
    * @return the strategy
+   * @deprecated
    */
+  @Deprecated(forRemoval = true)
   public PhotonPoseEstimator.PoseStrategy getPrimaryStrategy() {
     return poseEstimatorStrategy;
   }
@@ -365,14 +493,27 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
    * Sets the Position Estimation Strategy used by the Position Estimators.
    *
    * @param poseStrategy the strategy to set
+   * @deprecated
    */
+  @Deprecated(forRemoval = true)
   public void setPrimaryStrategy(PhotonPoseEstimator.PoseStrategy poseStrategy) {
     Objects.requireNonNull(poseStrategy, "poseStrategy cannot be null");
     if (!poseStrategy.equals(poseEstimatorStrategy)) {
-      cameraWrappers.forEach(wrapper -> wrapper.estimator.setPrimaryStrategy(poseStrategy));
+      setStrategy(createStrategyFactory(poseStrategy, fallbackFactory));
       poseEstimatorStrategy = poseStrategy;
-      needHeadingData = calculateNeedHeadingData();
     }
+  }
+
+  /**
+   * Sets the Position Estimation Strategy used by the Position Estimators.
+   *
+   * @param strategyFactory the factory to use to create the new strategies.
+   * @since 2.2
+   */
+  public void setStrategy(PoseEstimationStrategy.Factory strategyFactory) {
+    Objects.requireNonNull(strategyFactory, "strategyFactory cannot be null");
+    cameraWrappers.forEach(wrapper -> wrapper.setStrategy(strategyFactory));
+    needHeadingData = calculateNeedHeadingData();
   }
 
   /**
@@ -474,7 +615,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
     for (PhotonCameraWrapper<C> cameraWrapper : cameraWrappers) {
       Map<Boolean, List<EstimatedRobotPose>> poses =
           cameraWrapper.photonCamera.getAllUnreadResults().stream()
-              .map(cameraWrapper.estimator::update) // PhotonPipelineResult -> EstimatedRobotPose
+              .map(cameraWrapper::update) // PhotonPipelineResult -> EstimatedRobotPose
               .flatMap(Optional::stream) // Convert Stream<Optional<P>> -> Stream<P>
               .collect(Collectors.partitioningBy(isPoseValid));
 
@@ -489,18 +630,20 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
     }
   }
 
+  /**
+   * Updates the stored last pose.
+   *
+   * @param lastPose the lastPose to set
+   * @since 2.2
+   */
+  public void setLastPose(Pose3d lastPose) {
+    cameraWrappers.forEach(wrapper -> wrapper.setLastPose(lastPose));
+  }
+
   @Override
   public void close() {
     cameraWrappers.forEach(PhotonCameraWrapper::close);
     cameraWrappers.clear();
-  }
-
-  private static boolean poseStrategyRequiresHeadingData(
-      PhotonPoseEstimator.PoseStrategy strategy) {
-    return switch (strategy) {
-      case PNP_DISTANCE_TRIG_SOLVE, CONSTRAINED_SOLVEPNP -> true;
-      default -> false;
-    };
   }
 
   private static boolean isMultiTagStrategy(PhotonPoseEstimator.PoseStrategy strategy) {
@@ -511,11 +654,7 @@ public class MultiPhotonPoseEstimator<C extends Camera> implements AutoCloseable
   }
 
   private boolean calculateNeedHeadingData() {
-    if (poseStrategyRequiresHeadingData(poseEstimatorStrategy)) {
-      return true;
-    }
-    return isMultiTagStrategy(poseEstimatorStrategy)
-        && poseStrategyRequiresHeadingData(fallbackStrategy);
+    return cameraWrappers.stream().anyMatch(PhotonCameraWrapper::requiresHeadingData);
   }
 
   /** Creates a predicate that determines if a pose is inside the field. */
